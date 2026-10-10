@@ -33,3 +33,8 @@ Whenever the user solves, discusses, or submits a new problem in this repository
 
 ### Step 5: Update Central `README.md`
 * Add the new problem entry to the appropriate section in `README.md`.
+
+### Step 6: Git Identity & Remote Sync
+* The GitHub account for this repository is strictly **`tsathya98`** (email: `tsathya98@gmail.com`), NEVER work/corporate accounts.
+* Repository remote: `https://github.com/tsathya98/dsa-patterns-handbook.git`.
+
