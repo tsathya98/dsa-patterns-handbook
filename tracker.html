@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daily DSA Focus Tracker</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    /* THEME 1: OBSIDIAN CHARCOAL (DEFAULT) - Pure neutral dark, 0% blue glare */
+    body.theme-charcoal {
+      --bg: #0d0f12;
+      --surface: #15181e;
+      --surface-card: #191d24;
+      --border: #262b35;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --accent: #10b981;
+      --accent-soft: rgba(16, 185, 129, 0.15);
+      --badge-bg: #202630;
+    }
+
+    /* THEME 2: MATCHA / GRUVBOX - Earthy, warm olive & sand, lowest cortisol */
+    body.theme-matcha {
+      --bg: #141615;
+      --surface: #1c1f1d;
+      --surface-card: #222624;
+      --border: #323834;
+      --text: #ebdbb2;
+      --text-muted: #a89984;
+      --accent: #a9b665;
+      --accent-soft: rgba(169, 182, 101, 0.18);
+      --badge-bg: #2a302c;
+    }
+
+    /* THEME 3: WARM SEPIA (KINDLE PAPERWHITE) - Soothing warm parchment */
+    body.theme-sepia {
+      --bg: #f5efe6;
+      --surface: #eae2d6;
+      --surface-card: #ffffff;
+      --border: #dcd0bf;
+      --text: #2c2523;
+      --text-muted: #736762;
+      --accent: #059669;
+      --accent-soft: rgba(5, 150, 105, 0.12);
+      --badge-bg: #ebdccb;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      transition: background-color 0.25s ease, color 0.25s ease;
+      letter-spacing: -0.01em;
+    }
+
+    .ui-surface {
+      background-color: var(--surface);
+      border-color: var(--border);
+    }
+
+    .ui-card {
+      background-color: var(--surface-card);
+      border-color: var(--border);
+    }
+
+    .ui-text-muted {
+      color: var(--text-muted);
+    }
+
+    .ui-border {
+      border-color: var(--border);
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="theme-charcoal min-h-screen selection:bg-emerald-500 selection:text-black antialiased p-4 sm:p-6 lg:p-8">
+
+  <div class="max-w-4xl mx-auto space-y-6">
+
+    <!-- 1. TOP HEADER & THEME SWITCHER -->
+    <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b ui-border pb-4">
+      <div class="flex items-center gap-3">
+        <span class="text-2xl">🌿</span>
+        <div>
+          <h1 class="text-xl sm:text-2xl font-bold tracking-tight flex items-center gap-2">
+            DSA Focus Tracker
+            <span class="text-xs px-2 py-0.5 rounded-full ui-surface ui-text-muted border ui-border font-normal">
+              Week 1
+            </span>
+          </h1>
+          <p class="text-xs ui-text-muted mt-0.5">
+            Low cognitive load • Single focus stream • ADHD calming mode
+          </p>
+        </div>
+      </div>
+
+      <!-- Controls: Theme Toggle & Navigation -->
+      <div class="flex items-center gap-2 flex-wrap">
+        <!-- THEME PILL PICKER -->
+        <div class="flex items-center ui-surface rounded-lg p-0.5 border ui-border text-xs">
+          <button onclick="setTheme('charcoal')" id="btn-theme-charcoal" class="px-2.5 py-1 rounded font-medium transition-all bg-emerald-500/20 text-emerald-400" title="Neutral Charcoal (Obsidian)">
+            🌑 Charcoal
+          </button>
+          <button onclick="setTheme('matcha')" id="btn-theme-matcha" class="px-2.5 py-1 rounded font-medium ui-text-muted hover:text-white transition-all" title="Matcha Zen (Gruvbox)">
+            🍵 Matcha
+          </button>
+          <button onclick="setTheme('sepia')" id="btn-theme-sepia" class="px-2.5 py-1 rounded font-medium ui-text-muted hover:text-black transition-all" title="Warm Paper (Kindle)">
+            📜 Paper
+          </button>
+        </div>
+
+        <a href="faang_plan.html" class="px-3 py-1.5 rounded-lg ui-surface hover:opacity-80 text-xs border ui-border transition-colors flex items-center gap-1.5" title="View 10-Week Roadmap">
+          🗺️ Roadmap
+        </a>
+        <a href="viewer.html?doc=dsa_patterns_study_guide.md" class="px-3 py-1.5 rounded-lg ui-surface hover:opacity-80 text-xs border ui-border transition-colors flex items-center gap-1.5" title="View Master Patterns">
+          🧭 Patterns
+        </a>
+        <button id="open-modal-btn" class="px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold text-xs transition-all shadow-md shadow-emerald-500/20 active:scale-95 flex items-center gap-1">
+          <span>+</span> Log
+        </button>
+      </div>
+    </header>
+
+    <!-- 2. ANCHOR FOCUS BANNER (Dopamine Micro-Goal) -->
+    <section class="ui-surface border rounded-2xl p-5 shadow-sm">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="space-y-1">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="text-xs font-semibold text-emerald-400 uppercase tracking-wider">Today's Micro-Goal Complete</span>
+          </div>
+          <h2 class="text-base sm:text-lg font-bold">
+            Daily Pace: 2 on Weekdays • 5 on Weekends
+          </h2>
+          <p class="text-xs ui-text-muted">
+            You completed <strong class="text-emerald-400">8 problems today</strong> — you've supercharged today's baseline goal!
+          </p>
+        </div>
+
+        <!-- Weekly Progress Meter -->
+        <div class="ui-card border rounded-xl p-3 min-w-[220px]">
+          <div class="flex justify-between items-center text-xs mb-1">
+            <span class="ui-text-muted">Week 1 Progress:</span>
+            <span class="text-emerald-400 font-bold" id="week-target-text">8 / 20 (40%)</span>
+          </div>
+          <div class="w-full bg-black/20 rounded-full h-2 overflow-hidden border ui-border">
+            <div id="week-progress-bar" class="bg-gradient-to-r from-emerald-500 to-teal-400 h-2 rounded-full transition-all duration-500" style="width: 40%"></div>
+          </div>
+          <div class="text-[11px] ui-text-muted text-right mt-1">
+            12 remaining this week
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. SIMPLIFIED STAT PILLS (Low Noise) -->
+    <section class="grid grid-cols-4 gap-2 sm:gap-3">
+      <div class="ui-surface border rounded-xl p-3 text-center">
+        <div class="text-[11px] ui-text-muted font-medium uppercase">Solved</div>
+        <div class="text-xl sm:text-2xl font-black mt-0.5" id="metric-total">7</div>
+      </div>
+
+      <div class="ui-surface border rounded-xl p-3 text-center">
+        <div class="text-[11px] text-emerald-500 font-medium uppercase">Easy</div>
+        <div class="text-xl sm:text-2xl font-black text-emerald-500 mt-0.5" id="metric-easy">5</div>
+      </div>
+
+      <div class="ui-surface border rounded-xl p-3 text-center">
+        <div class="text-[11px] text-amber-500 font-medium uppercase">Medium</div>
+        <div class="text-xl sm:text-2xl font-black text-amber-500 mt-0.5" id="metric-medium">2</div>
+      </div>
+
+      <div class="ui-surface border rounded-xl p-3 text-center">
+        <div class="text-[11px] text-cyan-500 font-medium uppercase">Streak</div>
+        <div class="text-xl sm:text-2xl font-black text-cyan-500 mt-0.5">Day 1</div>
+      </div>
+    </section>
+
+    <!-- 4. CLEAN SEARCH & FILTER -->
+    <div class="flex items-center gap-2 ui-surface p-2 rounded-xl border">
+      <div class="relative flex-1">
+        <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 ui-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input id="search-input" type="text" placeholder="Type problem name or pattern to filter..." class="w-full bg-transparent border-0 rounded-lg pl-9 pr-3 py-1.5 text-xs sm:text-sm placeholder-slate-500 focus:outline-none">
+      </div>
+
+      <div class="flex items-center ui-card rounded-lg p-0.5 border ui-border">
+        <button class="filter-diff px-2.5 py-1 text-xs rounded font-medium transition-colors bg-emerald-500/20 text-emerald-400" data-diff="ALL">All</button>
+        <button class="filter-diff px-2.5 py-1 text-xs rounded font-medium ui-text-muted hover:text-white transition-colors" data-diff="Easy">Easy</button>
+        <button class="filter-diff px-2.5 py-1 text-xs rounded font-medium ui-text-muted hover:text-white transition-colors" data-diff="Medium">Medium</button>
+      </div>
+    </div>
+
+    <!-- 5. SINGLE-COLUMN STREAM (No Saccadic Eye Fatigue) -->
+    <div id="timeline-container" class="space-y-3.5">
+      <!-- Injected dynamically -->
+    </div>
+
+    <!-- EMPTY STATE -->
+    <div id="empty-state" class="hidden text-center py-12 ui-surface rounded-2xl border border-dashed ui-border">
+      <div class="text-3xl mb-2">🍃</div>
+      <h3 class="text-sm font-semibold">No matching problems found</h3>
+      <p class="text-xs ui-text-muted mt-1">Try clearing your search filter.</p>
+    </div>
+
+  </div>
+
+  <!-- ADD / EDIT MODAL -->
+  <div id="modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="ui-card border rounded-2xl w-full max-w-md p-5 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b ui-border pb-3">
+        <h3 id="modal-title" class="text-base font-bold">Log Solved Problem</h3>
+        <button id="close-modal-btn" class="ui-text-muted hover:text-white text-lg">&times;</button>
+      </div>
+
+      <form id="problem-form" class="space-y-3 text-xs">
+        <input type="hidden" id="edit-id">
+
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="block ui-text-muted mb-1">Number</label>
+            <input type="number" id="form-number" required placeholder="88" class="w-full ui-surface border ui-border rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-500">
+          </div>
+          <div class="col-span-2">
+            <label class="block ui-text-muted mb-1">Title</label>
+            <input type="text" id="form-title" required placeholder="Merge Sorted Array" class="w-full ui-surface border ui-border rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-500">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block ui-text-muted mb-1">Difficulty</label>
+            <select id="form-difficulty" class="w-full ui-surface border ui-border rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-500">
+              <option value="Easy">Easy</option>
+              <option value="Medium">Medium</option>
+              <option value="Hard">Hard</option>
+            </select>
+          </div>
+          <div>
+            <label class="block ui-text-muted mb-1">Pattern</label>
+            <input type="text" id="form-pattern" required placeholder="Two Pointers" class="w-full ui-surface border ui-border rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block ui-text-muted mb-1">One-Sentence Key Takeaway</label>
+          <textarea id="form-notes" rows="2" placeholder="Write from back to front to avoid overwriting nums1." class="w-full ui-surface border ui-border rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-500"></textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block ui-text-muted mb-1">LeetCode URL</label>
+            <input type="url" id="form-url" placeholder="https://leetcode.com/..." class="w-full ui-surface border ui-border rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-500">
+          </div>
+          <div>
+            <label class="block ui-text-muted mb-1">Study Guide Path</label>
+            <input type="text" id="form-file" placeholder="01_arrays_and_pointers/88_merge_sorted_array.md" class="w-full ui-surface border ui-border rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-500">
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2 border-t ui-border">
+          <button type="button" id="cancel-form-btn" class="px-3 py-1.5 ui-surface rounded-lg">Cancel</button>
+          <button type="submit" class="px-3.5 py-1.5 bg-emerald-500 text-slate-950 font-semibold rounded-lg shadow-sm">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT -->
+  <script>
+    const SCRATCH_PROBLEMS = [
+      {
+        id: "lc-88",
+        number: 88,
+        title: "Merge Sorted Array",
+        difficulty: "Easy",
+        pattern: "Two Pointers (Tail-Buffer)",
+        date: "2026-10-02",
+        url: "https://leetcode.com/problems/merge-sorted-array/",
+        file: "01_arrays_and_pointers/88_merge_sorted_array.md",
+        notes: "Write from back to front to avoid overwriting unread elements in nums1."
+      },
+      {
+        id: "lc-27",
+        number: 27,
+        title: "Remove Element",
+        difficulty: "Easy",
+        pattern: "Two Pointers (Scout & Writer)",
+        date: "2026-10-02",
+        url: "https://leetcode.com/problems/remove-element/",
+        file: "01_arrays_and_pointers/27_remove_element.md",
+        notes: "Fast scout skips val, slow writer deposits valid items into clean zone."
+      },
+      {
+        id: "lc-26",
+        number: 26,
+        title: "Remove Duplicates from Sorted Array",
+        difficulty: "Easy",
+        pattern: "Two Pointers (Scout & Writer)",
+        date: "2026-10-02",
+        url: "https://leetcode.com/problems/remove-duplicates-from-sorted-array/",
+        file: "01_arrays_and_pointers/26_remove_duplicates_from_sorted_array.md",
+        notes: "Sorted order guarantees adjacent duplicates. Compare x != nums[k-1]."
+      },
+      {
+        id: "lc-80",
+        number: 80,
+        title: "Remove Duplicates from Sorted Array II",
+        difficulty: "Medium",
+        pattern: "Two Pointers (Lookback M)",
+        date: "2026-10-02",
+        url: "https://leetcode.com/problems/remove-duplicates-from-sorted-array-ii/",
+        file: "01_arrays_and_pointers/80_remove_duplicates_from_sorted_array_ii.md",
+        notes: "Allowing at most M duplicates: check x != nums[k - M]."
+      },
+      {
+        id: "lc-169",
+        number: 169,
+        title: "Majority Element",
+        difficulty: "Easy",
+        pattern: "Boyer-Moore Voting",
+        date: "2026-10-02",
+        url: "https://leetcode.com/problems/majority-element/",
+        file: "01_arrays_and_pointers/169_majority_element.md",
+        notes: "1-for-1 cancellation of distinct pairs leaves majority survivor intact."
+      },
+      {
+        id: "lc-189",
+        number: 189,
+        title: "Rotate Array",
+        difficulty: "Medium",
+        pattern: "Two Pointers (Triple Reversal)",
+        date: "2026-10-02",
+        url: "https://leetcode.com/problems/rotate-array/",
+        file: "01_arrays_and_pointers/189_rotate_array.md",
+        notes: "k %= n. 1) Reverse all, 2) Reverse first k, 3) Reverse remaining n-k."
+      },
+      {
+        id: "lc-121",
+        number: 121,
+        title: "Best Time to Buy and Sell Stock",
+        difficulty: "Easy",
+        pattern: "Running Minimum / State Machine",
+        date: "2026-10-02",
+        url: "https://leetcode.com/problems/best-time-to-buy-and-sell-stock/",
+        file: "01_arrays_and_pointers/121_best_time_to_buy_and_sell_stock.md",
+        notes: "Track historical lowest valley; update max_profit on each new peak."
+      },
+      {
+        id: "lc-122",
+        number: 122,
+        title: "Best Time to Buy and Sell Stock II",
+        difficulty: "Medium",
+        pattern: "Greedy (Telescoping Steps)",
+        date: "2026-10-02",
+        url: "https://leetcode.com/problems/best-time-to-buy-and-sell-stock-ii/",
+        file: "01_arrays_and_pointers/122_best_time_to_buy_and_sell_stock_ii.md",
+        notes: "Unlimited transactions: harvest every positive step prices[i] - prices[i-1] > 0. Telescoping sum."
+      },
+      {
+        id: "lc-55",
+        number: 55,
+        title: "Jump Game",
+        difficulty: "Medium",
+        pattern: "Greedy (Horizon / Laser Reach)",
+        date: "2026-10-04",
+        url: "https://leetcode.com/problems/jump-game/",
+        file: "01_arrays_and_pointers/55_jump_game.md",
+        notes: "Laser reach: maxjump = max(maxjump, i + num). If i > maxjump, we hit a broken bridge/quicksand trap."
+      },
+      {
+        id: "lc-274",
+        number: 274,
+        title: "H-Index",
+        difficulty: "Medium",
+        pattern: "Sorting (Descending Rank Comparison)",
+        date: "2026-10-04",
+        url: "https://leetcode.com/problems/h-index/",
+        file: "01_arrays_and_pointers/274_h_index.md",
+        notes: "Sort descending. Paper i+1 needs >= i+1 citations. Stop at first failure c < i+1."
+      },
+      {
+        id: "lc-678",
+        number: 678,
+        title: "Valid Parenthesis String",
+        difficulty: "Medium",
+        pattern: "Two Stacks (Indices)",
+        date: "2026-10-04",
+        url: "https://leetcode.com/problems/valid-parenthesis-string/",
+        file: "03_stacks_and_queues/678_valid_parenthesis_string.md",
+        notes: "Two stacks storing indices of '(' and '*'. Cancel ')' first. Then cancel leftover '(' with '*' where star index > open index."
+      },
+      {
+        id: "lc-125",
+        number: 125,
+        title: "Valid Palindrome",
+        difficulty: "Easy",
+        pattern: "Two Pointers (Inward Squeeze)",
+        date: "2026-10-04",
+        url: "https://leetcode.com/problems/valid-palindrome/",
+        file: "01_arrays_and_pointers/125_valid_palindrome.md",
+        notes: "Inward squeeze l < r, skip non-alphanumeric with isalnum(), compare lowercased. O(1) aux space."
+      },
+      {
+        id: "lc-392",
+        number: 392,
+        title: "Is Subsequence",
+        difficulty: "Easy",
+        pattern: "Two Pointers (Conveyor Belts)",
+        date: "2026-10-04",
+        url: "https://leetcode.com/problems/is-subsequence/",
+        file: "01_arrays_and_pointers/392_is_subsequence.md",
+        notes: "Two conveyor belts: stream p2 always advances, checklist p1 only advances on match. O(1) space."
+      },
+      {
+        id: "lc-167",
+        number: 167,
+        title: "Two Sum II - Input Array Is Sorted",
+        difficulty: "Medium",
+        pattern: "Two Pointers (Inward Squeeze)",
+        date: "2026-10-04",
+        url: "https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/",
+        file: "01_arrays_and_pointers/167_two_sum_ii_input_array_is_sorted.md",
+        notes: "Inward squeeze l < r. If cur_sum < target, l += 1; if cur_sum > target, r -= 1. O(1) auxiliary space."
+      },
+      {
+        id: "lc-11",
+        number: 11,
+        title: "Container With Most Water",
+        difficulty: "Medium",
+        pattern: "Two Pointers (Inward Squeeze)",
+        date: "2026-10-05",
+        url: "https://leetcode.com/problems/container-with-most-water/",
+        file: "01_arrays_and_pointers/11_container_with_most_water.md",
+        notes: "Inward squeeze l < r. Bottleneck is shorter wall: moving taller wall can never increase area, so greedily advance shorter wall."
+      },
+      {
+        id: "lc-15",
+        number: 15,
+        title: "3Sum",
+        difficulty: "Medium",
+        pattern: "Two Pointers (Anchor + Inward Squeeze)",
+        date: "2026-10-05",
+        url: "https://leetcode.com/problems/3sum/",
+        file: "01_arrays_and_pointers/15_3sum.md",
+        notes: "Sort array. Anchor pivot with outer loop, squeeze l and r. Deduplicate anchor and inner matches in-place without sets."
+      },
+      {
+        id: "lc-238",
+        number: 238,
+        title: "Product of Array Except Self",
+        difficulty: "Medium",
+        pattern: "Prefix & Suffix (Sandwich)",
+        date: "2026-10-05",
+        url: "https://leetcode.com/problems/product-of-array-except-self/",
+        file: "01_arrays_and_pointers/238_product_of_array_except_self.md",
+        notes: "Sandwich pattern: left prefix products * right suffix products. Can optimize to O(1) aux space by storing prefix in res and accumulating suffix."
+      }
+    ];
+
+    const STORAGE_KEY = 'dsa_tracker_adhd_v15';
+    const THEME_KEY = 'dsa_tracker_theme';
+    let problems = [];
+    let currentFilterDiff = 'ALL';
+    let currentSearch = '';
+
+    // Theme Switcher Logic
+    function setTheme(theme) {
+      document.body.className = `theme-${theme} min-h-screen selection:bg-emerald-500 selection:text-black antialiased p-4 sm:p-6 lg:p-8`;
+      localStorage.setItem(THEME_KEY, theme);
+
+      ['charcoal', 'matcha', 'sepia'].forEach(t => {
+        const btn = document.getElementById(`btn-theme-${t}`);
+        if (t === theme) {
+          btn.className = 'px-2.5 py-1 rounded font-medium transition-all bg-emerald-500/20 text-emerald-400';
+        } else {
+          btn.className = 'px-2.5 py-1 rounded font-medium ui-text-muted hover:opacity-100 transition-all';
+        }
+      });
+    }
+
+    function initTheme() {
+      const savedTheme = localStorage.getItem(THEME_KEY) || 'charcoal';
+      setTheme(savedTheme);
+    }
+
+    function loadProblems() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try { problems = JSON.parse(saved); } catch(e) { problems = [...SCRATCH_PROBLEMS]; }
+      } else {
+        problems = [...SCRATCH_PROBLEMS];
+        saveProblems();
+      }
+    }
+
+    function saveProblems() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(problems));
+    }
+
+    function renderMetrics() {
+      const total = problems.length;
+      const easy = problems.filter(p => p.difficulty === 'Easy').length;
+      const medium = problems.filter(p => p.difficulty === 'Medium').length;
+
+      document.getElementById('metric-total').textContent = total;
+      document.getElementById('metric-easy').textContent = easy;
+      document.getElementById('metric-medium').textContent = medium;
+
+      const weeklyTarget = 20;
+      const pct = Math.min(100, Math.round((total / weeklyTarget) * 100));
+      document.getElementById('week-target-text').textContent = `${total} / ${weeklyTarget} (${pct}%)`;
+      document.getElementById('week-progress-bar').style.width = `${pct}%`;
+    }
+
+    function getDiffBadge(diff) {
+      if (diff === 'Easy') {
+        return `<span class="px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Easy</span>`;
+      } else {
+        return `<span class="px-2 py-0.5 rounded text-[11px] font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">Medium</span>`;
+      }
+    }
+
+    function renderTimeline() {
+      const container = document.getElementById('timeline-container');
+      const emptyState = document.getElementById('empty-state');
+
+      const filtered = problems.filter(p => {
+        const matchDiff = (currentFilterDiff === 'ALL' || p.difficulty === currentFilterDiff);
+        const q = currentSearch.toLowerCase().trim();
+        const matchSearch = !q || (
+          p.title.toLowerCase().includes(q) ||
+          p.number.toString().includes(q) ||
+          p.pattern.toLowerCase().includes(q) ||
+          (p.notes && p.notes.toLowerCase().includes(q))
+        );
+        return matchDiff && matchSearch;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+      emptyState.classList.add('hidden');
+
+      let html = '';
+
+      filtered.forEach(p => {
+        html += `
+          <div class="ui-card border rounded-xl p-4 transition-all group space-y-2.5">
+            <!-- Header Row: Number + Title + Diff Badge -->
+            <div class="flex items-center justify-between gap-3">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-mono font-bold ui-text-muted ui-surface px-2 py-0.5 rounded border ui-border">
+                  #${p.number}
+                </span>
+                <h3 class="text-sm sm:text-base font-semibold group-hover:text-emerald-400 transition-colors">
+                  ${p.title}
+                </h3>
+              </div>
+              <div>${getDiffBadge(p.difficulty)}</div>
+            </div>
+
+            <!-- Pattern Badge -->
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="text-xs px-2 py-0.5 rounded font-medium border ui-border" style="background-color: var(--badge-bg)">
+                🎯 ${p.pattern}
+              </span>
+            </div>
+
+            <!-- One-Liner Takeaway -->
+            ${p.notes ? `
+              <div class="text-xs ui-surface border ui-border rounded-lg p-2.5 leading-relaxed font-sans flex items-start gap-2">
+                <span class="text-amber-500 text-xs">💡</span>
+                <span>${p.notes}</span>
+              </div>
+            ` : ''}
+
+            <!-- Clean Action Links -->
+            <div class="pt-2 border-t ui-border flex items-center justify-between text-xs ui-text-muted">
+              <div class="flex items-center gap-3">
+                ${p.url ? `
+                  <a href="${p.url}" target="_blank" rel="noopener noreferrer" class="hover:text-emerald-400 flex items-center gap-1 transition-colors">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                    LeetCode
+                  </a>
+                ` : ''}
+                ${p.file ? `
+                  <a href="viewer.html?doc=${encodeURIComponent(p.file)}" class="hover:underline flex items-center gap-1 transition-colors font-medium text-emerald-400">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                    Read Study Doc
+                  </a>
+                ` : ''}
+              </div>
+
+              <div class="flex items-center gap-2">
+                <button onclick="editProblem('${p.id}')" class="ui-text-muted hover:opacity-100 p-1" title="Edit">✏️</button>
+                <button onclick="deleteProblem('${p.id}')" class="ui-text-muted hover:text-rose-400 p-1" title="Delete">🗑️</button>
+              </div>
+            </div>
+
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    const modal = document.getElementById('modal');
+    const openModalBtn = document.getElementById('open-modal-btn');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    const cancelFormBtn = document.getElementById('cancel-form-btn');
+    const problemForm = document.getElementById('problem-form');
+
+    function openModal(isEdit = false) {
+      document.getElementById('modal-title').textContent = isEdit ? 'Edit Problem' : 'Log Solved Problem';
+      if (!isEdit) {
+        problemForm.reset();
+        document.getElementById('edit-id').value = '';
+      }
+      modal.classList.remove('hidden');
+    }
+
+    function closeModal() {
+      modal.classList.add('hidden');
+    }
+
+    openModalBtn.addEventListener('click', () => openModal(false));
+    closeModalBtn.addEventListener('click', closeModal);
+    cancelFormBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+    problemForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const editId = document.getElementById('edit-id').value;
+      const num = parseInt(document.getElementById('form-number').value, 10);
+      const title = document.getElementById('form-title').value.trim();
+      const diff = document.getElementById('form-difficulty').value;
+      const pattern = document.getElementById('form-pattern').value.trim();
+      const url = document.getElementById('form-url').value.trim();
+      const file = document.getElementById('form-file').value.trim();
+      const notes = document.getElementById('form-notes').value.trim();
+
+      if (editId) {
+        const idx = problems.findIndex(p => p.id === editId);
+        if (idx !== -1) {
+          problems[idx] = { ...problems[idx], number: num, title, difficulty: diff, pattern, url, file, notes };
+        }
+      } else {
+        problems.unshift({
+          id: 'p-' + Date.now(),
+          number: num,
+          title,
+          difficulty: diff,
+          date: "2026-10-02",
+          pattern,
+          url,
+          file,
+          notes
+        });
+      }
+
+      saveProblems();
+      renderMetrics();
+      renderTimeline();
+      closeModal();
+    });
+
+    window.editProblem = function(id) {
+      const p = problems.find(item => item.id === id);
+      if (!p) return;
+      document.getElementById('edit-id').value = p.id;
+      document.getElementById('form-number').value = p.number;
+      document.getElementById('form-title').value = p.title;
+      document.getElementById('form-difficulty').value = p.difficulty;
+      document.getElementById('form-pattern').value = p.pattern;
+      document.getElementById('form-url').value = p.url || '';
+      document.getElementById('form-file').value = p.file || '';
+      document.getElementById('form-notes').value = p.notes || '';
+      openModal(true);
+    };
+
+    window.deleteProblem = function(id) {
+      if (confirm('Delete this problem?')) {
+        problems = problems.filter(p => p.id !== id);
+        saveProblems();
+        renderMetrics();
+        renderTimeline();
+      }
+    };
+
+    document.querySelectorAll('.filter-diff').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-diff').forEach(b => {
+          b.className = 'filter-diff px-2.5 py-1 text-xs rounded font-medium ui-text-muted hover:text-white transition-colors';
+        });
+        btn.className = 'filter-diff px-2.5 py-1 text-xs rounded font-medium transition-colors bg-emerald-500/20 text-emerald-400';
+        currentFilterDiff = btn.dataset.diff;
+        renderTimeline();
+      });
+    });
+
+    document.getElementById('search-input').addEventListener('input', (e) => {
+      currentSearch = e.target.value;
+      renderTimeline();
+    });
+
+    initTheme();
+    loadProblems();
+    renderMetrics();
+    renderTimeline();
+  </script>
+</body>
+</html>
