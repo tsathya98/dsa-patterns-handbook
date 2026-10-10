@@ -34,7 +34,13 @@ Whenever the user solves, discusses, or submits a new problem in this repository
 ### Step 5: Update Central `README.md`
 * Add the new problem entry to the appropriate section in `README.md`.
 
-### Step 6: Git Identity & Remote Sync
+### Step 6: Git Auto-Commit & Remote Sync (MANDATORY)
+* Maintain everything as an active Git repository, NOT just a local folder.
+* After every problem solved, doc updated, or tracker synced:
+  1. Stage all modified and new files (`git add .`).
+  2. Create a descriptive commit authored by `tsathya98` (e.g. `feat(lc-134): add Gas Station study guide and tracker sync`).
+  3. Push immediately to remote (`git push origin main`).
 * The GitHub account for this repository is strictly **`tsathya98`** (email: `tsathya98@gmail.com`), NEVER work/corporate accounts.
 * Repository remote: `https://github.com/tsathya98/dsa-patterns-handbook.git`.
+
 
