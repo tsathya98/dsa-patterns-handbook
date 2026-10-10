@@ -22,6 +22,19 @@ class Solution:
             
         return max_len
 
+    def lengthOfLongestSubstring_user(self, s: str) -> int:
+        """User's Accepted Version using seen.discard and len(seen) - Beats 95% Memory."""
+        seen = set()
+        max_cnt = 0
+        left = 0
+        for i, c in enumerate(s):
+            while c in seen:
+                seen.discard(s[left])
+                left += 1
+            seen.add(c)
+            max_cnt = max(max_cnt, len(seen))
+        return max_cnt
+
     def lengthOfLongestSubstring_hashmap_jump(self, s: str) -> int:
         """
         Optimal 1-Pass Jump: Uses dict to jump `left` directly past the duplicate.
@@ -55,6 +68,7 @@ if __name__ == "__main__":
     
     for string, expected in test_cases:
         assert sol.lengthOfLongestSubstring(string) == expected, f"Failed on {string}"
+        assert sol.lengthOfLongestSubstring_user(string) == expected, f"Failed on {string} (user)"
         assert sol.lengthOfLongestSubstring_hashmap_jump(string) == expected, f"Failed on {string} (jump)"
         
     print("All unit tests for LC 3 passed successfully!")

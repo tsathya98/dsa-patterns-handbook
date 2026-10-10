@@ -66,20 +66,21 @@ Window:      [b   c   a]                          seen = {b, c, a}, len = 3
 class Solution:
     def lengthOfLongestSubstring(self, s: str) -> int:
         seen = set()
+        max_cnt = 0
         left = 0
-        max_len = 0
         
-        for right in range(len(s)):
-            # While the incoming character is a duplicate, shrink from left
-            while s[right] in seen:
-                seen.remove(s[left])
+        for i, c in enumerate(s):
+            # While incoming char is a duplicate, shrink window from the left
+            while c in seen:
+                seen.discard(s[left])
                 left += 1
                 
-            seen.add(s[right])
-            max_len = max(max_len, right - left + 1)
+            seen.add(c)
+            max_cnt = max(max_cnt, len(seen))
             
-        return max_len
+        return max_cnt
 ```
+
 
 ---
 
