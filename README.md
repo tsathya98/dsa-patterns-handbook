@@ -86,6 +86,7 @@ Learn when and how to avoid nested $\mathcal{O}(n^2)$ loops:
 * [🪣 **11. Container With Most Water (LeetCode 11 - Medium)**](./01_arrays_and_pointers/11_container_with_most_water.md) – Two Pointers Formation A (Inward Squeeze) with Greedy Bottleneck rule, mathematical proof of why the shorter wall must move, and reducing Python overhead.
 * [🎯 **15. 3Sum (LeetCode 15 - Medium)**](./01_arrays_and_pointers/15_3sum.md) – Two Pointers (Fixed Anchor + Inward Squeeze), eliminating $\mathcal{O}(n^3)$ brute force, in-place deduplication without sets, and positive-anchor early pruning.
 * [🍞 **238. Product of Array Except Self (LeetCode 238 - Medium)**](./01_arrays_and_pointers/238_product_of_array_except_self.md) – Prefix & Suffix Accumulator (The Sandwich Pattern), eliminating division operations, and reducing auxiliary space from $\mathcal{O}(n)$ to $\mathcal{O}(1)$.
+* [🪟 **3. Longest Substring Without Repeating Characters (LeetCode 3 - Medium)**](./01_arrays_and_pointers/3_longest_substring_without_repeating_characters.md) – Dynamic Sliding Window (The Rubber Band), eliminating $\mathcal{O}(n^3)$ substring rebuilds, and linear pass state maintenance with a hash set.
 
 ---
 

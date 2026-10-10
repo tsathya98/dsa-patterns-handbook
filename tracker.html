@@ -465,10 +465,21 @@
         url: "https://leetcode.com/problems/product-of-array-except-self/",
         file: "01_arrays_and_pointers/238_product_of_array_except_self.md",
         notes: "Sandwich pattern: left prefix products * right suffix products. Can optimize to O(1) aux space by storing prefix in res and accumulating suffix."
+      },
+      {
+        id: "lc-3",
+        number: 3,
+        title: "Longest Substring Without Repeating Characters",
+        difficulty: "Medium",
+        pattern: "Dynamic Sliding Window",
+        date: "2026-10-10",
+        url: "https://leetcode.com/problems/longest-substring-without-repeating-characters/",
+        file: "01_arrays_and_pointers/3_longest_substring_without_repeating_characters.md",
+        notes: "Rubber band window [left, right]: expand right into seen set; while duplicate found, shrink left. O(n) time."
       }
     ];
 
-    const STORAGE_KEY = 'dsa_tracker_adhd_v15';
+    const STORAGE_KEY = 'dsa_tracker_adhd_v16';
     const THEME_KEY = 'dsa_tracker_theme';
     let problems = [];
     let currentFilterDiff = 'ALL';
