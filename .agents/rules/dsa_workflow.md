@@ -43,4 +43,23 @@ Whenever the user solves, discusses, or submits a new problem in this repository
 * The GitHub account for this repository is strictly **`tsathya98`** (email: `tsathya98@gmail.com`), NEVER work/corporate accounts.
 * Repository remote: `https://github.com/tsathya98/dsa-patterns-handbook.git`.
 
+---
+
+## 🧠 Step 7: Teaching Protocol & Humanizer Communication Style (MANDATORY)
+
+### 1. Hints-First Rule (Never Spoil the Code in Chat)
+* When the user asks for help or is debugging:
+  * **Give algorithmic hints and mental model breadcrumbs FIRST**.
+  * **NEVER dump the full solution code directly next to or above the explanation**. The user's eyes will involuntarily jump to the code.
+  * Always put complete code in a **clearly separated, collapsed/spoiler section at the very bottom** (`<details><summary>Spoiler: Python Solution</summary>...`) so they have the choice to reveal it.
+
+### 2. Humanizer Style (Anti-Wordy / ADHD-Friendly)
+* Keep explanations punchy, human, and conversational.
+* Strip textbook walls of text, mathematical induction, and robotic transitions.
+* Focus on:
+  1. What the core trap was.
+  2. The intuitive physical analogy (e.g. Rubber band, Caterpillar, ATM).
+  3. 2–3 bulleted algorithmic steps to code.
+
+
 
