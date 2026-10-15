@@ -121,12 +121,19 @@ For universal templates, mental models, and decision checklists across all major
 * 🗺️ [**90% Linked List Master Taxonomy Guide**](./02_linked_lists/linked_list_90_percent_taxonomy.md) – The 11 archetypes classifying 90%+ of LeetCode linked list problems, 10-second classifier decision tree, and complete problem checklists.
 * 🕹️ [**Bit Manipulation Master Cheat Sheet**](./cheat_sheets/bitwise_cheat_sheet.md) – The 6 silicon operators, Horner's stream shift, power-of-two check, Brian Kernighan bit clearing, and XOR cancellation.
 * ⚡ [**System Design Fundamentals Cheat Sheet**](./cheat_sheets/system_design_fundamentals_cheat_sheet.md) – 60-second technology decision table, network latency speed ladder, and high availability checklist.
+* 🔢 [**System Design Back-of-the-Envelope Math Cheat Sheet**](./cheat_sheets/system_design_calculations_cheat_sheet.md) – Storage powers of 2, latency numbers, QPS estimation, and RAM cache sizing.
 
 ---
 
 ## 🏗️ 5. System Design & Production Infrastructure
 Core architecture primers, distributed patterns, and active Excalidraw whiteboarding challenges:
 
+* [🎯 **00. The FAANG System Design 4-Step Interview Framework**](./system_design/00_faang_system_design_framework.md) – 45-minute interview pacing (5m/5m/15m/15m), requirements scoping, core API design, and the 5 fatal red flags.
 * [🏗️ **01. Production Infrastructure & Protocol Fundamentals**](./system_design/01_production_infrastructure_fundamentals.md) – Evolution from 1 to 10M users, SQL vs NoSQL vs Graph, L4 vs L7 load balancing, REST vs GraphQL vs gRPC, WebSockets vs SSE, and JWT vs session security.
-* [⚡ **System Design Fundamentals Cheat Sheet**](./cheat_sheets/system_design_fundamentals_cheat_sheet.md) – Quick reference decision table for databases, networking, protocols, and SPOF defense.
+* [⚡ **02. Caching Strategies, Patterns & Redis Deep Dive**](./system_design/02_caching_patterns_and_redis.md) – Cache-Aside, Write-Through, Write-Behind, eviction policies (LRU/LFU), the 3 classic cache disasters (Stampede, Penetration, Avalanche), and Redis data structures.
+* [🗄️ **03. Database Scaling, Sharding & The CAP Theorem**](./system_design/03_database_scaling_sharding_and_cap.md) – Read replicas & replication lag, horizontal sharding keys, Consistent Hashing with virtual nodes, and CAP vs PACELC.
+* [📨 **04. Message Queues & Event-Driven Architecture**](./system_design/04_message_queues_and_async_processing.md) – Sync vs async decoupling, Kafka vs RabbitMQ vs SQS, partitions & consumer groups, delivery guarantees, idempotency keys, and DLQs.
+* [🚪 **05. API Gateway & Rate Limiting Architecture**](./system_design/05_api_gateway_and_rate_limiting.md) – API gateway responsibilities, the 5 rate limiting algorithms (Token/Leaky bucket, sliding window), and distributed rate limiting with Redis Lua scripts.
+* [🔢 **Back-of-the-Envelope Calculations Cheat Sheet**](./cheat_sheets/system_design_calculations_cheat_sheet.md) – Powers of 2, latency numbers every engineer must know, quick QPS estimation formulas, and 80/20 RAM cache sizing.
+* [⚡ **System Design Fundamentals Cheat Sheet**](./cheat_sheets/system_design_fundamentals_cheat_sheet.md) – Quick reference 3-second decision table for databases, networking, protocols, and SPOF defense.
 * [🎨 **Excalidraw Dry-Run #1: Core Scalable Infrastructure Challenge**](./system_design/excalidraw_practice_01_core_infra.md) – 20-minute timed whiteboarding prompt (50k QPS photo service) with 4-stage diagram checklist and self-critique grilling questions.
