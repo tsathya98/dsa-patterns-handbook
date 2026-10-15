@@ -64,8 +64,26 @@ def selection_sort(arr: list[int]) -> list[int]:
 ## 📊 4. Complexity & Key Characteristics
 
 - **Time Complexity:** $\mathcal{O}(n^2)$ in **ALL cases** (Best, Average, Worst).  
-  *Why?* Even if the array is sorted, Selection Sort must still scan all remaining elements to confirm the minimum.
+  - Total comparisons: $(n-1) + (n-2) + \dots + 1 = \frac{n(n-1)}{2} \implies \mathcal{O}(n^2)$.
 - **Space Complexity:** $\mathcal{O}(1)$ (In-place).
-- **Total Swaps:** At most $n - 1$ swaps. (Minimizes memory writes!).
+- **Total Swaps:** At most $n - 1$ swaps ($\mathcal{O}(n)$ writes).
 - **Stability:** ❌ **NOT Stable.**  
-  *Example:* Sorting `[4_a, 4_b, 1]`. The `1` is swapped with `4_a`, resulting in `[1, 4_b, 4_a]`. The relative order of `4_a` and `4_b` was inverted.
+  *Example:* `[4_a, 4_b, 1]` $\to$ swap `4_a` with `1` $\to$ `[1, 4_b, 4_a]`. Relative order of equal keys is destroyed.
+
+---
+
+## 💡 5. Bubble Sort vs. Selection Sort (Interview Nuances)
+
+| Feature | Bubble Sort | Selection Sort |
+| :--- | :--- | :--- |
+| **Primary Mechanism** | Bubbles largest to end via adjacent swaps | Selects absolute minimum and places at front |
+| **Best Case Time** | $\mathcal{O}(n)$ (with `swapped` early exit) | $\mathcal{O}(n^2)$ (early exit impossible) |
+| **Worst Case Time** | $\mathcal{O}(n^2)$ | $\mathcal{O}(n^2)$ |
+| **Total Swaps** | $\mathcal{O}(n^2)$ worst-case | $\mathcal{O}(n)$ (at most $n - 1$ swaps) |
+| **Stability** | ✅ Stable | ❌ Unstable |
+| **When to prefer?** | Near-sorted data where early exit shines | When memory write operations are extremely expensive |
+
+### ⚠️ Why Can't Selection Sort Have an Early Exit Optimization?
+- **In Bubble Sort:** If an entire pass completes without swapping any adjacent pair, transitivity proves the array is sorted.
+- **In Selection Sort:** Finding the minimum of the remaining subarray requires scanning every remaining element. Even if the array is already `[1, 2, 3, 4, 5]`, at pass $i=0$ you cannot know $1$ is truly the smallest without looking at indices 1 through 4. Therefore, it **must** perform all $\frac{n(n-1)}{2}$ comparisons regardless.
+

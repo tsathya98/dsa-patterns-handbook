@@ -15,6 +15,7 @@
 | 🗺️ **[FAANG 10-Week Roadmap UI](./faang_plan.html)** | **Interactive Roadmap & Pacing** | Tabbed phases (Phase 1–4), weekly quotas (2 weekdays / 5 weekends), milestone checklist. |
 | 🧭 **[dsa_patterns_study_guide.md](./dsa_patterns_study_guide.md)** | **Universal Pattern Master Guide** | The 9 core algorithmic patterns with visual templates and Big-O cheat sheets. |
 | 📚 **[`cheat_sheets/`](./cheat_sheets/)** | **High-Yield Pattern Reference** | 12 dedicated cheat sheets for Two Pointers, Sliding Window, DP, Trees, Graphs, etc. |
+| 📁 **`00_foundations/`** | **Algorithm Fundamentals & Big-O** | Correctness vs. efficiency, counting elementary steps, Big-O simplification, loop archetypes. |
 | 📁 **`01_arrays_and_pointers/`** | **Arrays & Transformations** | Clean in-place array manipulation, Two Pointers, Sliding Window, Kadane, Prefix Sums. |
 | 📁 **`02_linked_lists/`** | **Linked Lists Masterclass** | 11 Archetypes, Floyd Cycle, In-Place Reversals, Zipper Merges, LRU Cache. |
 | 📁 **`03_stacks_and_queues/`** | **Stacks & Monotonicity** | LIFO plates, monotonic stacks, calculator parsers, parentheses validators. |
@@ -22,11 +23,20 @@
 
 ---
 
-## 🗂️ 1. Sorting Algorithms Series (AlgoMaster.io)
+## 🏛️ 0. Foundations & Algorithm Complexity (Airtribe Cohort)
+First principles of algorithmic thinking, counting elementary operations, and Big-O mastery:
+
+* [📐 **01. Algorithms, Correctness & Efficiency**](./00_foundations/01_algorithms_correctness_efficiency.md) – What makes an algorithm "good", why wall-clock stopwatches fail, counting elementary operations, and payroll scaling.
+* [⚡ **02. Time & Space Complexity and Big-O Notation**](./00_foundations/02_time_and_space_complexity_big_o.md) – Big-O simplification rules, dominant terms, the 6 core loop archetypes (linear, halving, quadratic, break trap), and auxiliary space vs total space.
+* [📊 **Time & Space Complexity Master Cheat Sheet**](./cheat_sheets/time_and_space_complexity_cheat_sheet.md) – 3-second decision table, input size ($N$) constraint limits, and common loop pattern speed ladder.
+
+---
+
+## 🗂️ 1. Sorting Algorithms Series (AlgoMaster.io & Cohort)
 Learn how comparison-based sorting works from first principles:
 
 * [🫧 **08. Bubble Sort – Complete Guide & Intuition**](./04_sorting/08_bubble_sort.md) – Adjacent swapping, soda bubble analogy, and the early termination `swapped` flag.
-* [🎯 **09. Selection Sort – Complete Guide & Intuition**](./04_sorting/09_selection_sort.md) – Finding minimums, minimal write swaps, and why it is unstable.
+* [🎯 **09. Selection Sort – Complete Guide & Intuition**](./04_sorting/09_selection_sort.md) – Finding minimums, minimal write swaps, unstable swapping, and why early termination is impossible.
 * [🃏 **10. Insertion Sort – Complete Guide & Intuition**](./04_sorting/10_insertion_sort.md) – Card player shifting technique, adaptive $\mathcal{O}(n)$ on nearly-sorted data.
 * [🌲 **11. Merge Sort – Complete Guide & Intuition**](./04_sorting/11_merge_sort.md) – Divide and conquer, two-way zipper merge, guaranteed $\mathcal{O}(n \log n)$ time.
 * [⚡ **12. Quick Sort – Complete Guide & Intuition**](./04_sorting/12_quick_sort.md) – Pivot partitioning (Lomuto scheme), in-place recursion, and average vs. worst-case.
@@ -94,6 +104,7 @@ Learn when and how to avoid nested $\mathcal{O}(n^2)$ loops:
 For universal templates, mental models, and decision checklists across all major patterns:
 👉 **[Open DSA Patterns Master Study Guide](./dsa_patterns_study_guide.md)**
 
+* ⚡ [**Time & Space Complexity Master Cheat Sheet**](./cheat_sheets/time_and_space_complexity_cheat_sheet.md) – 3-second decision table, $N$-limit rules ($10^8$ operations/sec), and Big-O loop speed ladder.
 * 🦅 [**Greedy Algorithms Master Cheat Sheet**](./cheat_sheets/greedy_cheat_sheet.md) – The 4 Archetypes (The Cashier, The Horizon, The Scheduler, The Accumulator), Greedy vs. Two Pointers distinction, and 3-second triggers.
 * 🧱 [**Arrays, Strings & HashMaps Cheat Sheet**](./cheat_sheets/arrays_hashmaps_cheat_sheet.md) – Contiguous memory, avoiding $\mathcal{O}(n^2)$ string concatenation, Two-Sum complement trick.
 * 🎯 [**Two Pointers Master Cheat Sheet**](./cheat_sheets/two_pointers_cheat_sheet.md) – Squeeze, Scout & Writer, Two Conveyor Belts.
