@@ -20,6 +20,7 @@
 | 📁 **`02_linked_lists/`** | **Linked Lists Masterclass** | 11 Archetypes, Floyd Cycle, In-Place Reversals, Zipper Merges, LRU Cache. |
 | 📁 **`03_stacks_and_queues/`** | **Stacks & Monotonicity** | LIFO plates, monotonic stacks, calculator parsers, parentheses validators. |
 | 📁 **`04_sorting/`** | **Sorting Algorithms from Scratch** | Bubble, Selection, Insertion, Merge, Quick Sort + Decision Matrix. |
+| 📁 **`system_design/`** | **System Design & Distributed Systems** | Production infrastructure, databases, load balancing, networking, Excalidraw dry-runs. |
 
 ---
 
@@ -119,3 +120,13 @@ For universal templates, mental models, and decision checklists across all major
 * 🔗 [**Linked List Master Cheat Sheet**](./cheat_sheets/linked_list_master_cheat_sheet.md) – Russian nesting dolls mental model, `dummy` vs `cur`, in-place pointer stitching, and avoiding `TypeError: len()`.
 * 🗺️ [**90% Linked List Master Taxonomy Guide**](./02_linked_lists/linked_list_90_percent_taxonomy.md) – The 11 archetypes classifying 90%+ of LeetCode linked list problems, 10-second classifier decision tree, and complete problem checklists.
 * 🕹️ [**Bit Manipulation Master Cheat Sheet**](./cheat_sheets/bitwise_cheat_sheet.md) – The 6 silicon operators, Horner's stream shift, power-of-two check, Brian Kernighan bit clearing, and XOR cancellation.
+* ⚡ [**System Design Fundamentals Cheat Sheet**](./cheat_sheets/system_design_fundamentals_cheat_sheet.md) – 60-second technology decision table, network latency speed ladder, and high availability checklist.
+
+---
+
+## 🏗️ 5. System Design & Production Infrastructure
+Core architecture primers, distributed patterns, and active Excalidraw whiteboarding challenges:
+
+* [🏗️ **01. Production Infrastructure & Protocol Fundamentals**](./system_design/01_production_infrastructure_fundamentals.md) – Evolution from 1 to 10M users, SQL vs NoSQL vs Graph, L4 vs L7 load balancing, REST vs GraphQL vs gRPC, WebSockets vs SSE, and JWT vs session security.
+* [⚡ **System Design Fundamentals Cheat Sheet**](./cheat_sheets/system_design_fundamentals_cheat_sheet.md) – Quick reference decision table for databases, networking, protocols, and SPOF defense.
+* [🎨 **Excalidraw Dry-Run #1: Core Scalable Infrastructure Challenge**](./system_design/excalidraw_practice_01_core_infra.md) – 20-minute timed whiteboarding prompt (50k QPS photo service) with 4-stage diagram checklist and self-critique grilling questions.
