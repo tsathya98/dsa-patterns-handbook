@@ -122,6 +122,7 @@ For universal templates, mental models, and decision checklists across all major
 * 🕹️ [**Bit Manipulation Master Cheat Sheet**](./cheat_sheets/bitwise_cheat_sheet.md) – The 6 silicon operators, Horner's stream shift, power-of-two check, Brian Kernighan bit clearing, and XOR cancellation.
 * ⚡ [**System Design Fundamentals Cheat Sheet**](./cheat_sheets/system_design_fundamentals_cheat_sheet.md) – 60-second technology decision table, network latency speed ladder, and high availability checklist.
 * 🔢 [**System Design Back-of-the-Envelope Math Cheat Sheet**](./cheat_sheets/system_design_calculations_cheat_sheet.md) – Storage powers of 2, latency numbers, QPS estimation, and RAM cache sizing.
+* 🚨 [**System Design Failure Modes & Fixes Master Cheat Sheet**](./cheat_sheets/system_design_failure_modes_cheat_sheet.md) – All 39 distributed failure concepts (Thundering herd, Circuit breakers, Outbox, Fencing tokens, Tail latency, Confused deputy) in 8 tables.
 
 ---
 
@@ -134,6 +135,9 @@ Core architecture primers, distributed patterns, and active Excalidraw whiteboar
 * [🗄️ **03. Database Scaling, Sharding & The CAP Theorem**](./system_design/03_database_scaling_sharding_and_cap.md) – Read replicas & replication lag, horizontal sharding keys, Consistent Hashing with virtual nodes, and CAP vs PACELC.
 * [📨 **04. Message Queues & Event-Driven Architecture**](./system_design/04_message_queues_and_async_processing.md) – Sync vs async decoupling, Kafka vs RabbitMQ vs SQS, partitions & consumer groups, delivery guarantees, idempotency keys, and DLQs.
 * [🚪 **05. API Gateway & Rate Limiting Architecture**](./system_design/05_api_gateway_and_rate_limiting.md) – API gateway responsibilities, the 5 rate limiting algorithms (Token/Leaky bucket, sliding window), and distributed rate limiting with Redis Lua scripts.
+* [🛡️ **06. Distributed Failure Modes, Traffic Spikes & Latency Guide**](./system_design/06_distributed_failure_modes_and_resilience.md) – Thundering herd, retry storms, hot keys, backpressure, load shedding, circuit breakers, bulkheads, $p99$ tail latency, hedged requests, and confused deputy.
+* [🤝 **07. Distributed Coordination, Exactly-Once & Concurrency Guide**](./system_design/07_distributed_coordination_and_transactions.md) – Idempotency, Dual-Write & Transactional Outbox, Sagas vs 2PC, Leader election, Leases, Fencing tokens (zombie leader fix), Split brain, and Optimistic vs Pessimistic locking.
+* [🚨 **System Design Failure Modes & Fixes Master Cheat Sheet**](./cheat_sheets/system_design_failure_modes_cheat_sheet.md) – 39 core distributed systems concepts across 8 problem categories with real production examples.
 * [🔢 **Back-of-the-Envelope Calculations Cheat Sheet**](./cheat_sheets/system_design_calculations_cheat_sheet.md) – Powers of 2, latency numbers every engineer must know, quick QPS estimation formulas, and 80/20 RAM cache sizing.
 * [⚡ **System Design Fundamentals Cheat Sheet**](./cheat_sheets/system_design_fundamentals_cheat_sheet.md) – Quick reference 3-second decision table for databases, networking, protocols, and SPOF defense.
 * [🎨 **Excalidraw Dry-Run #1: Core Scalable Infrastructure Challenge**](./system_design/excalidraw_practice_01_core_infra.md) – 20-minute timed whiteboarding prompt (50k QPS photo service) with 4-stage diagram checklist and self-critique grilling questions.
