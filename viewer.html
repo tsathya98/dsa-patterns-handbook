@@ -23,88 +23,46 @@
   Current colors taken from GitHub's CSS
 */.hljs{color:#c9d1d9;background:#0d1117}.hljs-doctag,.hljs-keyword,.hljs-meta .hljs-keyword,.hljs-template-tag,.hljs-template-variable,.hljs-type,.hljs-variable.language_{color:#ff7b72}.hljs-title,.hljs-title.class_,.hljs-title.class_.inherited__,.hljs-title.function_{color:#d2a8ff}.hljs-attr,.hljs-attribute,.hljs-literal,.hljs-meta,.hljs-number,.hljs-operator,.hljs-selector-attr,.hljs-selector-class,.hljs-selector-id,.hljs-variable{color:#79c0ff}.hljs-meta .hljs-string,.hljs-regexp,.hljs-string{color:#a5d6ff}.hljs-built_in,.hljs-symbol{color:#ffa657}.hljs-code,.hljs-comment,.hljs-formula{color:#8b949e}.hljs-name,.hljs-quote,.hljs-selector-pseudo,.hljs-selector-tag{color:#7ee787}.hljs-subst{color:#c9d1d9}.hljs-section{color:#1f6feb;font-weight:700}.hljs-bullet{color:#f2cc60}.hljs-emphasis{color:#c9d1d9;font-style:italic}.hljs-strong{color:#c9d1d9;font-weight:700}.hljs-addition{color:#aff5b4;background-color:#033a16}.hljs-deletion{color:#ffdcd7;background-color:#67060c}
 
-    /* 1. LINEAR INDIGO (Default: Sleek Slate + Electric Indigo & Sky Blue) */
-    body.theme-indigo {
-      --bg: #0b0d13;
-      --surface: #111520;
-      --surface-card: #161b28;
-      --surface-hover: #1e2536;
-      --border: #262f45;
-      --text: #f1f5f9;
-      --text-muted: #94a3b8;
-      --accent: #6366f1;
-      --accent-text: #818cf8;
+    /* DARK MODE (Claude.ai / Gemini Warm Charcoal Dark) */
+    body.theme-dark {
+      --bg: #171716;
+      --surface: #1f1f1d;
+      --surface-card: #252523;
+      --surface-hover: #2f2f2c;
+      --border: #373734;
+      --text: #ededeb;
+      --text-muted: #a1a09a;
+      --accent: #d97757;
+      --accent-text: #e88d6f;
       --accent-fg: #ffffff;
-      --accent-soft: rgba(99, 102, 241, 0.14);
-      --accent-border: rgba(99, 102, 241, 0.38);
-      --code-bg: #080a0f;
-      --code-inline-bg: #1e2538;
-      --code-inline-text: #a5b4fc;
-      --heading-h1: #f8fafc;
-      --heading-h2: #38bdf8;
+      --accent-soft: rgba(217, 119, 87, 0.14);
+      --accent-border: rgba(217, 119, 87, 0.36);
+      --code-bg: #111110;
+      --code-inline-bg: #2e2e2b;
+      --code-inline-text: #f2a990;
+      --heading-h1: #f5f5f3;
+      --heading-h2: #e88d6f;
     }
 
-    /* 2. TOKYO NIGHT (Deep Neon Blue-Black + Cyan & Lavender) */
-    body.theme-tokyo {
-      --bg: #16161e;
-      --surface: #1a1b26;
-      --surface-card: #212434;
-      --surface-hover: #292e42;
-      --border: #333952;
-      --text: #c0caf5;
-      --text-muted: #7aa2f7;
-      --accent: #7dcfff;
-      --accent-text: #7dcfff;
-      --accent-fg: #0f111a;
-      --accent-soft: rgba(125, 207, 255, 0.14);
-      --accent-border: rgba(125, 207, 255, 0.38);
-      --code-bg: #111219;
-      --code-inline-bg: #282c40;
-      --code-inline-text: #bb9af7;
-      --heading-h1: #7dcfff;
-      --heading-h2: #bb9af7;
-    }
-
-    /* 3. CATPPUCCIN MOCHA (Cozy Pastel Mauve & Sapphire Dark) */
-    body.theme-mocha {
-      --bg: #181825;
-      --surface: #1e1e2e;
-      --surface-card: #252538;
-      --surface-hover: #313244;
-      --border: #3b3d54;
-      --text: #cdd6f4;
-      --text-muted: #a6adc8;
-      --accent: #cba6f7;
-      --accent-text: #cba6f7;
-      --accent-fg: #11111b;
-      --accent-soft: rgba(203, 166, 247, 0.15);
-      --accent-border: rgba(203, 166, 247, 0.4);
-      --code-bg: #11111b;
-      --code-inline-bg: #2b2c40;
-      --code-inline-text: #f5c2e7;
-      --heading-h1: #cba6f7;
-      --heading-h2: #89b4fa;
-    }
-
-    /* 4. DAYLIGHT CLEAN (Stripe / Linear Crisp Light Mode) */
-    body.theme-daylight {
-      --bg: #f8fafc;
-      --surface: #f1f5f9;
+    /* LIGHT MODE (Claude.ai Warm Paper & Crisp Surface Cards) */
+    body.theme-light {
+      --bg: #faf9f5;
+      --surface: #f2f0e8;
       --surface-card: #ffffff;
-      --surface-hover: #e2e8f0;
-      --border: #cbd5e1;
-      --text: #0f172a;
-      --text-muted: #475569;
-      --accent: #4f46e5;
-      --accent-text: #4f46e5;
+      --surface-hover: #e8e5dc;
+      --border: #dfdcd2;
+      --text: #1f1e1d;
+      --text-muted: #66645e;
+      --accent: #c96442;
+      --accent-text: #b85432;
       --accent-fg: #ffffff;
-      --accent-soft: rgba(79, 70, 229, 0.1);
-      --accent-border: rgba(79, 70, 229, 0.3);
-      --code-bg: #0f172a;
-      --code-inline-bg: #eef2ff;
-      --code-inline-text: #4338ca;
-      --heading-h1: #0f172a;
-      --heading-h2: #2563eb;
+      --accent-soft: rgba(201, 100, 66, 0.10);
+      --accent-border: rgba(201, 100, 66, 0.28);
+      --code-bg: #191918;
+      --code-inline-bg: #efece4;
+      --code-inline-text: #9e4426;
+      --heading-h1: #141413;
+      --heading-h2: #b85432;
     }
 
     body {
@@ -268,7 +226,7 @@
     }
   </style>
 </head>
-<body class="theme-indigo min-h-screen flex flex-col antialiased">
+<body class="theme-dark min-h-screen flex flex-col antialiased">
 
   <!-- 1. UNIFIED TOP NAVIGATION BAR -->
   <header class="sticky top-0 z-30 ui-surface border-b px-3 sm:px-5 py-2.5 flex items-center justify-between gap-2">
@@ -314,11 +272,9 @@
         <kbd class="px-1.5 py-0.5 text-xs font-mono ui-surface rounded border">⌘K</kbd>
       </button>
 
-      <div class="hidden md:flex items-center ui-card rounded-lg p-0.5 border text-xs" role="group" aria-label="Color palette">
-        <button type="button" onclick="setTheme('indigo')" id="btn-theme-indigo" class="px-2 py-1 rounded font-medium transition-all" title="Linear Indigo">⚡ Indigo</button>
-        <button type="button" onclick="setTheme('tokyo')" id="btn-theme-tokyo" class="px-2 py-1 rounded font-medium transition-all" title="Tokyo Night">🌃 Tokyo</button>
-        <button type="button" onclick="setTheme('mocha')" id="btn-theme-mocha" class="px-2 py-1 rounded font-medium transition-all" title="Catppuccin Mocha">🌸 Mocha</button>
-        <button type="button" onclick="setTheme('daylight')" id="btn-theme-daylight" class="px-2 py-1 rounded font-medium transition-all" title="Daylight Clean">☀️ Light</button>
+      <div class="flex items-center ui-card rounded-lg p-0.5 border text-xs" role="group" aria-label="Theme mode">
+        <button type="button" onclick="setTheme('dark')" id="btn-theme-dark" class="px-2 py-1 rounded font-medium transition-all" title="Dark Mode">🌙 Dark</button>
+        <button type="button" onclick="setTheme('light')" id="btn-theme-light" class="px-2 py-1 rounded font-medium transition-all" title="Light Mode">☀️ Light</button>
       </div>
 
       <button type="button" id="toggle-right-sidebar-btn" onclick="toggleRightSidebar()" class="p-1.5 rounded-lg ui-card border ui-text-muted hover:text-[var(--text)] transition-colors" title="Toggle Right 'On This Page' Column (Shortcut: o)">
@@ -1206,14 +1162,14 @@
       renderPomodoroHistory();
     }
 
-    // 4. Palette & Sidebar Scope
+    // 4. Theme & Sidebar Scope
     function setTheme(theme) {
-      const valid = ['indigo', 'tokyo', 'mocha', 'daylight'];
-      if (!valid.includes(theme)) theme = 'indigo';
+      if (theme === 'daylight') theme = 'light';
+      if (theme !== 'light' && theme !== 'dark') theme = 'dark';
       document.body.className = `theme-${theme} min-h-screen flex flex-col antialiased`;
       localStorage.setItem(THEME_KEY, theme);
 
-      valid.forEach(t => {
+      ['dark', 'light'].forEach(t => {
         const btn = document.getElementById(`btn-theme-${t}`);
         if (!btn) return;
         if (t === theme) {
@@ -1226,7 +1182,7 @@
       if (typeof mermaid !== 'undefined') {
         mermaid.initialize({
           startOnLoad: false,
-          theme: theme === 'daylight' ? 'neutral' : 'dark',
+          theme: theme === 'light' ? 'neutral' : 'dark',
           flowchart: { curve: 'basis', padding: 12 },
           securityLevel: 'loose'
         });
@@ -1988,7 +1944,7 @@
 
     // Boot Application
     initState();
-    const savedTheme = localStorage.getItem(THEME_KEY) || 'indigo';
+    const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
     setTheme(savedTheme);
     applySidebarVisibility();
     updateGlobalProgressPill();
