@@ -29,7 +29,9 @@ First principles of algorithmic thinking, counting elementary operations, and Bi
 
 * [📐 **01. Algorithms, Correctness & Efficiency**](./00_foundations/01_algorithms_correctness_efficiency.md) – What makes an algorithm "good", why wall-clock stopwatches fail, counting elementary operations, and payroll scaling.
 * [⚡ **02. Time & Space Complexity and Big-O Notation**](./00_foundations/02_time_and_space_complexity_big_o.md) – Big-O simplification rules, dominant terms, the 6 core loop archetypes (linear, halving, quadratic, break trap), and auxiliary space vs total space.
+* [🧠 **03. Python Memory Model, Pointers & Core Collections**](./00_foundations/03_python_memory_model_and_collections.md) – Variables as pointers, low-level arrays vs Python lists, why mutating a list inside a tuple works (`t[2].append()`), slice garbage collection, and hashability rules.
 * [📊 **Time & Space Complexity Master Cheat Sheet**](./cheat_sheets/time_and_space_complexity_cheat_sheet.md) – 3-second decision table, input size ($N$) constraint limits, and common loop pattern speed ladder.
+* [🐍 **Python Internals, Memory & Collections Cheat Sheet**](./cheat_sheets/python_internals_and_collections_cheat_sheet.md) – Mutability vs hashability matrix, tuple pointer rules, in-place vs copy operations, and classic Python syntax traps.
 
 ---
 
