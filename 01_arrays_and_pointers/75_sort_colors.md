@@ -78,7 +78,11 @@ class Solution:
 
 ## Traps to watch for
 
-- **Incrementing `mid` after swapping with `high`:** This is the most common bug. When you swap `nums[mid]` with `nums[low]`, the element from `low` was already inspected and known to be `1`. But the element coming from `high` was in uninspected territory (`?`), so `mid` must remain in place to test it on the next loop iteration.
+- **Incrementing `mid` (or `i`) after swapping with `high` (or `r`):** This is the #1 bug in this problem.
+  * When you swap with `low`, the incoming number came from already-inspected territory (it was guaranteed to be a `1`), so advancing `mid += 1` is safe.
+  * When you swap with `high`, the incoming number comes from uninspected territory (`?`). It could be a `0`, `1`, or another `2`!
+  * **Failure example:** On `nums = [1, 2, 0]`, at `i = 1`, `nums[1] == 2` swaps with `nums[2] == 0`, producing `[1, 0, 2]`. If you increment `i` to 2, the loop terminates (`i <= r` fails) and the incoming `0` at index 1 is never placed into the `0` zone!
+  * **Rule:** Only decrement `high -= 1`. Leave `mid` at the same index so the next iteration examines the newly arrived element.
 
 ## Complexity
 
