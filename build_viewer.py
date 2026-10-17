@@ -2,13 +2,10 @@
 """
 Generate the unified DSA Study Hub & Tracker web application:
 - Separates Concept/Theory Notes from LeetCode Problem Walkthroughs & Cheat Sheets.
-- Replaces olive/emerald green with 4 modern developer palettes:
-  1. Linear Indigo (Default Dark)
-  2. Tokyo Night (Cyan & Lavender Dark)
-  3. Catppuccin Mocha (Warm Pastel Dark)
-  4. Daylight Clean (Crisp Light)
-- Renders Markdown (marked.js), Syntax Highlighting (highlight.js), Math (KaTeX),
-  and Flowcharts (Mermaid.js) locally via static/vendor/.
+- Collapsible Left Sidebar (Topics) and Right Sidebar (On This Page) with keyboard shortcuts.
+- Dedicated Pomodoro Focus Tracker Tab + persistent live mini-timer in the top bar +
+  soothing Web Audio API harmonic chime when the timer completes.
+- 4 modern developer palettes: Linear Indigo, Tokyo Night, Catppuccin Mocha, Daylight Clean.
 """
 
 import os
@@ -77,25 +74,20 @@ def parse_doc_metadata(rel_path: str, filename: str, content: str) -> dict:
     cat_raw = rel_path.split("/")[0] if "/" in rel_path else "Root"
     cat_info = CATEGORY_META.get(cat_raw, {"label": cat_raw, "order": 99, "icon": "📄"})
 
-    # Title
     m_title = re.search(r"^#\s+(.+)$", content, re.MULTILINE)
     title = m_title.group(1).strip() if m_title else filename
 
-    # Check if filename starts with a number
     m_num = re.match(r"^(\d+)_", filename)
     prefix_num = int(m_num.group(1)) if m_num else 9999
 
-    # Determine if it's a LeetCode problem walkthrough vs Concept guide
     m_lc_title = re.search(r"LeetCode\s+(\d+)", title, re.IGNORECASE)
     lc_number = int(m_lc_title.group(1)) if m_lc_title else None
     if lc_number is None and cat_raw in ("01_arrays_and_pointers", "02_linked_lists", "03_stacks_and_queues"):
         if prefix_num > 0 and not filename.startswith("00_") and not filename.startswith("01_linked_list_fundamentals"):
             lc_number = prefix_num
 
-    # Clean short display title (strips "LeetCode 88: " or "53. ")
     short_title = re.sub(r"^(?:LeetCode\s+\d+\s*[:\-–]\s*|\d+\.\s*)", "", title, flags=re.IGNORECASE).strip()
 
-    # Difficulty
     m_diff = re.search(r"\*\*Difficulty:\*\*\s*(Easy|Medium|Hard)", content, re.IGNORECASE)
     if m_diff:
         difficulty = m_diff.group(1).capitalize()
@@ -106,15 +98,12 @@ def parse_doc_metadata(rel_path: str, filename: str, content: str) -> dict:
     else:
         difficulty = "Concept"
 
-    # Pattern
     m_pat = re.search(r"\*\*Pattern:\*\*\s*([^\n|]+)", content)
     pattern = m_pat.group(1).strip() if m_pat else cat_info["label"]
 
-    # LeetCode URL
     m_url = re.search(r"\((https://leetcode\.com/problems/[^)]+)\)", content)
     lc_url = m_url.group(1).strip() if m_url else ""
 
-    # Short 1-line summary
     summary = ""
     for line in content.splitlines():
         s = line.strip()
@@ -126,7 +115,6 @@ def parse_doc_metadata(rel_path: str, filename: str, content: str) -> dict:
             summary = clean_s[:160] + ("..." if len(clean_s) > 160 else "")
             break
 
-    # Doc type: separate 'concept', 'problem', 'cheat_sheet'
     if cat_raw == "cheat_sheets":
         doc_type = "cheat_sheet"
         sort_key = (2, prefix_num, short_title.lower())
@@ -192,7 +180,7 @@ def build_html(default_view: str = "concepts") -> str:
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DSA Visual Study Hub & Problem Tracker</title>
+  <title>DSA Visual Study Hub & Focus Tracker</title>
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
   <link rel="stylesheet" href="static/vendor/katex.min.css">
   <script src="static/vendor/marked.min.js"></script>
@@ -202,10 +190,6 @@ def build_html(default_view: str = "concepts") -> str:
   <script src="static/vendor/mermaid.min.js"></script>
   <style>
     {hl_css}
-
-    /* =======================================================================
-       4 MODERN, CRISP DEVELOPER PALETTES (NO SWAMPY OLIVE GREEN!)
-       ======================================================================= */
 
     /* 1. LINEAR INDIGO (Default: Sleek Slate + Electric Indigo & Sky Blue) */
     body.theme-indigo {{
@@ -442,7 +426,6 @@ def build_html(default_view: str = "concepts") -> str:
       border-bottom: 1px solid var(--border);
     }}
 
-    /* Visual-Only Focus Mode */
     .md-body.visual-focus-mode > p,
     .md-body.visual-focus-mode > ul,
     .md-body.visual-focus-mode > ol {{
@@ -460,54 +443,63 @@ def build_html(default_view: str = "concepts") -> str:
 </head>
 <body class="theme-indigo min-h-screen flex flex-col antialiased">
 
-  <!-- 1. UNIFIED TOP NAVIGATION BAR (Separates Concepts vs Problems vs Cheat Sheets vs Tracker) -->
-  <header class="sticky top-0 z-30 ui-surface border-b px-3 sm:px-5 py-2.5 flex items-center justify-between gap-3">
-    <div class="flex items-center gap-2.5">
-      <button type="button" id="mobile-sidebar-btn" class="lg:hidden p-1.5 rounded-lg ui-card border ui-text-muted hover:opacity-80" aria-label="Toggle navigation sidebar">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+  <!-- 1. UNIFIED TOP NAVIGATION BAR -->
+  <header class="sticky top-0 z-30 ui-surface border-b px-3 sm:px-5 py-2.5 flex items-center justify-between gap-2">
+    <div class="flex items-center gap-2">
+      <!-- Left Sidebar Collapse Button (Always visible when in Reader) -->
+      <button type="button" id="toggle-left-sidebar-btn" onclick="toggleLeftSidebar()" class="p-1.5 rounded-lg ui-card border ui-text-muted hover:text-[var(--text)] transition-colors" title="Toggle Left Topic Sidebar (Shortcut: b)">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h10M4 18h16"/></svg>
       </button>
+
       <div class="flex items-center gap-2">
-        <span class="text-base sm:text-lg font-extrabold tracking-tight ui-accent-text">DSA Hub</span>
-        <span id="global-progress-pill" class="hidden md:inline-flex items-center gap-1 text-xs font-mono px-2.5 py-0.5 rounded-full ui-card border ui-text-muted" title="LeetCode Problems Solved">
+        <span class="text-base font-extrabold tracking-tight ui-accent-text whitespace-nowrap">DSA Hub</span>
+        <span id="global-progress-pill" class="hidden xl:inline-flex items-center gap-1 text-xs font-mono px-2.5 py-0.5 rounded-full ui-card border ui-text-muted" title="LeetCode Problems Solved">
           0 Solved
         </span>
       </div>
     </div>
 
-    <!-- 5 Distinct Views: Concepts | Problems | Cheat Sheets | Problem Tracker | 12-Wk Plan -->
+    <!-- 6 Primary Views: Concepts | LeetCode Guides | Cheat Sheets | Tracker | Pomodoro | 12-Wk Plan -->
     <nav class="flex items-center gap-1 ui-card p-1 rounded-xl border overflow-x-auto" aria-label="Primary sections">
-      <button type="button" onclick="switchView('concepts')" id="nav-btn-concepts" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
+      <button type="button" onclick="switchView('concepts')" id="nav-btn-concepts" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
         <span aria-hidden="true">📘</span> Concepts
       </button>
-      <button type="button" onclick="switchView('problems')" id="nav-btn-problems" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
+      <button type="button" onclick="switchView('problems')" id="nav-btn-problems" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
         <span aria-hidden="true">🧩</span> LeetCode Guides
       </button>
-      <button type="button" onclick="switchView('cheatsheets')" id="nav-btn-cheatsheets" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
+      <button type="button" onclick="switchView('cheatsheets')" id="nav-btn-cheatsheets" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
         <span aria-hidden="true">⚡</span> Cheat Sheets
       </button>
-      <button type="button" onclick="switchView('tracker')" id="nav-btn-tracker" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
+      <button type="button" onclick="switchView('tracker')" id="nav-btn-tracker" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
         <span aria-hidden="true">✅</span> Tracker
       </button>
-      <button type="button" onclick="switchView('roadmap')" id="nav-btn-roadmap" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
+      <button type="button" onclick="switchView('pomodoro')" id="nav-btn-pomodoro" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
+        <span aria-hidden="true">⏱️</span> <span id="nav-pomo-label">Pomodoro</span>
+      </button>
+      <button type="button" onclick="switchView('roadmap')" id="nav-btn-roadmap" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
         <span aria-hidden="true">🗺️</span> 12-Wk Plan
       </button>
     </nav>
 
-    <!-- Right Controls: Quick Search (Cmd+K) & 4-Palette Picker -->
-    <div class="flex items-center gap-2">
-      <button type="button" id="open-cmdk-btn" class="px-2.5 py-1.5 rounded-lg ui-card border text-xs ui-text-muted hover:opacity-90 flex items-center gap-2 transition-colors" aria-label="Search all notes and problems">
+    <!-- Right Controls: Search (Cmd+K), Palette Switcher & Right Sidebar Collapse Button -->
+    <div class="flex items-center gap-1.5">
+      <button type="button" id="open-cmdk-btn" class="px-2.5 py-1.5 rounded-lg ui-card border text-xs ui-text-muted hover:opacity-90 flex items-center gap-1.5 transition-colors" aria-label="Search all notes and problems">
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-        <span class="hidden xl:inline">Search...</span>
         <kbd class="px-1.5 py-0.5 text-xs font-mono ui-surface rounded border">⌘K</kbd>
       </button>
 
       <!-- Palette Switcher: Indigo | Tokyo Night | Catppuccin Mocha | Daylight -->
-      <div class="hidden sm:flex items-center ui-card rounded-lg p-0.5 border text-xs" role="group" aria-label="Color palette">
-        <button type="button" onclick="setTheme('indigo')" id="btn-theme-indigo" class="px-2 py-1 rounded font-medium transition-all" title="Linear Indigo (Sleek Slate & Violet)">⚡ Indigo</button>
-        <button type="button" onclick="setTheme('tokyo')" id="btn-theme-tokyo" class="px-2 py-1 rounded font-medium transition-all" title="Tokyo Night (Cyan & Lavender)">🌃 Tokyo</button>
-        <button type="button" onclick="setTheme('mocha')" id="btn-theme-mocha" class="px-2 py-1 rounded font-medium transition-all" title="Catppuccin Mocha (Warm Pastel)">🌸 Mocha</button>
-        <button type="button" onclick="setTheme('daylight')" id="btn-theme-daylight" class="px-2 py-1 rounded font-medium transition-all" title="Daylight Clean (Light Mode)">☀️ Light</button>
+      <div class="hidden md:flex items-center ui-card rounded-lg p-0.5 border text-xs" role="group" aria-label="Color palette">
+        <button type="button" onclick="setTheme('indigo')" id="btn-theme-indigo" class="px-2 py-1 rounded font-medium transition-all" title="Linear Indigo">⚡ Indigo</button>
+        <button type="button" onclick="setTheme('tokyo')" id="btn-theme-tokyo" class="px-2 py-1 rounded font-medium transition-all" title="Tokyo Night">🌃 Tokyo</button>
+        <button type="button" onclick="setTheme('mocha')" id="btn-theme-mocha" class="px-2 py-1 rounded font-medium transition-all" title="Catppuccin Mocha">🌸 Mocha</button>
+        <button type="button" onclick="setTheme('daylight')" id="btn-theme-daylight" class="px-2 py-1 rounded font-medium transition-all" title="Daylight Clean">☀️ Light</button>
       </div>
+
+      <!-- Right Sidebar Collapse Button -->
+      <button type="button" id="toggle-right-sidebar-btn" onclick="toggleRightSidebar()" class="p-1.5 rounded-lg ui-card border ui-text-muted hover:text-[var(--text)] transition-colors" title="Toggle Right 'On This Page' Column (Shortcut: o)">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7"/></svg>
+      </button>
     </div>
   </header>
 
@@ -516,14 +508,18 @@ def build_html(default_view: str = "concepts") -> str:
   <!-- ===================================================================== -->
   <main id="view-reader" class="flex-1 flex overflow-hidden">
     
-    <!-- Left Sidebar (Filtered cleanly by Concepts vs Problems) -->
-    <aside id="reader-sidebar" class="w-76 shrink-0 ui-surface border-r flex flex-col h-[calc(100vh-53px)] sticky top-[53px] hidden lg:flex">
+    <!-- Left Collapsible Sidebar -->
+    <aside id="reader-sidebar" class="w-76 shrink-0 ui-surface border-r flex flex-col h-[calc(100vh-53px)] sticky top-[53px]">
       <div class="p-3 border-b ui-border space-y-2.5">
-        <!-- Sidebar Scope Toggle: Concepts vs Problems vs All -->
-        <div class="grid grid-cols-3 gap-1 ui-card p-1 rounded-lg border text-xs" role="group" aria-label="Sidebar filter">
-          <button type="button" onclick="setSidebarScope('concept')" id="sb-scope-concept" class="py-1 rounded font-semibold transition-colors">📘 Concepts</button>
-          <button type="button" onclick="setSidebarScope('problem')" id="sb-scope-problem" class="py-1 rounded font-semibold transition-colors">🧩 Problems</button>
-          <button type="button" onclick="setSidebarScope('all')" id="sb-scope-all" class="py-1 rounded font-semibold transition-colors">All (94)</button>
+        <div class="flex items-center justify-between gap-2">
+          <div class="grid grid-cols-3 gap-1 ui-card p-1 rounded-lg border text-xs flex-1" role="group" aria-label="Sidebar filter">
+            <button type="button" onclick="setSidebarScope('concept')" id="sb-scope-concept" class="py-1 rounded font-semibold transition-colors">📘 Concepts</button>
+            <button type="button" onclick="setSidebarScope('problem')" id="sb-scope-problem" class="py-1 rounded font-semibold transition-colors">🧩 Problems</button>
+            <button type="button" onclick="setSidebarScope('all')" id="sb-scope-all" class="py-1 rounded font-semibold transition-colors">All (94)</button>
+          </div>
+          <button type="button" onclick="toggleLeftSidebar()" class="p-1.5 rounded-lg ui-card border ui-text-muted hover:text-[var(--text)]" title="Collapse left sidebar (b)">
+            «
+          </button>
         </div>
 
         <search>
@@ -537,13 +533,12 @@ def build_html(default_view: str = "concepts") -> str:
       </div>
 
       <div id="sidebar-tree" class="flex-1 overflow-y-auto p-2.5 space-y-2">
-        <!-- Populated by JS -->
       </div>
     </aside>
 
     <!-- Center Markdown & Visual Flowchart Canvas -->
     <div id="reader-scroll-container" class="flex-1 overflow-y-auto h-[calc(100vh-53px)] px-4 sm:px-8 py-6">
-      <div class="max-w-3xl mx-auto space-y-5 pb-16">
+      <div id="reader-inner-wrap" class="max-w-3xl mx-auto space-y-5 pb-16 transition-all">
 
         <!-- Document Control Bar -->
         <div class="ui-card border rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-3 shadow-sm">
@@ -556,7 +551,6 @@ def build_html(default_view: str = "concepts") -> str:
             </a>
           </div>
 
-          <!-- Visual Mode & Status Controls -->
           <div class="flex items-center gap-2 flex-wrap">
             <div class="flex items-center ui-surface rounded-lg p-0.5 border text-xs" role="group" aria-label="Reading mode">
               <button type="button" onclick="setReaderMode('full')" id="mode-btn-full" class="px-2.5 py-1 rounded font-semibold ui-accent-soft border">
@@ -607,16 +601,22 @@ def build_html(default_view: str = "concepts") -> str:
       </div>
     </div>
 
-    <!-- Right Table of Contents Rail -->
-    <aside class="w-60 shrink-0 ui-surface border-l p-4 h-[calc(100vh-53px)] sticky top-[53px] hidden xl:flex flex-col justify-between overflow-y-auto">
+    <!-- Right Collapsible Table of Contents Rail -->
+    <aside id="reader-toc-sidebar" class="w-64 shrink-0 ui-surface border-l p-4 h-[calc(100vh-53px)] sticky top-[53px] flex flex-col justify-between overflow-y-auto">
       <div class="space-y-3">
-        <div class="text-xs font-bold uppercase tracking-wider ui-text-muted">On This Page</div>
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase tracking-wider ui-text-muted">On This Page</span>
+          <button type="button" onclick="toggleRightSidebar()" class="px-1.5 py-0.5 rounded ui-card border text-xs ui-text-muted hover:text-[var(--text)]" title="Collapse right sidebar (o)">
+            »
+          </button>
+        </div>
         <nav id="toc-list" class="space-y-1.5 text-xs" aria-label="Table of contents">
         </nav>
       </div>
       <div class="ui-card border rounded-xl p-3 space-y-1.5 text-xs">
         <div class="font-semibold ui-accent-text">Keyboard Shortcuts</div>
         <div class="flex justify-between ui-text-muted"><span>Search all docs</span><kbd class="font-mono">⌘K / /</kbd></div>
+        <div class="flex justify-between ui-text-muted"><span>Left / Right sidebar</span><kbd class="font-mono">b / o</kbd></div>
         <div class="flex justify-between ui-text-muted"><span>Prev / Next doc</span><kbd class="font-mono">[ / ]</kbd></div>
         <div class="flex justify-between ui-text-muted"><span>Diagrams Only</span><kbd class="font-mono">v</kbd></div>
       </div>
@@ -643,16 +643,15 @@ def build_html(default_view: str = "concepts") -> str:
   </section>
 
   <!-- ===================================================================== -->
-  <!-- VIEW 3: PROBLEM TRACKER (Dedicated to LeetCode Problems by default!)  -->
+  <!-- VIEW 3: PROBLEM TRACKER (Strictly separates LeetCode Problems)        -->
   <!-- ===================================================================== -->
   <section id="view-tracker" class="hidden flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 space-y-5">
     
-    <!-- Top Stats Row (Counts LeetCode Problems separately from Concept Notes!) -->
     <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
       <div class="ui-card border rounded-xl p-3.5">
         <div class="text-xs ui-text-muted">Problems Solved</div>
         <div class="text-2xl font-black ui-accent-text mt-0.5" id="stat-solved">0</div>
-        <div class="text-xs ui-text-muted mt-0.5" id="stat-total-label">of 38 repo problems</div>
+        <div class="text-xs ui-text-muted mt-0.5" id="stat-total-label">of 40 repo problems</div>
       </div>
       <div class="ui-card border rounded-xl p-3.5">
         <div class="text-xs ui-text-muted">Needs Review</div>
@@ -677,10 +676,8 @@ def build_html(default_view: str = "concepts") -> str:
       </div>
     </div>
 
-    <!-- Filter Bar -->
     <div class="ui-card border rounded-xl p-3 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
       <div class="flex items-center gap-2 flex-1">
-        <!-- Scope Toggle: Only LeetCode Problems vs Concept Guides -->
         <div class="flex items-center ui-surface rounded-lg p-0.5 border text-xs shrink-0" role="group" aria-label="Tracker item type">
           <button type="button" onclick="setTrackerTypeFilter('problem')" id="trk-type-problem" class="px-2.5 py-1 rounded font-semibold ui-accent-soft border">🧩 Problems Only</button>
           <button type="button" onclick="setTrackerTypeFilter('concept')" id="trk-type-concept" class="px-2.5 py-1 rounded font-medium ui-text-muted">📘 Concepts</button>
@@ -712,7 +709,6 @@ def build_html(default_view: str = "concepts") -> str:
       </div>
     </div>
 
-    <!-- Clean Scannable Tracker Table -->
     <div class="ui-card border rounded-2xl overflow-hidden shadow-sm">
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse text-xs">
@@ -733,7 +729,116 @@ def build_html(default_view: str = "concepts") -> str:
   </section>
 
   <!-- ===================================================================== -->
-  <!-- VIEW 4: 12-WEEK FAANG ROADMAP (With hidden="until-found" support)     -->
+  <!-- VIEW 4: POMODORO FOCUS TRACKER (With Smooth Harmonic Chime Alarm)     -->
+  <!-- ===================================================================== -->
+  <section id="view-pomodoro" class="hidden flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-8 space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b ui-border pb-4">
+      <div>
+        <h1 class="text-xl sm:text-2xl font-bold ui-accent-text">⏱️ Pomodoro & Interview Sprint Timer</h1>
+        <p class="text-xs ui-text-muted mt-0.5">Runs in the background while you read notes • Plays a warm harmonic singing-bowl chime on completion.</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <select id="pomo-sound-select" aria-label="Alarm sound style" class="ui-card border rounded-lg px-2.5 py-1.5 text-xs focus:outline-none">
+          <option value="chime">🔔 Warm Singing Bowl Chime</option>
+          <option value="marimba">🎶 Soft Marimba Triad</option>
+          <option value="crystal">✨ Crystal Bell Arpeggio</option>
+        </select>
+        <button type="button" onclick="playSmoothAlarm()" class="px-3 py-1.5 rounded-lg ui-card border text-xs font-semibold ui-accent-text hover:opacity-90">
+          🔊 Test Chime
+        </button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
+      
+      <!-- Left 3 Cols: Timer Ring & Controls -->
+      <div class="md:col-span-3 ui-card border rounded-2xl p-6 flex flex-col items-center justify-between space-y-6 shadow-sm">
+        
+        <!-- Mode Presets -->
+        <div class="flex flex-wrap items-center justify-center gap-1.5 ui-surface p-1.5 rounded-xl border text-xs w-full">
+          <button type="button" onclick="setPomodoroPreset(25, 'Pomodoro Focus')" id="pomo-preset-25" class="pomo-preset-btn px-3 py-1.5 rounded-lg font-semibold ui-accent-btn">
+            🍅 25m Focus
+          </button>
+          <button type="button" onclick="setPomodoroPreset(45, 'FAANG Mock Sprint')" id="pomo-preset-45" class="pomo-preset-btn px-3 py-1.5 rounded-lg font-medium ui-text-muted hover:text-[var(--text)]">
+            ⚡ 45m FAANG Mock
+          </button>
+          <button type="button" onclick="setPomodoroPreset(5, 'Short Break')" id="pomo-preset-5" class="pomo-preset-btn px-3 py-1.5 rounded-lg font-medium ui-text-muted hover:text-[var(--text)]">
+            ☕ 5m Break
+          </button>
+          <button type="button" onclick="setPomodoroPreset(15, 'Long Break')" id="pomo-preset-15" class="pomo-preset-btn px-3 py-1.5 rounded-lg font-medium ui-text-muted hover:text-[var(--text)]">
+            🌿 15m Break
+          </button>
+        </div>
+
+        <!-- SVG Circular Countdown Ring -->
+        <div class="relative w-56 h-56 flex items-center justify-center">
+          <svg class="w-full h-full -rotate-90" viewBox="0 0 120 120" aria-hidden="true">
+            <circle cx="60" cy="60" r="52" fill="none" stroke="var(--border)" stroke-width="6"></circle>
+            <circle id="pomo-ring-circle" cx="60" cy="60" r="52" fill="none" stroke="var(--accent)" stroke-width="6" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="0" class="transition-all duration-500"></circle>
+          </svg>
+          <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+            <span id="pomo-mode-label" class="text-xs font-semibold uppercase tracking-wider ui-accent-text">Pomodoro Focus</span>
+            <div id="pomo-time-display" class="text-5xl font-black font-mono tracking-tight my-1">25:00</div>
+            <span id="pomo-status-sub" class="text-xs ui-text-muted">Ready to start</span>
+          </div>
+        </div>
+
+        <!-- Focus Target Selector -->
+        <div class="w-full space-y-1">
+          <label for="pomo-task-input" class="text-xs ui-text-muted block">Focusing on topic / problem:</label>
+          <input id="pomo-task-input" type="text" placeholder="e.g. 2D Matrices & Spiral Traversal (LC 54)" class="w-full ui-surface border rounded-xl px-3.5 py-2 text-xs focus:outline-none">
+        </div>
+
+        <!-- Start / Pause / Reset + Custom Duration -->
+        <div class="flex items-center justify-between gap-3 w-full pt-2 border-t ui-border">
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="togglePomodoroStart()" id="pomo-start-btn" class="px-5 py-2 rounded-xl ui-accent-btn font-bold text-xs shadow-sm hover:opacity-90 transition-all">
+              ▶ Start Focus
+            </button>
+            <button type="button" onclick="resetPomodoro()" class="px-3.5 py-2 rounded-xl ui-surface border text-xs font-semibold ui-text-muted hover:text-[var(--text)]">
+              Reset
+            </button>
+          </div>
+
+          <div class="flex items-center gap-1.5 text-xs">
+            <label for="pomo-custom-min" class="ui-text-muted">Custom:</label>
+            <input id="pomo-custom-min" type="number" min="1" max="180" value="25" class="w-14 ui-surface border rounded-lg px-2 py-1 text-center font-mono">
+            <button type="button" onclick="applyCustomPomodoro()" class="px-2.5 py-1 rounded-lg ui-card border font-medium hover:opacity-90">Set</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right 2 Cols: Daily Focus Stats & Session History -->
+      <div class="md:col-span-2 flex flex-col justify-between space-y-4">
+        <div class="grid grid-cols-2 gap-3">
+          <div class="ui-card border rounded-2xl p-4">
+            <div class="text-xs ui-text-muted">Sessions Today</div>
+            <div id="pomo-stat-sessions" class="text-2xl font-black ui-accent-text mt-1">0</div>
+            <div class="text-xs ui-text-muted mt-0.5">Completed blocks</div>
+          </div>
+          <div class="ui-card border rounded-2xl p-4">
+            <div class="text-xs ui-text-muted">Focus Minutes</div>
+            <div id="pomo-stat-minutes" class="text-2xl font-black text-sky-400 mt-1">0m</div>
+            <div class="text-xs ui-text-muted mt-0.5">Deep work logged</div>
+          </div>
+        </div>
+
+        <div class="ui-card border rounded-2xl p-4 flex-1 flex flex-col justify-between space-y-3">
+          <div class="flex items-center justify-between border-b ui-border pb-2">
+            <h2 class="text-xs font-bold uppercase tracking-wider ui-accent-text">Completed Focus Log</h2>
+            <button type="button" onclick="clearPomodoroLog()" class="text-xs ui-text-muted hover:underline">Clear</button>
+          </div>
+          <div id="pomo-history-list" class="space-y-2 max-h-60 overflow-y-auto text-xs flex-1">
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- VIEW 5: 12-WEEK FAANG ROADMAP (With hidden="until-found" support)     -->
   <!-- ===================================================================== -->
   <section id="view-roadmap" class="hidden flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 space-y-5">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b ui-border pb-4">
@@ -870,17 +975,23 @@ def build_html(default_view: str = "concepts") -> str:
     const NOTES_STORAGE_KEY = 'dsa_hub_notes_v2';
     const CUSTOM_PROBS_KEY = 'dsa_hub_custom_probs_v2';
     const THEME_KEY = 'dsa_hub_palette_v3';
+    const LEFT_SB_KEY = 'dsa_hub_left_sb_open';
+    const RIGHT_SB_KEY = 'dsa_hub_right_sb_open';
+    const POMO_LOG_KEY = 'dsa_hub_pomo_log_v1';
 
     let docStatusMap = {{}};
     let docNotesMap = {{}};
     let customProblems = [];
+    let pomoHistory = [];
     let currentView = DEFAULT_INITIAL_VIEW;
-    let sidebarScope = 'concept'; // 'concept' | 'problem' | 'all'
+    let sidebarScope = 'concept';
     let currentDocPath = "00_foundations/01_algorithms_correctness_efficiency.md";
     let readerMode = 'full';
     let showFlowcharts = true;
     let trackerStatusFilter = 'ALL';
-    let trackerTypeFilter = 'problem'; // Tracker defaults strictly to LeetCode Problems!
+    let trackerTypeFilter = 'problem';
+    let isLeftSidebarOpen = true;
+    let isRightSidebarOpen = true;
 
     // 1. Initialize Storage
     function initState() {{
@@ -900,11 +1011,295 @@ def build_html(default_view: str = "concepts") -> str:
 
         const savedCustom = localStorage.getItem(CUSTOM_PROBS_KEY);
         if (savedCustom) customProblems = JSON.parse(savedCustom);
+
+        const savedPomo = localStorage.getItem(POMO_LOG_KEY);
+        if (savedPomo) pomoHistory = JSON.parse(savedPomo);
+
+        const savedLeft = localStorage.getItem(LEFT_SB_KEY);
+        if (savedLeft !== null) isLeftSidebarOpen = savedLeft === 'true';
+
+        const savedRight = localStorage.getItem(RIGHT_SB_KEY);
+        if (savedRight !== null) isRightSidebarOpen = savedRight === 'true';
       }} catch (e) {{
         console.warn(e);
       }}
     }}
 
+    // 2. Collapsible Left & Right Sidebars
+    function applySidebarVisibility() {{
+      const leftSb = document.getElementById('reader-sidebar');
+      const rightSb = document.getElementById('reader-toc-sidebar');
+      const leftBtn = document.getElementById('toggle-left-sidebar-btn');
+      const rightBtn = document.getElementById('toggle-right-sidebar-btn');
+      const innerWrap = document.getElementById('reader-inner-wrap');
+
+      if (leftSb) {{
+        if (isLeftSidebarOpen) {{
+          leftSb.classList.remove('hidden');
+          leftBtn.classList.add('ui-accent-soft');
+        }} else {{
+          leftSb.classList.add('hidden');
+          leftBtn.classList.remove('ui-accent-soft');
+        }}
+      }}
+
+      if (rightSb) {{
+        if (isRightSidebarOpen) {{
+          rightSb.classList.remove('hidden');
+          rightBtn.classList.add('ui-accent-soft');
+        }} else {{
+          rightSb.classList.add('hidden');
+          rightBtn.classList.remove('ui-accent-soft');
+        }}
+      }}
+
+      // Expand center reading width slightly when both sidebars are collapsed
+      if (innerWrap) {{
+        if (!isLeftSidebarOpen && !isRightSidebarOpen) {{
+          innerWrap.className = 'max-w-4xl mx-auto space-y-5 pb-16 transition-all';
+        }} else {{
+          innerWrap.className = 'max-w-3xl mx-auto space-y-5 pb-16 transition-all';
+        }}
+      }}
+    }}
+
+    function toggleLeftSidebar() {{
+      isLeftSidebarOpen = !isLeftSidebarOpen;
+      localStorage.setItem(LEFT_SB_KEY, String(isLeftSidebarOpen));
+      applySidebarVisibility();
+    }}
+
+    function toggleRightSidebar() {{
+      isRightSidebarOpen = !isRightSidebarOpen;
+      localStorage.setItem(RIGHT_SB_KEY, String(isRightSidebarOpen));
+      applySidebarVisibility();
+    }}
+
+    // 3. Pomodoro Timer & Smooth Web Audio Harmonic Chime
+    let pomoTotalSeconds = 25 * 60;
+    let pomoRemainingSeconds = 25 * 60;
+    let pomoModeTitle = 'Pomodoro Focus';
+    let pomoInterval = null;
+    let audioCtx = null;
+
+    function playSmoothAlarm() {{
+      try {{
+        if (!audioCtx) {{
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          audioCtx = new AudioContextClass();
+        }}
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const style = document.getElementById('pomo-sound-select')?.value || 'chime';
+        const now = audioCtx.currentTime;
+
+        // Harmonic frequencies (Hz) for C major 9th / Singing Bowl intervals
+        const presets = {{
+          chime:   {{ freqs: [523.25, 659.25, 783.99, 987.77, 1046.50], wave: 'sine',     gap: 0.22, dur: 2.4 }},
+          marimba: {{ freqs: [440.00, 554.37, 659.25, 880.00],          wave: 'triangle', gap: 0.14, dur: 1.4 }},
+          crystal: {{ freqs: [587.33, 880.00, 1174.66, 1479.98],        wave: 'sine',     gap: 0.18, dur: 2.0 }}
+        }};
+        const cfg = presets[style] || presets.chime;
+
+        cfg.freqs.forEach((freq, idx) => {{
+          const start = now + idx * cfg.gap;
+          const osc = audioCtx.createOscillator();
+          const overtone = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+
+          osc.type = cfg.wave;
+          osc.frequency.setValueAtTime(freq, start);
+
+          overtone.type = 'sine';
+          overtone.frequency.setValueAtTime(freq * 2, start);
+
+          // Smooth bell envelope: soft attack (0.04s) + long warm exponential decay
+          gain.gain.setValueAtTime(0.0001, start);
+          gain.gain.linearRampToValueAtTime(0.16, start + 0.04);
+          gain.gain.exponentialRampToValueAtTime(0.0001, start + cfg.dur);
+
+          osc.connect(gain);
+          overtone.connect(gain);
+          gain.connect(audioCtx.destination);
+
+          osc.start(start);
+          overtone.start(start);
+          osc.stop(start + cfg.dur + 0.05);
+          overtone.stop(start + cfg.dur + 0.05);
+        }});
+      }} catch (e) {{
+        console.warn('Audio chime error:', e);
+      }}
+    }}
+
+    function formatMMSS(sec) {{
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${{String(m).padStart(2, '0')}}:${{String(s).padStart(2, '0')}}`;
+    }}
+
+    function updatePomodoroUI() {{
+      const timeStr = formatMMSS(pomoRemainingSeconds);
+      const disp = document.getElementById('pomo-time-display');
+      if (disp) disp.textContent = timeStr;
+
+      const modeLbl = document.getElementById('pomo-mode-label');
+      if (modeLbl) modeLbl.textContent = pomoModeTitle;
+
+      // Update circular SVG progress ring (circumference = 2 * pi * 52 = 326.7)
+      const ring = document.getElementById('pomo-ring-circle');
+      if (ring && pomoTotalSeconds > 0) {{
+        const fraction = 1 - (pomoRemainingSeconds / pomoTotalSeconds);
+        ring.style.strokeDashoffset = String(326.7 * fraction);
+      }}
+
+      // Update top navbar live badge so user can see countdown while reading notes!
+      const navLbl = document.getElementById('nav-pomo-label');
+      if (navLbl) {{
+        if (pomoInterval) {{
+          navLbl.textContent = timeStr;
+        }} else if (pomoRemainingSeconds < pomoTotalSeconds && pomoRemainingSeconds > 0) {{
+          navLbl.textContent = `${{timeStr}} (Paused)`;
+        }} else {{
+          navLbl.textContent = 'Pomodoro';
+        }}
+      }}
+    }}
+
+    function setPomodoroPreset(minutes, label) {{
+      if (pomoInterval) {{
+        clearInterval(pomoInterval);
+        pomoInterval = null;
+      }}
+      pomoTotalSeconds = minutes * 60;
+      pomoRemainingSeconds = pomoTotalSeconds;
+      pomoModeTitle = label;
+      document.getElementById('pomo-custom-min').value = minutes;
+      document.getElementById('pomo-start-btn').textContent = '▶ Start Focus';
+      document.getElementById('pomo-status-sub').textContent = 'Ready to start';
+
+      [25, 45, 5, 15].forEach(m => {{
+        const btn = document.getElementById(`pomo-preset-${{m}}`);
+        if (!btn) return;
+        if (m === minutes) {{
+          btn.className = 'pomo-preset-btn px-3 py-1.5 rounded-lg font-semibold ui-accent-btn';
+        }} else {{
+          btn.className = 'pomo-preset-btn px-3 py-1.5 rounded-lg font-medium ui-text-muted hover:text-[var(--text)]';
+        }}
+      }});
+
+      updatePomodoroUI();
+    }}
+
+    function applyCustomPomodoro() {{
+      const mins = Math.max(1, Math.min(180, parseInt(document.getElementById('pomo-custom-min').value, 10) || 25));
+      setPomodoroPreset(mins, `Custom ${{mins}}m Focus`);
+    }}
+
+    function togglePomodoroStart() {{
+      const startBtn = document.getElementById('pomo-start-btn');
+      const sub = document.getElementById('pomo-status-sub');
+
+      // Warm up AudioContext on user click so browser allows chime when timer ends
+      if (!audioCtx) {{
+        try {{
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          audioCtx = new AudioContextClass();
+        }} catch (e) {{}}
+      }}
+
+      if (pomoInterval) {{
+        clearInterval(pomoInterval);
+        pomoInterval = null;
+        startBtn.textContent = '▶ Resume';
+        sub.textContent = 'Paused';
+        updatePomodoroUI();
+        return;
+      }}
+
+      if (pomoRemainingSeconds <= 0) {{
+        pomoRemainingSeconds = pomoTotalSeconds;
+      }}
+
+      startBtn.textContent = '⏸ Pause';
+      sub.textContent = 'Focusing... (stays active across tabs)';
+
+      pomoInterval = setInterval(() => {{
+        pomoRemainingSeconds -= 1;
+        updatePomodoroUI();
+
+        if (pomoRemainingSeconds <= 0) {{
+          clearInterval(pomoInterval);
+          pomoInterval = null;
+          startBtn.textContent = '▶ Start Again';
+          sub.textContent = '🎉 Session Complete!';
+          playSmoothAlarm();
+
+          // Log session
+          const minsCompleted = Math.round(pomoTotalSeconds / 60);
+          const taskField = document.getElementById('pomo-task-input');
+          const taskName = (taskField && taskField.value.trim()) || DOCS_DATA[currentDocPath]?.shortTitle || pomoModeTitle;
+          pomoHistory.unshift({{
+            id: 'pomo-' + Date.now(),
+            title: taskName,
+            minutes: minsCompleted,
+            mode: pomoModeTitle,
+            time: new Date().toLocaleTimeString([], {{ hour: '2-digit', minute: '2-digit' }})
+          }});
+          localStorage.setItem(POMO_LOG_KEY, JSON.stringify(pomoHistory));
+          renderPomodoroHistory();
+          updatePomodoroUI();
+        }}
+      }}, 1000);
+
+      updatePomodoroUI();
+    }}
+
+    function resetPomodoro() {{
+      if (pomoInterval) {{
+        clearInterval(pomoInterval);
+        pomoInterval = null;
+      }}
+      pomoRemainingSeconds = pomoTotalSeconds;
+      document.getElementById('pomo-start-btn').textContent = '▶ Start Focus';
+      document.getElementById('pomo-status-sub').textContent = 'Ready to start';
+      updatePomodoroUI();
+    }}
+
+    function renderPomodoroHistory() {{
+      const totalSessions = pomoHistory.length;
+      const totalMins = pomoHistory.reduce((acc, s) => acc + (s.minutes || 0), 0);
+      const sessEl = document.getElementById('pomo-stat-sessions');
+      const minEl = document.getElementById('pomo-stat-minutes');
+      const listEl = document.getElementById('pomo-history-list');
+
+      if (sessEl) sessEl.textContent = totalSessions;
+      if (minEl) minEl.textContent = `${{totalMins}}m`;
+      if (!listEl) return;
+
+      if (pomoHistory.length === 0) {{
+        listEl.innerHTML = '<div class="ui-text-muted py-6 text-center">No completed sessions yet today. Start a 25m focus block above!</div>';
+        return;
+      }}
+
+      listEl.innerHTML = pomoHistory.map(item => `
+        <div class="ui-surface border rounded-xl p-2.5 flex items-center justify-between gap-2">
+          <div class="truncate">
+            <div class="font-semibold truncate">${{item.title}}</div>
+            <div class="ui-text-muted">${{item.mode}} • ${{item.time}}</div>
+          </div>
+          <span class="px-2 py-0.5 rounded ui-accent-soft border font-mono shrink-0">+${{item.minutes}}m</span>
+        </div>
+      `).join('');
+    }}
+
+    function clearPomodoroLog() {{
+      pomoHistory = [];
+      localStorage.setItem(POMO_LOG_KEY, JSON.stringify(pomoHistory));
+      renderPomodoroHistory();
+    }}
+
+    // 4. Status & Theme Helpers
     function getDocStatus(path) {{
       return docStatusMap[path] || 'todo';
     }}
@@ -926,7 +1321,6 @@ def build_html(default_view: str = "concepts") -> str:
       if (pill) pill.textContent = `🧩 ${{solvedProbs}} / ${{problemKeys.length + customProblems.length}} Problems Solved`;
     }}
 
-    // 2. Palette Switcher (Indigo, Tokyo Night, Catppuccin Mocha, Daylight)
     function setTheme(theme) {{
       const valid = ['indigo', 'tokyo', 'mocha', 'daylight'];
       if (!valid.includes(theme)) theme = 'indigo';
@@ -956,7 +1350,6 @@ def build_html(default_view: str = "concepts") -> str:
       }}
     }}
 
-    // 3. Sidebar Scope Filter (Separates Concepts from LeetCode Problems!)
     function setSidebarScope(scope) {{
       sidebarScope = scope;
       ['concept', 'problem', 'all'].forEach(s => {{
@@ -971,25 +1364,26 @@ def build_html(default_view: str = "concepts") -> str:
       renderSidebarTree();
     }}
 
-    // 4. Primary Navigation Switcher (5 Tabs)
+    // 5. Primary Navigation Switcher (6 Views)
     function switchView(view) {{
       currentView = view;
-      ['concepts', 'problems', 'cheatsheets', 'tracker', 'roadmap'].forEach(v => {{
+      ['concepts', 'problems', 'cheatsheets', 'tracker', 'pomodoro', 'roadmap'].forEach(v => {{
         const btn = document.getElementById(`nav-btn-${{v}}`);
         if (!btn) return;
         if (v === view) {{
-          btn.className = 'px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap ui-accent-btn shadow-sm';
+          btn.className = 'px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap ui-accent-btn shadow-sm';
         }} else {{
-          btn.className = 'px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap ui-text-muted hover:text-[var(--text)]';
+          btn.className = 'px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap ui-text-muted hover:text-[var(--text)]';
         }}
       }});
 
       const readerEl = document.getElementById('view-reader');
       const csEl = document.getElementById('view-cheatsheets');
       const trkEl = document.getElementById('view-tracker');
+      const pomoEl = document.getElementById('view-pomodoro');
       const rmEl = document.getElementById('view-roadmap');
 
-      [readerEl, csEl, trkEl, rmEl].forEach(el => el.classList.add('hidden'));
+      [readerEl, csEl, trkEl, pomoEl, rmEl].forEach(el => el.classList.add('hidden'));
 
       if (view === 'concepts') {{
         readerEl.classList.remove('hidden');
@@ -1009,6 +1403,13 @@ def build_html(default_view: str = "concepts") -> str:
       }} else if (view === 'tracker') {{
         trkEl.classList.remove('hidden');
         renderTrackerTable();
+      }} else if (view === 'pomodoro') {{
+        pomoEl.classList.remove('hidden');
+        const taskInput = document.getElementById('pomo-task-input');
+        if (taskInput && !taskInput.value && DOCS_DATA[currentDocPath]) {{
+          taskInput.value = DOCS_DATA[currentDocPath].title;
+        }}
+        renderPomodoroHistory();
       }} else if (view === 'roadmap') {{
         rmEl.classList.remove('hidden');
         renderRoadmapGrids();
@@ -1031,7 +1432,7 @@ def build_html(default_view: str = "concepts") -> str:
       renderDoc(key);
     }}
 
-    // 5. Markdown + KaTeX + Mermaid Pipeline
+    // 6. Markdown + KaTeX + Mermaid Pipeline
     function renderMarkdownInto(containerEl, markdownText, basePath) {{
       if (typeof marked !== 'undefined') {{
         containerEl.innerHTML = marked.parse(markdownText, {{ breaks: true, gfm: true }});
@@ -1115,7 +1516,7 @@ def build_html(default_view: str = "concepts") -> str:
       }}
     }}
 
-    // 6. Render Active Document in Reader
+    // 7. Render Active Document in Reader
     function resolveDocKey(docPath) {{
       if (!docPath) return "00_foundations/01_algorithms_correctness_efficiency.md";
       const clean = docPath.replace(/^(\\.\\/|\\/)/, '');
@@ -1175,7 +1576,6 @@ def build_html(default_view: str = "concepts") -> str:
       const noteInput = document.getElementById('doc-personal-note');
       noteInput.value = docNotesMap[targetKey] || doc.summary || '';
 
-      // Prev / Next scoped to current sidebar list
       const scopedList = getFilteredSidebarDocs();
       const curIdx = scopedList.findIndex(d => d.path === targetKey);
       const prevDoc = curIdx > 0 ? scopedList[curIdx - 1] : scopedList[scopedList.length - 1] || doc;
@@ -1271,7 +1671,6 @@ def build_html(default_view: str = "concepts") -> str:
       setDocStatus(currentDocPath, status);
     }}
 
-    // 7. Sidebar Tree Construction (Separates Concepts from LeetCode Problems)
     function renderSidebarTree() {{
       const container = document.getElementById('sidebar-tree');
       const q = (document.getElementById('sidebar-filter-input')?.value || '').toLowerCase().trim();
@@ -1342,7 +1741,6 @@ def build_html(default_view: str = "concepts") -> str:
       }});
     }}
 
-    // 8. Cheat Sheets Deck View
     function renderCheatSheetsGrid() {{
       const grid = document.getElementById('cheatsheets-grid');
       const q = (document.getElementById('cs-search-input')?.value || '').toLowerCase().trim();
@@ -1369,7 +1767,6 @@ def build_html(default_view: str = "concepts") -> str:
       `).join('');
     }}
 
-    // 9. Problem Tracker View (Strictly separates Problems from Concepts)
     function setTrackerTypeFilter(t) {{
       trackerTypeFilter = t;
       const btnProb = document.getElementById('trk-type-problem');
@@ -1481,7 +1878,6 @@ def build_html(default_view: str = "concepts") -> str:
       }}).join('');
     }}
 
-    // 10. Quick-Peek Modal Drawer (<dialog>)
     function openPeekDialog(docPath) {{
       const key = resolveDocKey(docPath);
       const doc = DOCS_DATA[key];
@@ -1497,7 +1893,6 @@ def build_html(default_view: str = "concepts") -> str:
       renderMarkdownInto(bodyEl, doc.content, key);
     }}
 
-    // 11. 12-Week Roadmap View
     function selectRoadmapPhase(panelId) {{
       document.querySelectorAll('.rm-panel').forEach(panel => {{
         if (panel.id === panelId) {{
@@ -1548,7 +1943,6 @@ def build_html(default_view: str = "concepts") -> str:
       }});
     }}
 
-    // 12. Command Palette Search (Cmd+K / /)
     const cmdkDialog = document.getElementById('cmdk-dialog');
     const cmdkInput = document.getElementById('cmdk-input');
     const cmdkResults = document.getElementById('cmdk-results');
@@ -1595,6 +1989,8 @@ def build_html(default_view: str = "concepts") -> str:
         if (e.key === '[') document.getElementById('prev-doc-btn').click();
         if (e.key === ']') document.getElementById('next-doc-btn').click();
         if (e.key === 'v') setReaderMode(readerMode === 'full' ? 'visual' : 'full');
+        if (e.key === 'b') toggleLeftSidebar();
+        if (e.key === 'o') toggleRightSidebar();
       }}
     }});
 
@@ -1612,13 +2008,6 @@ def build_html(default_view: str = "concepts") -> str:
       const anyOpen = Array.from(detailsList).some(d => d.open);
       detailsList.forEach(d => {{ d.open = !anyOpen; }});
       e.target.textContent = anyOpen ? 'Expand all' : 'Collapse all';
-    }});
-
-    document.getElementById('mobile-sidebar-btn').addEventListener('click', () => {{
-      const sb = document.getElementById('reader-sidebar');
-      sb.classList.toggle('hidden');
-      sb.classList.toggle('fixed');
-      sb.classList.toggle('z-40');
     }});
 
     document.getElementById('cs-search-input').addEventListener('input', renderCheatSheetsGrid);
@@ -1663,7 +2052,9 @@ def build_html(default_view: str = "concepts") -> str:
     initState();
     const savedTheme = localStorage.getItem(THEME_KEY) || 'indigo';
     setTheme(savedTheme);
+    applySidebarVisibility();
     updateGlobalProgressPill();
+    updatePomodoroUI();
 
     const params = new URLSearchParams(window.location.search);
     const paramDoc = params.get('doc');
@@ -1671,7 +2062,7 @@ def build_html(default_view: str = "concepts") -> str:
 
     if (paramDoc) {{
       openDocInReader(paramDoc);
-    }} else if (paramView && ['concepts', 'problems', 'cheatsheets', 'tracker', 'roadmap'].includes(paramView)) {{
+    }} else if (paramView && ['concepts', 'problems', 'cheatsheets', 'tracker', 'pomodoro', 'roadmap'].includes(paramView)) {{
       renderDoc(currentDocPath);
       switchView(paramView);
     }} else {{
