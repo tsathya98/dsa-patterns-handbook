@@ -11,6 +11,8 @@
   <script src="static/vendor/katex.min.js"></script>
   <script src="static/vendor/auto-render.min.js"></script>
   <script src="static/vendor/mermaid.min.js"></script>
+  <script src="static/vendor/skulpt.min.js"></script>
+  <script src="static/vendor/skulpt-stdlib.js"></script>
   <style>
     pre code.hljs{display:block;overflow-x:auto;padding:1em}code.hljs{padding:3px 5px}/*!
   Theme: GitHub Dark
@@ -254,6 +256,9 @@
       <button type="button" onclick="switchView('cheatsheets')" id="nav-btn-cheatsheets" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
         <span aria-hidden="true">⚡</span> Cheat Sheets
       </button>
+      <button type="button" onclick="switchView('playground')" id="nav-btn-playground" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
+        <span aria-hidden="true">🐍</span> Playground
+      </button>
       <button type="button" onclick="switchView('tracker')" id="nav-btn-tracker" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
         <span aria-hidden="true">✅</span> 150 & 75 Tracker
       </button>
@@ -342,6 +347,10 @@
               📊 Flowcharts: ON
             </button>
 
+            <button type="button" onclick="loadCurrentDocIntoPlayground()" id="btn-open-in-playground" class="px-2.5 py-1 rounded-lg border ui-surface text-xs font-semibold hover:ui-accent-soft transition-colors" title="Open and execute this guide's Python code in the browser playground">
+              🐍 Run Code
+            </button>
+
             <div class="flex items-center ui-surface rounded-lg p-0.5 border text-xs" role="group" aria-label="Study status">
               <button type="button" onclick="setCurrentDocStatus('todo')" id="status-btn-todo" class="px-2 py-1 rounded font-medium">○ Todo</button>
               <button type="button" onclick="setCurrentDocStatus('review')" id="status-btn-review" class="px-2 py-1 rounded font-medium">🔁 Review</button>
@@ -412,6 +421,80 @@
     </div>
 
     <div id="cheatsheets-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- VIEW: INTERACTIVE PYTHON 3 PLAYGROUND                                 -->
+  <!-- ===================================================================== -->
+  <section id="view-playground" class="hidden flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 space-y-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b ui-border pb-4">
+      <div>
+        <h1 class="text-xl sm:text-2xl font-bold ui-accent-text flex items-center gap-2">
+          <span>🐍</span> Python 3 Algorithm Playground
+        </h1>
+        <p class="text-xs ui-text-muted mt-0.5">Test sorting algorithms, two-pointer traces, and recursion trees in your browser. 100% client-side and offline.</p>
+      </div>
+
+      <div class="flex items-center gap-2 flex-wrap">
+        <label for="playground-template-select" class="text-xs ui-text-muted font-medium">Template:</label>
+        <select id="playground-template-select" onchange="onPlaygroundTemplateChange(this.value)" class="ui-card border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none">
+          <option value="bubble_sort">🫧 Bubble Sort (Step Trace)</option>
+          <option value="selection_sort">🎯 Selection Sort</option>
+          <option value="sort_colors">🇳🇱 LC 75 Sort Colors (Dutch Flag)</option>
+          <option value="repeated_substring">🔁 LC 459 Repeated Substring Pattern</option>
+          <option value="container_water">💧 LC 11 Container With Most Water</option>
+          <option value="subsets">🌳 LC 78 Subsets (Backtracking)</option>
+          <option value="n_queens">👑 LC 51 N-Queens (4x4 Board)</option>
+          <option value="kth_grammar">🌲 LC 779 K-th Symbol in Grammar</option>
+          <option value="diff_ways">🧮 LC 241 Different Ways to Add Parentheses</option>
+          <option value="blank">📝 Blank Scratchpad</option>
+        </select>
+        <button type="button" onclick="loadCurrentDocIntoPlayground()" class="px-2.5 py-1.5 rounded-lg ui-card border text-xs font-semibold hover:ui-accent-soft transition-colors" title="Load solution code from the current note">
+          📥 Load Current Note Code
+        </button>
+      </div>
+    </div>
+
+    <!-- Playground Controls Bar -->
+    <div class="ui-card border rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 shadow-sm">
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="runPlaygroundCode()" id="playground-run-btn" class="ui-accent-btn px-4 py-1.5 rounded-lg font-bold text-xs flex items-center gap-1.5 shadow-sm hover:opacity-90 transition-all">
+          <span aria-hidden="true">▶</span> Run Code <kbd class="opacity-75 font-mono text-[10px] ml-1">⌘↵</kbd>
+        </button>
+        <button type="button" onclick="clearPlaygroundConsole()" class="ui-surface border px-2.5 py-1.5 rounded-lg text-xs font-medium ui-text-muted hover:text-[var(--text)] transition-colors">
+          Clear Console
+        </button>
+        <button type="button" onclick="resetPlaygroundCode()" class="ui-surface border px-2.5 py-1.5 rounded-lg text-xs font-medium ui-text-muted hover:text-[var(--text)] transition-colors">
+          Reset Template
+        </button>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <span id="playground-status-pill" class="px-2.5 py-0.5 rounded-full text-xs font-medium border ui-surface ui-text-muted">Ready</span>
+        <span id="playground-time-pill" class="text-xs font-mono ui-text-muted"></span>
+      </div>
+    </div>
+
+    <!-- Split Editor & Output Console -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div class="flex flex-col space-y-1.5">
+        <div class="flex items-center justify-between text-xs px-1 ui-text-muted">
+          <span class="font-bold uppercase tracking-wider text-[11px]">Python 3 Editor</span>
+          <span>Tab indents 4 spaces</span>
+        </div>
+        <textarea id="playground-code-input" spellcheck="false" class="w-full h-[520px] font-mono text-xs p-4 rounded-2xl ui-card border focus:outline-none focus:border-[var(--accent)] resize-none leading-relaxed tracking-normal" placeholder="# Type Python code here..."></textarea>
+      </div>
+
+      <div class="flex flex-col space-y-1.5">
+        <div class="flex items-center justify-between text-xs px-1 ui-text-muted">
+          <span class="font-bold uppercase tracking-wider text-[11px]">Terminal Output (stdout / stderr)</span>
+          <button type="button" onclick="copyPlaygroundOutput()" class="hover:underline ui-accent-text text-xs">Copy Output</button>
+        </div>
+        <div class="h-[520px] rounded-2xl ui-card border flex flex-col overflow-hidden shadow-inner">
+          <pre id="playground-output" class="p-4 text-xs font-mono flex-1 overflow-y-auto whitespace-pre-wrap leading-relaxed select-text" style="color: var(--text);">Click "▶ Run Code" or press ⌘+Enter to execute.</pre>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -1156,10 +1239,326 @@
       `).join('');
     }
 
-    function clearPomodoroLog() {
-      pomoHistory = [];
-      localStorage.setItem(POMO_LOG_KEY, JSON.stringify(pomoHistory));
-      renderPomodoroHistory();
+    // 3.5 Python Playground Controller (Client-Side Skulpt Runtime)
+    const PLAYGROUND_TEMPLATES = {
+      bubble_sort: `# 🫧 Bubble Sort with Live Step Trace
+def bubble_sort(arr):
+    n = len(arr)
+    print("Initial array:", arr, "\n")
+    for i in range(n - 1):
+        swapped = False
+        for j in range(n - 1 - i):
+            if arr[j] > arr[j + 1]:
+                arr[j], arr[j + 1] = arr[j + 1], arr[j]
+                swapped = True
+        print("Pass", i + 1, "(locked", arr[n - 1 - i], "at end):", arr)
+        if not swapped:
+            print(">> Early break: array is already sorted!")
+            break
+    return arr
+
+nums = [64, 34, 25, 12, 22, 11, 90]
+print("Final Sorted:", bubble_sort(nums))
+`,
+      selection_sort: `# 🎯 Selection Sort
+def selection_sort(arr):
+    n = len(arr)
+    print("Initial array:", arr, "\n")
+    for i in range(n - 1):
+        min_idx = i
+        for j in range(i + 1, n):
+            if arr[j] < arr[min_idx]:
+                min_idx = j
+        if min_idx != i:
+            arr[i], arr[min_idx] = arr[min_idx], arr[i]
+        print("Pass", i + 1, "(placed", arr[i], "at idx", str(i) + "):", arr)
+    return arr
+
+nums = [29, 10, 14, 37, 13]
+print("Final Sorted:", selection_sort(nums))
+`,
+      sort_colors: `# 🇳🇱 LeetCode 75: Sort Colors (Dutch National Flag)
+def sort_colors(nums):
+    low, mid, high = 0, 0, len(nums) - 1
+    print("Initial:", nums)
+    while mid <= high:
+        if nums[mid] == 0:
+            nums[low], nums[mid] = nums[mid], nums[low]
+            low += 1
+            mid += 1
+        elif nums[mid] == 1:
+            mid += 1
+        else:
+            nums[high], nums[mid] = nums[mid], nums[high]
+            high -= 1
+        print("mid=" + str(mid) + ", low=" + str(low) + ", high=" + str(high) + " ->", nums)
+    return nums
+
+nums = [2, 0, 2, 1, 1, 0]
+print("Sorted Colors:", sort_colors(nums))
+`,
+      repeated_substring: `# 🔁 LeetCode 459: Repeated Substring Pattern
+def repeated_substring_pattern(s: str) -> bool:
+    # Method 1: Doubling trick
+    doubled_check = s in (s + s)[1:-1]
+
+    # Method 2: Divisor chunking
+    n = len(s)
+    divisor_match = False
+    for L in range(1, (n // 2) + 1):
+        if n % L == 0:
+            chunk = s[:L]
+            if chunk * (n // L) == s:
+                divisor_match = True
+                print("Match found! Chunk '" + chunk + "' of size", L, "repeated", n // L, "times.")
+                break
+    return doubled_check
+
+tests = ["abab", "aba", "abcabcabcabc"]
+for t in tests:
+    print("'" + t + "' ->", repeated_substring_pattern(t), "\n")
+`,
+      container_water: `# 💧 LeetCode 11: Container With Most Water
+def max_area(height):
+    l, r = 0, len(height) - 1
+    max_w = 0
+    while l < r:
+        w = r - l
+        h = min(height[l], height[r])
+        area = w * h
+        max_w = max(max_w, area)
+        print("l=" + str(l) + " (h=" + str(height[l]) + "), r=" + str(r) + " (h=" + str(height[r]) + ") -> area=" + str(area))
+        if height[l] < height[r]:
+            l += 1
+        else:
+            r -= 1
+    return max_w
+
+heights = [1, 8, 6, 2, 5, 4, 8, 3, 7]
+print("Max Water Area:", max_area(heights))
+`,
+      n_queens: `# 👑 LeetCode 51: N-Queens Backtracking
+def solve_n_queens(n):
+    res = []
+    board = [["."] * n for _ in range(n)]
+    cols, diag, anti_diag = set(), set(), set()
+
+    def backtrack(r):
+        if r == n:
+            res.append(["".join(row) for row in board])
+            return
+        for c in range(n):
+            if c in cols or (r - c) in diag or (r + c) in anti_diag:
+                continue
+            board[r][c] = "Q"
+            cols.add(c); diag.add(r - c); anti_diag.add(r + c)
+            backtrack(r + 1)
+            board[r][c] = "."
+            cols.remove(c); diag.remove(r - c); anti_diag.remove(r + c)
+
+    backtrack(0)
+    return res
+
+solutions = solve_n_queens(4)
+print("Found", len(solutions), "solutions for 4-Queens:\n")
+for i, sol in enumerate(solutions, 1):
+    print("Solution #" + str(i) + ":")
+    for row in sol:
+        print("  " + " ".join(row))
+    print()
+`,
+      subsets: `# 🌳 LeetCode 78: Subsets (Power Set)
+def subsets(nums):
+    res, path = [], []
+    def backtrack(start):
+        res.append(path[:])
+        for i in range(start, len(nums)):
+            path.append(nums[i])
+            backtrack(i + 1)
+            path.pop()
+    backtrack(0)
+    return res
+
+nums = [1, 2, 3]
+print("All subsets of", nums, ":")
+for s in subsets(nums):
+    print(" ", s)
+`,
+      kth_grammar: `# 🌲 LeetCode 779: K-th Symbol in Grammar
+def kth_grammar(n: int, k: int) -> int:
+    if n == 1 and k == 1:
+        return 0
+    mid = 2 ** (n - 2)
+    if k <= mid:
+        return kth_grammar(n - 1, k)
+    return 1 - kth_grammar(n - 1, k - mid)
+
+for row in range(1, 5):
+    line = [str(kth_grammar(row, col)) for col in range(1, 2 ** (row - 1) + 1)]
+    print("Row " + str(row) + ": " + " ".join(line))
+`,
+      diff_ways: `# 🧮 LeetCode 241: Different Ways to Add Parentheses
+def diff_ways(expression: str):
+    res = []
+    for i, ch in enumerate(expression):
+        if ch in "+-*":
+            left = diff_ways(expression[:i])
+            right = diff_ways(expression[i + 1:])
+            for l in left:
+                for r in right:
+                    if ch == "+": res.append(l + r)
+                    elif ch == "-": res.append(l - r)
+                    elif ch == "*": res.append(l * r)
+    return res if res else [int(expression)]
+
+expr = "2*3-4*5"
+print("All parenthesizations of '" + expr + "':")
+print(sorted(diff_ways(expr)))
+`,
+      blank: `# Python 3 Interactive Playground
+# Sourced from your local DSA Hub
+
+print("Hello from Python 3 Playground!")
+`
+    };
+
+    function builtinRead(x) {
+      if (typeof Sk === 'undefined' || Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined) {
+        throw "File not found: '" + x + "'";
+      }
+      return Sk.builtinFiles["files"][x];
+    }
+
+    let playgroundInitialized = false;
+    function initPlayground() {
+      const input = document.getElementById('playground-code-input');
+      if (!playgroundInitialized) {
+        playgroundInitialized = true;
+        if (input && !input.value.trim()) {
+          input.value = PLAYGROUND_TEMPLATES['bubble_sort'];
+        }
+        if (input) {
+          input.addEventListener('keydown', (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+              e.preventDefault();
+              runPlaygroundCode();
+            } else if (e.key === 'Tab') {
+              e.preventDefault();
+              const start = input.selectionStart;
+              const end = input.selectionEnd;
+              input.value = input.value.substring(0, start) + '    ' + input.value.substring(end);
+              input.selectionStart = input.selectionEnd = start + 4;
+            }
+          });
+        }
+      }
+    }
+
+    function onPlaygroundTemplateChange(val) {
+      const input = document.getElementById('playground-code-input');
+      if (input && PLAYGROUND_TEMPLATES[val]) {
+        input.value = PLAYGROUND_TEMPLATES[val];
+        clearPlaygroundConsole();
+      }
+    }
+
+    function resetPlaygroundCode() {
+      const sel = document.getElementById('playground-template-select');
+      const val = (sel && sel.value) || 'bubble_sort';
+      onPlaygroundTemplateChange(val);
+    }
+
+    function clearPlaygroundConsole() {
+      const outEl = document.getElementById('playground-output');
+      if (outEl) outEl.textContent = 'Console cleared. Click "▶ Run Code" or press ⌘+Enter to execute.';
+      const statusEl = document.getElementById('playground-status-pill');
+      if (statusEl) {
+        statusEl.textContent = 'Ready';
+        statusEl.className = 'px-2.5 py-0.5 rounded-full text-xs font-medium border ui-surface ui-text-muted';
+      }
+      const timerEl = document.getElementById('playground-time-pill');
+      if (timerEl) timerEl.textContent = '';
+    }
+
+    function copyPlaygroundOutput() {
+      const outEl = document.getElementById('playground-output');
+      if (outEl && outEl.textContent) {
+        navigator.clipboard.writeText(outEl.textContent).then(() => {
+          showToast('Terminal output copied!');
+        }).catch(() => {});
+      }
+    }
+
+    function loadCurrentDocIntoPlayground() {
+      const doc = DOCS_DATA[currentDocPath];
+      if (!doc) return;
+      
+      const pyMatch = doc.content.match(/```python([\s\S]*?)```/);
+      const code = pyMatch ? pyMatch[1].trim() : `# Could not find python block in ${doc.title}\nprint("Write code here...")`;
+      
+      switchView('playground');
+      const input = document.getElementById('playground-code-input');
+      if (input) {
+        input.value = `# Loaded from: ${doc.title}\n\n` + code;
+      }
+      const sel = document.getElementById('playground-template-select');
+      if (sel) sel.value = 'blank';
+      clearPlaygroundConsole();
+    }
+
+    function runPlaygroundCode() {
+      const input = document.getElementById('playground-code-input');
+      const outEl = document.getElementById('playground-output');
+      const statusEl = document.getElementById('playground-status-pill');
+      const timerEl = document.getElementById('playground-time-pill');
+      const code = input ? input.value : '';
+
+      if (!code.trim()) {
+        outEl.textContent = 'Please enter some Python code to run.';
+        return;
+      }
+
+      if (typeof Sk === 'undefined') {
+        outEl.textContent = 'Skulpt Python runtime is still loading or not available.';
+        return;
+      }
+
+      outEl.textContent = '';
+      statusEl.textContent = 'Running...';
+      statusEl.className = 'px-2 py-0.5 rounded-full text-xs font-semibold border ui-accent-soft';
+      timerEl.textContent = '';
+
+      let output = '';
+      Sk.pre = "output";
+      Sk.configure({
+        output: function(text) {
+          output += text;
+          outEl.textContent = output;
+        },
+        read: builtinRead,
+        __future__: Sk.python3
+      });
+
+      const startTime = performance.now();
+      const promise = Sk.misceval.asyncToPromise(function() {
+        return Sk.importMainWithBody("<stdin>", false, code, true);
+      });
+
+      promise.then(function(mod) {
+        const elapsed = (performance.now() - startTime).toFixed(1);
+        statusEl.textContent = '✓ Finished';
+        statusEl.className = 'px-2 py-0.5 rounded-full text-xs font-semibold border bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
+        timerEl.textContent = `${elapsed}ms`;
+        if (!output) {
+          outEl.textContent = '(Code executed successfully with no print output)';
+        }
+      }, function(err) {
+        const elapsed = (performance.now() - startTime).toFixed(1);
+        statusEl.textContent = '✗ Error';
+        statusEl.className = 'px-2 py-0.5 rounded-full text-xs font-semibold border bg-rose-500/10 text-rose-400 border-rose-500/30';
+        timerEl.textContent = `${elapsed}ms`;
+        outEl.textContent = (output ? output + '\n' : '') + err.toString();
+      });
     }
 
     // 4. Theme & Sidebar Scope
@@ -1206,10 +1605,10 @@
       renderSidebarTree();
     }
 
-    // 5. Primary Navigation Switcher (6 Views)
+    // 5. Primary Navigation Switcher (7 Views)
     function switchView(view) {
       currentView = view;
-      ['concepts', 'problems', 'cheatsheets', 'tracker', 'pomodoro', 'roadmap'].forEach(v => {
+      ['concepts', 'problems', 'cheatsheets', 'playground', 'tracker', 'pomodoro', 'roadmap'].forEach(v => {
         const btn = document.getElementById(`nav-btn-${v}`);
         if (!btn) return;
         if (v === view) {
@@ -1221,11 +1620,12 @@
 
       const readerEl = document.getElementById('view-reader');
       const csEl = document.getElementById('view-cheatsheets');
+      const playEl = document.getElementById('view-playground');
       const trkEl = document.getElementById('view-tracker');
       const pomoEl = document.getElementById('view-pomodoro');
       const rmEl = document.getElementById('view-roadmap');
 
-      [readerEl, csEl, trkEl, pomoEl, rmEl].forEach(el => el.classList.add('hidden'));
+      [readerEl, csEl, playEl, trkEl, pomoEl, rmEl].forEach(el => el && el.classList.add('hidden'));
 
       if (view === 'concepts') {
         readerEl.classList.remove('hidden');
@@ -1242,6 +1642,9 @@
       } else if (view === 'cheatsheets') {
         csEl.classList.remove('hidden');
         renderCheatSheetsGrid();
+      } else if (view === 'playground') {
+        playEl.classList.remove('hidden');
+        initPlayground();
       } else if (view === 'tracker') {
         trkEl.classList.remove('hidden');
         renderTrackerTable();
@@ -1956,7 +2359,7 @@
 
     if (paramDoc) {
       openDocInReader(paramDoc);
-    } else if (paramView && ['concepts', 'problems', 'cheatsheets', 'tracker', 'pomodoro', 'roadmap'].includes(paramView)) {
+    } else if (paramView && ['concepts', 'problems', 'cheatsheets', 'playground', 'tracker', 'pomodoro', 'roadmap'].includes(paramView)) {
       renderDoc(currentDocPath);
       switchView(paramView);
     } else {
