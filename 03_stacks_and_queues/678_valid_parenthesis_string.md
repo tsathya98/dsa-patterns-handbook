@@ -1,97 +1,99 @@
-# 🎯 LeetCode 678: Valid Parenthesis String – Master Study Guide
+# LeetCode 678: Valid Parenthesis String
 
-> **Difficulty:** Medium | **Pattern:** Two Stacks (Indices) / Greedy Range  
-> **Complexity:** Time: $\mathcal{O}(n)$ | Auxiliary Space: $\mathcal{O}(n)$  
-> **Source Code:** [`678_valid_parenthesis_string.py`](./678_valid_parenthesis_string.py)
+> **Pattern:** Two index stacks (or greedy open-count range)  
+> **Difficulty:** Medium  
+> **Link:** [LeetCode 678](https://leetcode.com/problems/valid-parenthesis-string/)
 
----
+## The problem
 
-## 📌 Problem in Plain English
-
-Given a string `s` containing `'('`, `')'`, and `'*'`. Return `true` if valid:
-1. `'('` must be closed by `')'`.
-2. `'*'` is a **wildcard joker** 🃏:
-   * It can be `'('`
-   * It can be `')'`
-   * It can be empty `""` (disappear!)
-
----
-
-## ⚠️ Why `s.replace("*", ")")` Fails (The Trap)
-
-When you do `s.replace("*", ")")`, you force **EVERY single star** in the string to make the exact same choice!
-* In reality, **each star is independent**:
-  * Star 1 might want to be `'('`
-  * Star 2 might want to be `')'`
-  * Star 3 might want to disappear `""`
-
----
-
-## 🧠 Mental Model: The Two Stacks (Index Bookkeeping)
-
-Instead of storing characters, **store the index positions** in two stacks:
-1. `open_stack`: indices of `'('`
-2. `star_stack`: indices of `'*'`
+Given a string `s` containing `'('`, `')'`, and `'*'`, return `True` if the string is valid. Every `'('` must be closed by a matching `')'` that comes after it, and each `'*'` can independently act as `'('`, `')'`, or an empty string `""`.
 
 ```text
-String:   (   *   )
-Index:    0   1   2
-
-open_stack: [0]
-star_stack: [1]
+s = "(*)"   -> True  ('*' acts as "")
+s = "(*))"  -> True  ('*' acts as '(')
+s = "*("    -> False ('*' comes before '(', so it cannot close it)
 ```
 
-### The 2 Rules:
+## Why the naive way fails
 
-#### Rule 1: When you see `')'`
-* If we have a real `'('`, pop it! (`open_stack.pop()`)
-* Otherwise, if we have a `'*'`, use it as a substitute `'('`! (`star_stack.pop()`)
-* If neither exists, we have an orphan `')'` $\to$ **Impossible! Return `False`**.
+Trying `s.replace("*", ")")` or `s.replace("*", "(")` forces every `'*'` in the string to become the same character. In a string like `"(*))("` or `"(*(*)"`, one `'*'` might need to act as `'('`, another as `')'`, and another as `""`.
 
-#### Rule 2: At the end, clean up leftover `'('`
-Can our leftover stars close our leftover open brackets?
-* A `'*'` can ONLY close a `'('` if it appears **AFTER** it!
-* If `open_stack[-1] < star_stack[-1]`: pop both! ✅
-* If `open_stack[-1] > star_stack[-1]`: e.g. `*(` $\to$ star is behind the bracket, so it can never close it! ❌ **Return `False`**.
+## The core trick
 
-Any leftover stars at the end? They just become empty strings `""`.
+Keep two stacks that store **string indices** (not the characters themselves):
+- `open_stack`: indices where `'('` appeared.
+- `star_stack`: indices where `'*'` appeared.
 
----
+We store indices because position matters at the end: a `'*'` at index `1` can close a `'('` at index `0`, but a `'*'` at index `0` can never close a `'('` at index `1` (`"*("`).
 
-## 💻 Clean Implementation
+### Pass 1: Handle every `')'` as you scan left to right
+When you hit `')'`:
+1. Prefer matching it with a real `'('` (`open_stack.pop()`) if one is available, saving your flexible `'*'` wildcards for later.
+2. If `open_stack` is empty, spend a `'*'` as an opening bracket (`star_stack.pop()`).
+3. If both stacks are empty, this `')'` has nothing in front of it to match with, so return `False`.
+
+### Pass 2: Close leftover `'('` using leftover `'*'`
+After scanning the string, some `'('` may still sit in `open_stack`. Pop from both stacks together while checking their indices:
+- If `open_stack[-1] < star_stack[-1]`, the star sits to the right of `'('`, so it can act as `')'` and close it. Pop both.
+- If `open_stack[-1] > star_stack[-1]`, the rightmost star sits to the left of the rightmost `'('`. No remaining star can close this `'('`, so return `False`.
+
+Any extra stars left after `open_stack` empties simply become `""`.
+
+## Step-by-step trace
+
+Trace on `s = "(*))"`:
+
+```text
+i = 0, ch = '(': open_stack = [0], star_stack = []
+i = 1, ch = '*': open_stack = [0], star_stack = [1]
+i = 2, ch = ')': pop from open_stack -> open_stack = [], star_stack = [1]
+i = 3, ch = ')': open_stack is empty, so pop from star_stack -> star_stack = []
+
+End of loop: open_stack is empty -> return True
+```
+
+## Traps to watch for
+
+- **Pushing characters (`'('`) instead of indices (`i`):** Without indices, `s = "*("` leaves one `'('` and one `'*'` in your stacks and tricks you into returning `True` even though the star came before the open parenthesis.
+- **Spending `star_stack` before `open_stack` on `')'`:** Always match `')'` with a real `'('` first. Stars can act as `')'` later, whereas `'('` can only ever be closed.
+
+## Solution
+
+<details>
+<summary>Spoiler: Solution Code</summary>
 
 ```python
 class Solution:
     def checkValidString(self, s: str) -> bool:
-        open_stack = []  # stores indices of '('
-        star_stack = []  # stores indices of '*'
-        
+        open_stack = []
+        star_stack = []
+
         for i, ch in enumerate(s):
             if ch == '(':
                 open_stack.append(i)
             elif ch == '*':
                 star_stack.append(i)
-            else:  # ch == ')'
+            else:
                 if open_stack:
                     open_stack.pop()
                 elif star_stack:
                     star_stack.pop()
                 else:
                     return False
-        
-        # Match leftover '(' with '*' that come AFTER them
+
         while open_stack and star_stack:
             if open_stack[-1] < star_stack[-1]:
                 open_stack.pop()
                 star_stack.pop()
             else:
                 return False
-                
-        return len(open_stack) == 0
+
+        return not open_stack
 ```
 
----
+</details>
 
-## ⚡ Complexity
-* **Time Complexity:** $\mathcal{O}(n)$ – single pass to scan characters, followed by at most $\mathcal{O}(n)$ pops.
-* **Space Complexity:** $\mathcal{O}(n)$ – index stacks.
+## Complexity
+
+- **Time:** $\mathcal{O}(n)$ to scan the string once and pop at most $n$ items.
+- **Space:** $\mathcal{O}(n)$ to store indices in `open_stack` and `star_stack`.

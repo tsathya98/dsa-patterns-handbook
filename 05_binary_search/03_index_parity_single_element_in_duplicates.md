@@ -1,61 +1,53 @@
-# 🎯 Single Element in Duplicates (Index Parity Pattern)
+# Single element in duplicates (index parity pattern)
 
-> **Course Reference:** CodeKerdos DSA — Class 9  
-> **Core Concept:** Solving LeetCode 540 in $\mathcal{O}(\log N)$ time by detecting parity phase shift in adjacent pairs.
+> **Course reference:** CodeKerdos DSA, Class 9  
+> **Core concept:** Solving LeetCode 540 in $\mathcal{O}(\log N)$ time by checking the index parity of adjacent duplicate pairs.
 
----
+## 1. Problem statement
 
-## 📌 Problem Statement
-
-Given a sorted array of size $2K + 1$ where every element appears exactly twice except for **one unique element** which appears once, find the unique element in $\mathcal{O}(\log N)$ time and $\mathcal{O}(1)$ space.
+Given a sorted array of size $2K + 1$ where every element appears twice except for one element that appears once, find that single element in $\mathcal{O}(\log N)$ time and $\mathcal{O}(1)$ space.
 
 ```text
 Input:  arr = [ 3 , 3 ,  1 , 1 ,  8 , 8 ,  10 , 10 ,  19 ,  6 , 6 ,  2 , 2 ,  4 , 4 ]
-Index:          0   1    2   3    4   5     6    7     8    9  10  11  12  13  14
+Index:          0   1    2   3    4   5     6    7     8    9  10   11  12   13  14
 Output: 19
 ```
 
----
+## 2. The parity shift across the single element
 
-## 🧠 The Mental Model: The Parity Phase Shift
-
-Observe the index positions of adjacent duplicate pairs:
+Look at the `(first, second)` indices of each duplicate pair before and after the single element:
 
 ```text
-BEFORE UNIQUE ELEMENT (Left Side):
+BEFORE THE SINGLE ELEMENT (Left side):
 Pair [3, 3]   -> Indices (0, 1) -> (EVEN, ODD)
 Pair [1, 1]   -> Indices (2, 3) -> (EVEN, ODD)
 Pair [8, 8]   -> Indices (4, 5) -> (EVEN, ODD)
 Pair [10, 10] -> Indices (6, 7) -> (EVEN, ODD)
-👉 Invariant: First occurrence is always at an EVEN index!
+Invariant: Each pair starts at an EVEN index.
 
-THE UNIQUE ELEMENT:
+THE SINGLE ELEMENT:
 Element [19]  -> Index 8 (EVEN)
 
-AFTER UNIQUE ELEMENT (Right Side):
-Pair [6, 6]   -> Indices (9, 10)  -> (ODD, EVEN)  <- Shifted!
-Pair [2, 2]   -> Indices (11, 12) -> (ODD, EVEN)  <- Shifted!
-Pair [4, 4]   -> Indices (13, 14) -> (ODD, EVEN)  <- Shifted!
-👉 Invariant: First occurrence flipped to an ODD index!
+AFTER THE SINGLE ELEMENT (Right side):
+Pair [6, 6]   -> Indices (9, 10)  -> (ODD, EVEN)
+Pair [2, 2]   -> Indices (11, 12) -> (ODD, EVEN)
+Pair [4, 4]   -> Indices (13, 14) -> (ODD, EVEN)
+Invariant: Each pair now starts at an ODD index.
 ```
 
----
+## 3. Binary search steps
 
-## ⚙️ The 2-Step Binary Search Algorithm
+At each midpoint `mid`:
+1. **Check if `arr[mid]` is the single element:**  
+   If `arr[mid] != arr[mid - 1]` and `arr[mid] != arr[mid + 1]`, return `arr[mid]`.
+2. **Find the start index of the current pair (`first_idx`):**
+   * If `arr[mid] == arr[mid - 1]`, the pair starts at `first_idx = mid - 1`.
+   * Otherwise (`arr[mid] == arr[mid + 1]`), the pair starts at `first_idx = mid`.
+3. **Steer using the parity of `first_idx`:**
+   * If `first_idx % 2 == 0`, we are still in the `(even, odd)` left region, so the single element is further right: `lo = first_idx + 2`.
+   * If `first_idx % 2 == 1`, the parity has already shifted to `(odd, even)`, so the single element is to the left: `hi = first_idx - 1`.
 
-1. **Find which half contains the single element:**
-   * Look at `mid`. Does `arr[mid]` equal its partner?
-   * If `arr[mid] != arr[mid - 1]` and `arr[mid] != arr[mid + 1]`: **Match! `arr[mid]` is the unique element.**
-2. **Normalize to First Occurrence:**
-   * If `arr[mid] == arr[mid - 1]`: the pair began at `mid - 1`. Set `first_idx = mid - 1`.
-   * Else (`arr[mid] == arr[mid + 1]`): the pair begins at `mid`. Set `first_idx = mid`.
-3. **Check Parity of `first_idx`:**
-   * If `first_idx % 2 == 0`: We are still in the normal `(even, odd)` left region. The disruption is to the **RIGHT** $\to$ `lo = first_idx + 2`.
-   * If `first_idx % 2 != 0`: We are in the shifted `(odd, even)` right region. The disruption is to the **LEFT** $\to$ `hi = first_idx - 1`.
-
----
-
-## 💻 Implementation (LeetCode 540)
+## 4. Implementation (LeetCode 540)
 
 ```python
 def singleNonDuplicate(arr: list[int]) -> int:
@@ -73,24 +65,24 @@ def singleNonDuplicate(arr: list[int]) -> int:
     while lo <= hi:
         mid = lo + (hi - lo) // 2
 
-        # 1. Unpaired check
+        # 1. Check if mid is unpaired
         if arr[mid] != arr[mid - 1] and arr[mid] != arr[mid + 1]:
             return arr[mid]
 
-        # 2. Normalize to first occurrence
+        # 2. Align to the first occurrence of the pair
         if arr[mid] == arr[mid - 1]:
             first_idx = mid - 1
         else:
             first_idx = mid
 
-        # 3. Parity steering
+        # 3. Steer based on parity of first_idx
         if first_idx % 2 == 0:
-            lo = first_idx + 2  # Unique element is on the right
+            lo = first_idx + 2  # Single element is on the right
         else:
-            hi = first_idx - 1  # Unique element is on the left
+            hi = first_idx - 1  # Single element is on the left
 
     return -1
 ```
 
-* **Time Complexity:** $\mathcal{O}(\log N)$ — Skips entire pairs on every iteration.
-* **Auxiliary Space:** $\mathcal{O}(1)$.
+* **Time complexity:** $\mathcal{O}(\log N)$.
+* **Auxiliary space:** $\mathcal{O}(1)$.

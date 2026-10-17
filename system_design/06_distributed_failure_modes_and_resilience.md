@@ -1,16 +1,12 @@
-# 🛡️ Distributed Failure Modes, Traffic Spikes & Latency Guide
+# Distributed failure modes, traffic spikes, and latency
 
-> **Target:** FAANG System Design Interviews (L4–L6)  
-> **Core Idea:** Systems rarely fail because of normal traffic. They fail when a small hiccup triggers a chain reaction. Here is how to spot and fix every traffic, failure, latency, and security trap.
+> **Target:** System design interviews (L4 to L6)  
+> **Core concept:** Production outages usually start with a small dependency slowdown or synchronized traffic burst that cascades across services. This guide covers traffic spikes, fault isolation, tail latency, and authorization pitfalls.
 
----
-
-## 🌊 1. Too Much Traffic at Once
-
-When traffic spikes or synchronizes unexpectedly, your servers get crushed.
+## 1. Traffic spikes and overload patterns
 
 ```text
-Without Jitter (Thundering Herd):        With Jitter (Smoothed Load):
+Without Jitter (Synchronized Spike):     With Jitter (Smoothed Load):
 Requests                                 Requests
   ▲      █          █                      ▲    ▄█▄   ▄█▄   ▄█▄
   │      █          █                      │   █████ █████ █████
@@ -18,142 +14,116 @@ Requests                                 Requests
        9:00       9:05                        9:00  9:01  9:02
 ```
 
-### 1. Thundering Herd
-* **What goes wrong:** Thousands of clients or background jobs wake up at the exact same millisecond and hammer one service together.
-* **Real-World Example:** You run a "6-hour sync job" for everyone who signed up during a 9:00 AM promo. At 3:00 PM sharp, 500,000 jobs fire at once and crash the database.
-* **The Fix:** **Add Random Jitter.** Instead of scheduling at `3:00:00 PM`, schedule at `3:00 PM + random(0, 300 seconds)` so the spike flattens into a smooth wave.
+### 1. Thundering herd
+* **What happens:** Thousands of clients or scheduled workers wake up at the same instant and hit one backend service together.
+* **Example:** A live sports app sends a push notification to 2 million phones when a goal is scored, and every client app immediately calls `GET /match/score` at the exact same second.
+* **Fix:** Add random jitter to client polling/reconnect timers (`delay + random(0, 15s)`) and serve broadcast read traffic from CDN edge caches.
 
-### 2. Cache Stampede (Dogpile)
-* **What goes wrong:** One super popular cache key expires. Instantly, 10,000 concurrent requests see a "cache miss" and all rush to the database to recompute the exact same row.
-* **Real-World Example:** The homepage leaderboard cache expires at midnight. 10,000 users loading the page at `00:00:01` all trigger the expensive `GROUP BY` SQL query simultaneously.
-* **The Fix:**
-  1. **Singleflight / Mutex Lock:** The first request grabs a lock (`SETNX`) and queries the DB; the other 9,999 wait 20ms for the cache to populate.
-  2. **Early Refresh:** Refresh the key in the background at 80% of its TTL before it actually expires.
+### 2. Cache stampede (dogpile)
+* **What happens:** A heavily read cache key expires, and thousands of concurrent requests miss the cache at once and run the same expensive database query in parallel.
+* **Example:** The homepage leaderboard cache key expires at midnight, triggering 10,000 concurrent `GROUP BY` queries against the primary database.
+* **Fixes:**
+  1. **Singleflight / per-key mutex:** Only the first request acquires a short lock (`SETNX`) and queries the database while the other 9,999 requests wait briefly for the cache to refill.
+  2. **Logical early refresh:** Refresh hot keys asynchronously in the background when they reach 80% of their TTL.
 
-### 3. Cache Avalanche
-* **What goes wrong:** Thousands of *different* cache entries expire at the same moment because they were loaded together with the same TTL.
-* **Real-World Example:** After a server reboot at noon, you warm up 1 million product cache keys with a `2-hour TTL`. At 2:00 PM sharp, all 1 million keys vanish at once.
-* **The Fix:** **Stagger TTLs with Jitter.** Set TTL to `7200s + random(0, 600s)` so keys expire gradually over a 10-minute window.
+### 3. Cache avalanche
+* **What happens:** Thousands of distinct cache keys expire at the same timestamp because they were populated together with an identical TTL.
+* **Example:** A daily batch job warms 1 million product keys at noon with `EX 7200`. At 2:00 PM, all 1 million keys expire together.
+* **Fix:** Add random jitter to every TTL (`7200 + random(0, 600)` seconds) so expirations spread across a 10-minute window.
 
-### 4. Retry Storm
-* **What goes wrong:** A downstream service slows down and starts timing out. Every caller immediately retries, doubling and tripling the load on the already dying service until it completely melts.
-* **Real-World Example:** Payment DB CPU hits 95% and drops a few requests. The API servers blindly retry 3 times immediately, turning 10,000 QPS into 40,000 QPS and killing the DB.
-* **The Fix:** **Exponential Backoff + Jitter + Retry Cap.** Wait `1s, 2s, 4s + random_ms`, cap retries at 3, and use a **Circuit Breaker** to stop retrying if failure rates exceed 50%.
+### 4. Retry storm
+* **What happens:** A downstream service slows down and starts timing out. Upstream callers immediately retry failed requests 3 or 4 times, multiplying traffic on the struggling service until it crashes completely.
+* **Example:** Database CPU hits 95% and drops 10% of queries. App servers retry immediately up to 3 times, turning 10,000 QPS into 30,000+ QPS.
+* **Fix:** Use **exponential backoff with jitter** (`base * 2^attempt + rand_ms`), cap retries (or use a per-process retry budget where at most 10% of requests may be retries), and trip a **circuit breaker** when error rates stay high.
 
-### 5. Hot Key / Hot Partition ("The Celebrity Problem")
-* **What goes wrong:** Traffic isn't spread evenly—one specific key or database shard gets 90% of all reads or writes, melting the single server holding it.
-* **Real-World Example:** Justin Bieber posts a photo. Shard #4 (which holds `user_id = bieber`) gets 5 million requests/sec while Shards #1–#3 sit idle.
-* **The Fix:**
-  * **For Reads:** Cache the key locally in app server memory or replicate across multiple cache keys (`bieber#1` through `bieber#10`) and read from a random suffix.
-  * **For Writes:** Shard the counter (`likes_bieber_1` .. `likes_bieber_20`), write to a random shard, and sum them up on read.
+### 5. Hot key / hot partition (celebrity problem)
+* **What happens:** One specific key or shard receives a huge fraction of total reads or writes while the rest of the cluster sits mostly idle.
+* **Example:** A celebrity account with 100 million followers posts an update. The single cache shard or database partition holding `user_id = celebrity` maxes out its NIC and CPU.
+* **Fixes:**
+  * **For reads:** Use a short-TTL in-process local cache on app servers, or replicate the key across $K$ cache keys (`post:123#1` .. `post:123#10`) and have readers pick a random suffix.
+  * **For writes (like counters):** Split the counter across $K$ sub-keys (`likes:123#1` .. `likes:123#20`), increment a random shard on write, and sum the $K$ shards on read.
 
-### 6. Rate Limiting
-* **What goes wrong:** One buggy script or scraper consumes 95% of your server capacity, starving every other customer.
-* **Real-World Example:** A single customer runs an infinite `while(true)` loop calling your `/export` API 5,000 times a second.
-* **The Fix:** **Token Bucket or Sliding Window Rate Limiter** at the API Gateway per `user_id` or `IP`, returning `HTTP 429 Too Many Requests`.
+### 6. Missing rate limiting
+* **What happens:** One buggy script or scraper consumes most of your backend capacity and starves normal users.
+* **Fix:** Enforce per-user, per-IP, and per-API-key rate limits (token bucket or sliding window) at the API gateway, returning `HTTP 429 Too Many Requests`.
 
 ### 7. Backpressure
-* **What goes wrong:** A fast producer pumps data into a slow consumer faster than the consumer can process it, until the consumer runs out of RAM (`OOMKilled`).
-* **Real-World Example:** Log agents send 50,000 events/sec to an indexer that can only write 10,000/sec. The indexer's in-memory queue grows to 32 GB and crashes.
-* **The Fix:** **Bounded Queues + Flow Control.** Cap the queue size; when full, block the producer or tell it to slow down (`TCP window size` or `HTTP 429`).
+* **What happens:** A fast producer pushes work into a slower consumer faster than the consumer can drain it, causing unbounded in-memory queues to grow until the consumer crashes with `OOMKilled`.
+* **Fix:** Use bounded queues everywhere. When the queue fills up, block the producer, apply TCP flow control, or reject new work with `HTTP 429` / `503`.
 
-### 8. Load Shedding
-* **What goes wrong:** When a server is overloaded (e.g., 100% CPU), it tries to process everything anyway, causing *every* request to time out so zero requests succeed.
-* **Real-World Example:** Your server can handle 1,000 QPS. During a surge of 3,000 QPS, all 3,000 requests take 35 seconds and time out. Good throughput drops to zero.
-* **The Fix:** **Fail Fast (`503 Service Unavailable` / `429`).** Reject excess or low-priority requests immediately at the door so the core 1,000 QPS finish in <50ms.
+### 8. Load shedding
+* **What happens:** When a server is overloaded beyond its capacity, trying to accept and process every request causes all of them to queue up and miss their client timeouts, dropping useful throughput (goodput) to zero.
+* **Fix:** Shed excess load early at the entry point. Drop low-priority requests or reject requests whose remaining deadline budget is already too short (`503 Service Unavailable`), keeping latency low for the requests you do accept.
 
----
-
-## 🔥 2. Failures Spreading (Fault Isolation)
-
-How to stop one broken dependency from pulling down your entire company.
+## 2. Fault isolation and stopping cascading failures
 
 ```text
 Bulkhead Pattern (Isolated Pools):
 App Server
- ├── [ Thread Pool A (10 threads) ] ──> Payment Service (Healthy ✅)
- └── [ Thread Pool B (5 threads)  ] ──> Recommendations (Hanging ❌ - Only Pool B fills up!)
+ ├── [ Thread Pool A (10 threads) ] ──> Payment Service (Healthy)
+ └── [ Thread Pool B (5 threads)  ] ──> Recommendations (Hanging - Only Pool B fills up)
 ```
 
-### 1. Cascading Failure
-* **What goes wrong:** Service C hangs $\to$ Service B's threads all block waiting for C $\to$ Service A's threads all block waiting for B $\to$ the entire platform goes dark.
-* **Real-World Example:** An analytics database locks up. Because the checkout page synchronously calls Analytics, all web server worker threads get stuck waiting, and users can't even load the login page.
-* **The Fix:** Combine **Timeouts**, **Circuit Breakers**, and **Bulkheads**.
+### 1. Cascading failure
+* **What happens:** Service C hangs $\to$ Service B blocks all its worker threads waiting on Service C $\to$ Service A blocks waiting on Service B $\to$ the entire application goes down.
+* **Fix:** Combine strict network **timeouts**, **circuit breakers**, and **bulkhead** resource pools.
 
-### 2. Timeouts & Deadlines
-* **What goes wrong:** Calling a network dependency without a timeout means a hung socket ties up your thread/connection forever.
-* **Real-World Example:** A database query hangs on a lock. Without `statement_timeout`, 100 web workers wait 20 minutes until the whole cluster runs out of sockets.
-* **The Fix:** Put a strict timeout on **every** network call (e.g., `2s`), and pass a **Deadline Budget** downstream (if the user has 75s total and Step 1 took 70s, Step 2 gets a `5s` deadline—not a fresh 60s).
+### 2. Timeouts and deadline propagation
+* **What happens:** Making a network or database call without a timeout lets a hung connection tie up a worker thread indefinitely.
+* **Fix:** Set explicit connection and read/write timeouts on every RPC and SQL query, and propagate a remaining **deadline budget** across service hops (via gRPC contexts or HTTP headers) so downstream services abort work if the caller has already timed out.
 
-### 3. Circuit Breaker
-* **What goes wrong:** You know a downstream service is dead, yet you keep sending it 10,000 requests/sec, wasting threads and preventing it from recovering.
-* **Real-World Example:** The recommendation microservice is down. Every page load still waits 3 seconds for it to time out before rendering.
-* **The Fix:** **State Machine (`Closed` $\to$ `Open` $\to$ `Half-Open`).** After $N$ consecutive failures, **trip the breaker (`Open`)** and fail instantly (0ms) for 30 seconds. Then let 1 test request through (`Half-Open`) to see if it recovered.
+### 3. Circuit breaker
+* **What happens:** When a downstream dependency is down, callers keep sending requests and waiting for timeouts on every call.
+* **Fix:** Wrap calls in a circuit breaker state machine (`Closed` $\to$ `Open` $\to$ `Half-Open`). When failures cross a threshold (such as 50% over 10 seconds), trip the breaker to `Open` and fail fast in 0ms without making network calls. After a cool-down period, move to `Half-Open` and allow a few probe requests through to check if the dependency recovered.
 
-### 4. Bulkhead
-* **What goes wrong:** Named after ship hull compartments. If all dependencies share one thread/connection pool, one slow dependency drains the entire pool and starves healthy features.
-* **Real-World Example:** A slow "PDF Export" endpoint eats all 200 worker threads on your server, so fast `/healthz` and `/login` requests can't get a thread.
-* **The Fix:** **Isolate Resource Pools.** Give PDF Export its own capped pool of 10 threads; even if it maxes out, the other 190 threads serve normal users cleanly.
+### 4. Bulkhead isolation
+* **What happens:** If all downstream dependencies share a single thread pool or connection pool, one slow endpoint consumes every thread in the pool and blocks unrelated endpoints.
+* **Fix:** Partition threads, connection pools, or worker queues per dependency (like watertight compartments in a ship). If the PDF export pool saturates its 10 threads, the remaining 190 threads still serve checkout and login requests.
 
-### 5. Graceful Degradation
-* **What goes wrong:** One minor widget fails (e.g., "Recommended Stickers"), and your backend returns a `500 Internal Server Error`, breaking the entire screen.
-* **Real-World Example:** Netflix's personalized recommendation engine fails. Instead of showing a blank error screen, it falls back to a pre-cached static list of "Top 10 Movies Today".
-* **The Fix:** Return **stale cached data** (e.g., last good dashboard snapshot) or hide the non-critical UI component so the core user journey still works.
+### 5. Graceful degradation
+* **What happens:** A non-critical microservice (like "People You May Know" or personalized recommendations) fails, and the caller returns a `500` error for the entire page.
+* **Fix:** Catch failures on non-essential dependencies and fall back to cached static defaults or omit the widget so the core page still renders.
 
-### 6. Single Point of Failure (SPOF)
-* **What goes wrong:** One piece of hardware or single instance dies and brings down the entire system.
-* **Real-World Example:** You have 10 app servers, 3 DB replicas, and **1 Load Balancer**. That 1 Load Balancer crashes, and nobody can reach your 10 healthy servers.
-* **The Fix:** **Redundancy at every layer**—multiple orchestrator replicas, Active-Passive load balancers with floating IPs, and Multi-AZ database failover.
+### 6. Single point of failure (SPOF)
+* **What happens:** A single non-redundant component (one load balancer, one primary DB without standby, one NAT gateway in a single AZ) fails and takes down the whole system.
+* **Fix:** Run redundant instances across multiple availability zones with automated health checks and failover at every tier.
 
----
+## 3. Speed and latency bottlenecks
 
-## ⚡ 3. Speed & Latency Bottlenecks
+### 1. Tail latency ($p99$ and $p99.9$)
+* **What happens:** Mean/average latency hides severe slowdowns affecting your heaviest users. If 99 requests take 10ms and 1 request takes 5,000ms (due to a GC pause, lock wait, or cold disk read), the average is 60ms, but 1% of requests take 5 seconds.
+* **Fix:** Define SLAs and alerts on **$p95$, $p99$, and $p99.9$ percentiles**, not averages.
 
-### 1. Tail Latency ($p99$ / $p99.9$)
-* **What goes wrong:** Your *average* latency looks great (`40ms`), so you think users are happy. Meanwhile, the slowest 1% ($p99$) takes `8 seconds`—and your biggest enterprise customers with the most data are always in that 1%.
-* **Real-World Example:** 99 requests hit RAM (`5ms`), 1 request hits a GC pause or cold disk read (`5,000ms`). Average is `55ms`, but 1 in 100 clicks feels broken.
-* **The Fix:** Always monitor and alert on **$p95$ and $p99$**, never `mean/average`.
+### 2. Fan-out tail amplification
+* **What happens:** When a single user request fans out to query $M$ backend shards in parallel and waits for all $M$ responses, overall request latency equals the **slowest** shard. If each shard has a 1% chance of hitting a $p99$ hiccup, a request touching 100 shards has a $1 - (0.99)^{100} \approx 63\%$ chance of being slow.
+* **Fix:** Use **hedged requests**: if a shard does not respond within the $p95$ latency window (for example, 15ms), send a duplicate read to a replica and use whichever response returns first.
 
-### 2. Fan-Out Amplification
-* **What goes wrong:** One user request fans out to call 50 backend shards in parallel. Because you must wait for all 50 to finish, your overall response time equals the **slowest** of the 50 servers!
-* **Real-World Example:** Searching across 100 Elasticsearch shards. Even if each shard only has a 1% chance of being slow ($p99$), the probability that *at least one* of the 100 shards is slow is $1 - (0.99)^{100} = \mathbf{63\%}$!
-* **The Fix:** **Hedged Requests.** If a shard hasn't replied within the $p95$ window (e.g., `15ms`), fire a duplicate request to a replica and take whichever answers first.
+### 3. N+1 query problem
+* **What happens:** Application code runs 1 query to fetch $N$ parent rows (`SELECT * FROM posts LIMIT 50`), then loops over the results and runs $N$ separate queries to fetch each child row (`SELECT * FROM users WHERE id = ?`), paying 51 sequential network round trips.
+* **Fix:** Replace the loop with a single batch query (`SELECT * FROM users WHERE id IN (...)`) or a SQL `JOIN`, reducing 51 round trips to 1 or 2.
 
-### 3. N+1 Query Problem
-* **What goes wrong:** Code fetches a list of $N$ parent items (1 query), then loops over the list firing 1 query per item to fetch its details ($N$ queries).
-* **Real-World Example:** `SELECT * FROM posts LIMIT 50` (1 query), followed by a `for` loop running `SELECT * FROM users WHERE id = post.author_id` 50 separate times. 51 network round-trips!
-* **The Fix:** **Batch Lookup or JOIN.** Collect all IDs and run a single `SELECT * FROM users WHERE id IN (1, 2, ... 50)`—cutting 51 round-trips down to 2.
+### 4. Head-of-line (HOL) blocking
+* **What happens:** One slow, resource-heavy job at the front of a FIFO queue (or HTTP/1.1 connection) blocks hundreds of small, sub-millisecond jobs waiting behind it.
+* **Fix:** Split queues by job size/priority (fast lane vs. heavy batch lane) and use multiplexed protocols (`HTTP/2` or `HTTP/3` over QUIC).
 
-### 4. Head-of-Line (HOL) Blocking
-* **What goes wrong:** One giant, slow item at the front of a single queue blocks 1,000 tiny, fast items waiting behind it.
-* **Real-World Example:** Like getting stuck behind someone with 300 coupons at a single grocery checkout lane when you only want to buy a pack of gum.
-* **The Fix:** **Separate Lanes (Fast Lane vs. Heavy Lane)** or multiplex streams (like `HTTP/2` & `HTTP/3 QUIC`, or splitting "express jobs" and "batch jobs" into separate worker queues).
+### 5. Database connection exhaustion
+* **What happens:** Opening a new database connection per request (especially from thousands of autoscaled serverless functions) pays a TCP + TLS handshake cost and exhausts Postgres `max_connections`.
+* **Fix:** Place a connection pooler (**PgBouncer** or **RDS Proxy**) in front of the database to multiplex thousands of client connections over a small pool of persistent database connections.
 
-### 5. Connection Pooling
-* **What goes wrong:** Opening a brand new database connection on every HTTP request requires a TCP 3-way handshake, TLS negotiation, and Postgres process fork (~30ms overhead + high DB RAM usage).
-* **Real-World Example:** 500 serverless functions spin up and open 500 fresh Postgres connections simultaneously, exhausting `max_connections` and crashing the DB.
-* **The Fix:** **Connection Pooler (PgBouncer / RDS Proxy).** Keep a warm pool of 10–20 open connections per pod and reuse them across thousands of short requests.
+### 6. Noisy neighbor in multi-tenant systems
+* **What happens:** One tenant runs an expensive bulk export or unindexed query that saturates shared CPU, memory, or disk IOPS, degrading latency for every other tenant on the same cluster.
+* **Fix:** Enforce per-tenant rate limits, query concurrency quotas, fair scheduling across tenant queues, and dedicated shards/cells for large enterprise tenants.
 
-### 6. Noisy Neighbor
-* **What goes wrong:** In a multi-tenant system, one heavy customer runs a massive report that eats 100% of shared CPU/Disk IOPS, making the app laggy for every other customer on that machine.
-* **Real-World Example:** Tenant A imports 10 million rows at 2 PM, starving Tenant B's live dashboard queries on the same database.
-* **The Fix:** **Per-Tenant Quotas, Fair Queuing, and Resource Isolation** (cgroups, per-tenant rate limits, or dedicated shards for enterprise whales).
+## 4. Security failure modes in system design
 
----
+### 1. Confused deputy
+* **What happens:** A low-privilege caller tricks a privileged internal service (the "deputy") into executing an action using the service's own admin credentials instead of checking the caller's permissions.
+* **Fix:** Propagate the end-user identity downstream (for example, via On-Behalf-Of / OBO tokens or signed claims) and authorize against the original user's permissions at the resource layer.
 
-## 🔐 4. Security Ideas That Show Up in Design Rounds
+### 2. Over-privileged service accounts (violating least privilege)
+* **What happens:** Microservices share a single superuser database credential (`READ/WRITE/DROP`), so a bug or SQL injection in a minor read-only service compromises the entire database.
+* **Fix:** Grant each service an IAM role or database user scoped strictly to the tables and verbs (`SELECT` vs. `INSERT/UPDATE`) it needs.
 
-### 1. Confused Deputy
-* **What goes wrong:** A low-privilege user tricks a high-privilege backend service (the "deputy") into performing an action using the *service's* own god-mode credentials instead of the user's permissions.
-* **Real-World Example:** An anonymous caller hits your Orchestrator. Because no user token was passed, the Orchestrator accidentally falls back to its own internal `admin_service_token` and fetches private company data for the anonymous user.
-* **The Fix:** **Propagate Caller Identity (OBO / On-Behalf-Of tokens)** and verify permissions against the *original user's* identity at the resource layer—never fall back to a privileged service token for user requests.
-
-### 2. Least Privilege
-* **What goes wrong:** Every microservice is given a master `READ/WRITE/DELETE` database credential "just to make development easy." If one service has a bug or gets compromised, it can wipe the whole database.
-* **Real-World Example:** A read-only analytics service has `DROP TABLE` permissions and accidentally runs a destructive migration.
-* **The Fix:** Scope every service token and IAM role to the **bare minimum permissions** required (e.g., Memory service token gets `SELECT`-only access on specific tables).
-
-### 3. Defense in Depth
-* **What goes wrong:** Relying on a single perimeter wall ("The API Gateway checks auth, so internal services don't need to check anything"). If one misconfigured route bypasses the gateway, the backend is wide open.
-* **Real-World Example:** An internal admin tool assumes any request inside the VPC is trusted. A SSRF bug in another service allows an attacker to call it directly.
-* **The Fix:** **Layer your defenses.** The API Gateway validates the JWT, the orchestrator checks workspace access, and the database/tool enforces row-level security (`RLS`) or token verification again.
+### 3. Perimeter-only auth (missing defense in depth)
+* **What happens:** Internal services trust any request arriving from inside the VPC because they assume the API gateway already checked authentication. A single misconfigured route or SSRF bug exposes every internal service.
+* **Fix:** Verify service-to-service identity (mTLS) and validate user authorization tokens again at the service and data layers (such as Postgres Row-Level Security).

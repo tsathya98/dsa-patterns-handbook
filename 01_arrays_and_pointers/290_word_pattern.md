@@ -1,75 +1,50 @@
-# 🔠 LeetCode 290: Word Pattern – Master Guide
+# LeetCode 290: Word Pattern
 
-> **Difficulty:** Easy  
-> **Study Plan:** Top Interview 150  
-> **Pattern:** HashMaps / Bijective (1-to-1) Mapping  
-> **LeetCode Link:** [LeetCode 290: Word Pattern](https://leetcode.com/problems/word-pattern/)
+> **Difficulty:** Easy | **Pattern:** Hash Maps (Bijective 1-to-1 Mapping)  
+> **LeetCode:** [290. Word Pattern](https://leetcode.com/problems/word-pattern/)
 
----
+## The problem
 
-## 📌 Problem in Plain English
+Given a `pattern` string and a space-separated string of words `s`, return `True` if there is a bijection (one-to-one mapping) between characters in `pattern` and words in `s`:
+- Every character in `pattern` maps to one unique word in `s`.
+- Every word in `s` maps to one unique character in `pattern`.
 
-Given a `pattern` string (e.g., `"abba"`) and a string `s` of space-separated words (e.g., `"dog cat cat dog"`):
-
-Determine if `s` follows the **same pattern**. A full match means:
-1. Each character in `pattern` maps to **exactly one** word in `s`.
-2. Each word in `s` maps to **exactly one** character in `pattern`.
-3. No two distinct pattern characters can map to the same word, and vice-versa (**Bijective / One-to-One** mapping).
-
-### Examples:
-* `pattern = "abba", s = "dog cat cat dog"` $\implies$ **`True`** (`a -> dog`, `b -> cat`)
-* `pattern = "abba", s = "dog cat cat fish"` $\implies$ **`False`** (`a` cannot map to both `dog` and `fish`)
-* `pattern = "abba", s = "dog dog dog dog"` $\implies$ **`False`** (both `a` and `b` cannot map to `dog`)
-
----
-
-## 💡 Reviewing Your Solution
-
-```python
-class Solution:
-    def wordPattern(self, pattern: str, s: str) -> bool:
-        lst = s.split(" ")
-        if len(pattern) != len(lst):
-            return False
-        dct = {}
-        for i in range(len(pattern)):
-            if pattern[i] not in dct:
-                if lst[i] in dct.values():   # ⚠️ Hidden complexity!
-                    return False
-                dct[pattern[i]] = lst[i]
-            elif dct[pattern[i]] != lst[i]:
-                return False
-        return True
+```text
+pattern = "abba", s = "dog cat cat dog"  -> True  (a <-> dog, b <-> cat)
+pattern = "abba", s = "dog cat cat fish" -> False ('a' cannot map to both dog and fish)
+pattern = "abba", s = "dog dog dog dog"  -> False ('a' and 'b' cannot both map to dog)
 ```
 
-### The Verdict:
-* **Correctness:** **100% Correct!** It successfully detects the 1-to-1 constraint.
-* **On LeetCode:** **Accepted!** Because the English alphabet only has 26 lowercase letters, `len(dct.values()) <= 26`, so the linear search is small enough to pass.
-* **In a FAANG Interview:** The interviewer will immediately ask:  
-  > *"What is the time complexity of `lst[i] in dct.values()`?"*
+## The trap: `in dict.values()` is $\mathcal{O}(k)$
 
----
+A common single-dictionary solution checks if a word was already assigned using `if word in dct.values()`:
 
-## ⚠️ The Hidden Interview Trap: `in dict.values()` is $\mathcal{O}(k)$!
+```python
+if pattern[i] not in dct:
+    if words[i] in dct.values():  # O(k) linear scan!
+        return False
+    dct[pattern[i]] = words[i]
+```
 
-Remember how dictionary lookups work:
-* `key in dict` $\implies$ **$\mathcal{O}(1)$** (instant hash table jump!).
-* `value in dict.values()` $\implies$ **$\mathcal{O}(k)$**!  
-  A dictionary's hash table is indexed by **keys**, NOT values! To find a value, Python has to do a **linear scan through every value** in the dictionary.
+Hash tables index keys in $\mathcal{O}(1)$, not values. Checking `word in dct.values()` scans every stored value linearly. On LeetCode, `pattern` only contains lowercase English letters, so `len(dct) <= 26` and the code passes. If the key space has $N$ unique items, `in dct.values()` inside a loop turns an $\mathcal{O}(N)$ algorithm into $\mathcal{O}(N^2)$.
 
-If you have $N$ unique items:
-$$\text{Total Time} = N \text{ iterations} \times \mathcal{O}(N) \text{ value scan} = \mathbf{\mathcal{O}(N^2)}$$
+## Two $\mathcal{O}(n)$ approaches
 
-### Real Python Benchmark ($N = 5,000$ unique items):
-* `in dct.values()`: **439.83 ms** 🐢
-* Two HashMaps ($\mathcal{O}(1)$): **1.51 ms** ⚡ (**292× faster!**)
+### 1. Two hash maps (explicit forward and reverse lookup)
+Maintain two dictionaries: `p_to_w` (`char -> word`) and `w_to_p` (`word -> char`). On each pair `(p, w)`, verify that neither map has a conflicting entry in $\mathcal{O}(1)$ time.
 
----
+### 2. Set cardinality trick
+Two equal-length sequences form a bijection if and only if the number of unique characters, the number of unique words, and the number of unique `(char, word)` pairs are all equal:
 
-## 🏆 The Two Pure $\mathcal{O}(n)$ Interview Solutions
+$$\text{len}(\text{set}(\text{pattern})) == \text{len}(\text{set}(\text{words})) == \text{len}(\text{set}(\text{zip}(\text{pattern}, \text{words})))$$
 
-### Approach 1: Two HashMaps (or HashMap + Set) — *The Standard Interview Pattern*
-Track the forward mapping (`char -> word`) AND either a backward mapping (`word -> char`) or a set of `seen_words` to keep every lookup strictly $\mathcal{O}(1)$:
+- `"abba"` and `["dog", "cat", "cat", "dog"]`: `{'a', 'b'}` (2), `{'dog', 'cat'}` (2), `{('a','dog'), ('b','cat')}` (2) $\to$ `2 == 2 == 2` (`True`).
+- `"abba"` and `["dog", "dog", "dog", "dog"]`: `{'a', 'b'}` (2) vs `{'dog'}` (1) $\to$ `2 != 1` (`False`).
+
+## Solution
+
+<details>
+<summary>Spoiler: Solution Code</summary>
 
 ```python
 class Solution:
@@ -77,32 +52,21 @@ class Solution:
         words = s.split(" ")
         if len(pattern) != len(words):
             return False
-            
+
         p_to_w = {}
         w_to_p = {}
-        
+
         for p, w in zip(pattern, words):
-            # Check both directions in O(1) time
             if (p in p_to_w and p_to_w[p] != w) or (w in w_to_p and w_to_p[w] != p):
                 return False
             p_to_w[p] = w
             w_to_p[w] = p
-            
+
         return True
-```
 
----
 
-### Approach 2: The 1-Line Pythonic Set Cardinality Trick 🪄
-For a bijection to hold between two sequences of equal length:
-1. The number of unique characters `len(set(pattern))`
-2. The number of unique words `len(set(words))`
-3. The number of unique pairs `len(set(zip(pattern, words)))`
-
-**Must all be identical!**
-
-```python
-class Solution:
+# Alternative 1-liner using set cardinality:
+class SolutionSet:
     def wordPattern(self, pattern: str, s: str) -> bool:
         words = s.split(" ")
         if len(pattern) != len(words):
@@ -110,20 +74,11 @@ class Solution:
         return len(set(pattern)) == len(set(words)) == len(set(zip(pattern, words)))
 ```
 
-* If `pattern = "abba", words = ["dog", "cat", "cat", "dog"]`:
-  * `set(pattern)` = `{'a', 'b'}` (size 2)
-  * `set(words)` = `{'dog', 'cat'}` (size 2)
-  * `set(zip)` = `{('a','dog'), ('b','cat')}` (size 2)  
-  👉 $2 == 2 == 2 \implies \mathbf{\text{True}}$!
+</details>
 
-* If `pattern = "abba", words = ["dog", "dog", "dog", "dog"]`:
-  * `set(pattern)` = `{'a', 'b'}` (size 2)
-  * `set(words)` = `{'dog'}` (size 1)  
-  👉 $2 \ne 1 \implies \mathbf{\text{False}}$!
+## Complexity
 
----
-
-## ⏱️ Complexity Blueprint
-
-* **Time Complexity:** $\mathcal{O}(n + m)$ where $n$ is length of `pattern` and $m$ is length of string `s` (for splitting words).
-* **Space Complexity:** $\mathcal{O}(u)$ where $u$ is the number of unique words and characters stored in the HashMaps.
+| Metric | Value | Notes |
+| :--- | :--- | :--- |
+| **Time** | $\mathcal{O}(n + m)$ | $n$ is `len(pattern)` and $m$ is `len(s)` (to split `s` into words). |
+| **Space** | $\mathcal{O}(m)$ | Stores the list of words from `s.split(" ")` and up to $n$ mappings. |

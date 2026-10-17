@@ -1,49 +1,43 @@
-# 🎯 The FAANG System Design 4-Step Interview Framework
+# FAANG system design 4-step interview framework
 
-> **Target:** 45-Minute Senior/Staff System Design Interview  
-> **Philosophy:** System design is **not** a quiz; it is a collaborative technical design discussion. The interviewer wants to see how you handle ambiguity, drive architectural decisions, and evaluate trade-offs.
+> **Target:** 45-minute Senior/Staff system design interview  
+> **Context:** System design interviews test how you narrow down ambiguous requirements, size capacity, make concrete architecture choices, and reason through failure modes.
 
----
-
-## ⏱️ The 45-Minute Time Allocation
+## 1. The 45-minute time breakdown
 
 ```text
-[ 0m - 5m ]   Step 1: Clarify Scope & Requirements (Functional & Non-Functional)
-[ 5m - 10m ]  Step 2: Back-of-the-Envelope Math & Core API Design
-[ 10m - 25m ] Step 3: High-Level Architecture Diagram (End-to-End Happy Path)
-[ 25m - 40m ] Step 4: Deep Dives, Bottlenecks & Scale-Out Trade-offs
-[ 40m - 45m ] Wrap-Up: Summary, Monitoring, Failure Scenarios
+[ 0m - 5m ]   Step 1: Clarify scope and requirements (functional and non-functional)
+[ 5m - 10m ]  Step 2: Back-of-the-envelope math and core API design
+[ 10m - 25m ] Step 3: High-level architecture diagram (end-to-end happy path)
+[ 25m - 40m ] Step 4: Deep dives, bottlenecks, and scale-out trade-offs
+[ 40m - 45m ] Wrap-up: Monitoring and failure scenarios
 ```
 
----
+## 2. Step 1: Scope and clarify requirements (5 minutes)
 
-## 📋 Step 1: Scope & Clarify Requirements (5 Minutes)
+Do not start drawing boxes right away. Spend the first few minutes locking down what you are actually building.
 
-Never start drawing boxes immediately. A candidate who jumps straight to drawing fails within 3 minutes because they solve the wrong problem.
+### Functional requirements (2 to 3 core use cases)
+* Ask what primary actions a user takes.
+* Keep the scope to 2 or 3 core features and explicitly park secondary features (like billing or custom analytics) unless asked.
+* *Example (URL shortener):*
+  1. User submits a long URL and gets back a short URL.
+  2. User visits the short URL and gets redirected to the original URL.
+  3. (Parked: click analytics, custom vanity aliases).
 
-### 1. Functional Requirements (2–3 Core Use Cases ONLY)
-* Ask: *"What are the primary actions a user takes?"*
-* Keep it to **2–3 critical features**. Out-of-scope features should be explicitly parked.
-* *Example (TinyURL):*
-  1. User inputs a long URL $\to$ receives a shortened URL.
-  2. User visits shortened URL $\to$ redirected to original URL.
-  3. (Out of scope for now: analytics, custom aliases).
+### Non-functional requirements
+* **Scale:** Daily active users (DAU) and read-to-write ratio.
+* **Latency:** Target p99 latency (for example, sub-50ms redirects, sub-200ms writes).
+* **Availability vs. consistency (CAP):** Does the system favor availability with eventual consistency (social feeds, URL redirects) or strong consistency (payments, seat booking, inventory)?
+* **Durability and retention:** How long are records retained, and can any writes be lost?
 
-### 2. Non-Functional Requirements (The "-ilities")
-* **Scale:** How many Daily Active Users (DAU)? Read vs. Write heavy?
-* **Latency:** Sub-100ms reads? Sub-500ms writes?
-* **Availability vs. Consistency (CAP):** Highly Available (99.99% uptime, eventual consistency like Twitter) OR Strongly Consistent (financial transactions, seat reservations)?
-* **Durability:** Can URLs expire? Data must never be lost.
+## 3. Step 2: Back-of-the-envelope math and API design (5 minutes)
 
----
-
-## 🔢 Step 2: Back-of-the-Envelope Math & API Design (5 Minutes)
-
-### 1. The Math Formula Template:
+### Capacity estimation template
 ```text
 Daily Active Users (DAU):           100 Million
 Writes per user/day:                1 write  ──> 100M writes / day
-Reads per user/day:                 10 reads ──> 1 Billion reads / day (10:1 Read-to-Write ratio)
+Reads per user/day:                 10 reads ──> 1 Billion reads / day (10:1 read-to-write ratio)
 
 Average Write QPS:                  100,000,000 / 86,400 ≈ 1,200 writes/sec
 Peak Write QPS (2x - 3x):           ~3,000 writes/sec
@@ -55,26 +49,25 @@ Bandwidth (Inbound):                1,200 * 500 bytes ≈ 600 KB/s
 Bandwidth (Outbound):               12,000 * 500 bytes ≈ 6 MB/s
 ```
 
-### 2. Define 2 Core API Endpoints:
+### Core API endpoints
 ```http
 POST /v1/urls
 Request Body:  { "original_url": "https://example.com/very/long/path", "user_id": "u123" }
 Response Body: { "short_url": "https://tiny.url/aB3x9", "expires_at": 1893456000 }
 
 GET /{short_code}
-Response:      HTTP 302 Found (or 301 Permanent Redirect)
+Response:      HTTP 302 Found (or 301 Moved Permanently)
 Header:        Location: https://example.com/very/long/path
 ```
+
 > [!TIP]
-> **301 vs. 302 Redirect:**
-> - `301 Moved Permanently`: Browser caches the redirect locally $\to$ zero server load, but analytics cannot track click counts.
-> - `302 Found / 307 Temporary`: Browser always hits your server first $\to$ allows accurate click tracking, but increases server load.
+> **301 vs. 302 redirect:**
+> - `301 Moved Permanently`: Browsers cache the redirect locally, which offloads repeat requests from your servers but hides click counts from your backend.
+> - `302 Found` / `307 Temporary Redirect`: Browsers hit your server on every click, which lets you log click metrics and update target URLs at the cost of higher read QPS.
 
----
+## 4. Step 3: High-level architecture (15 minutes)
 
-## 🏛️ Step 3: High-Level Architecture (15 Minutes)
-
-Draw the standard happy-path flow from left to right:
+Sketch the end-to-end happy path from client to storage:
 
 ```text
 [ Client ] ──> [ DNS ] ──> [ CDN ] ──> [ Load Balancer (L7) ]
@@ -90,37 +83,29 @@ Draw the standard happy-path flow from left to right:
                                                  [ Read Replicas ]
 ```
 
-1. **State your assumptions aloud:** *"I am making the application tier completely stateless so we can auto-scale horizontally based on CPU utilization."*
-2. **Explain data flow:** Show how a request enters, checks cache, queries DB if needed, and writes asynchronously.
+1. **State design choices aloud:** Keep the application tier stateless so instances can scale horizontally behind the load balancer.
+2. **Trace both paths:** Walk through the write path and the read path (cache hit vs. cache miss) step by step.
 
----
+## 5. Step 4: Deep dives and bottlenecks (15 minutes)
 
-## 🔬 Step 4: Deep Dives & Bottlenecks (15 Minutes)
+Pick 2 or 3 bottlenecks in your design and explain how to handle them at scale:
 
-This is where candidates distinguish themselves between L4 (Mid-level) and L5/L6 (Senior/Staff).
+### Database sharding and partitioning
+* When storage crosses a few terabytes or write QPS saturates a single primary node, partition across shards by `hash(short_code)` or `hash(user_id)`.
+* Use consistent hashing with virtual nodes so adding or removing shards only moves a small fraction of keys.
 
-Select **2–3 critical bottlenecks** to dive deep into:
+### Cache invalidation and stampedes
+* With a cache-aside setup, the app checks Redis first, falls back to the database on a miss, and populates Redis with a TTL.
+* **Cache stampede (thundering herd):** If a popular key expires, thousands of concurrent requests miss the cache at once and hit the database. Prevent this with singleflight request coalescing (a per-key mutex lock) or early background refresh before the TTL expires.
 
-### 1. Database Sharding & Partitioning
-* When the database exceeds 1 TB or write throughput maxes out single-node IOPS:
-* Partition by `hash(user_id)` or `hash(short_code)`.
-* Explain **Consistent Hashing** with virtual nodes to prevent re-sharding hot spots.
+### Single points of failure (SPOF)
+* Run active-passive or active-active load balancers with floating virtual IPs (VRRP) or DNS Anycast.
+* Deploy multi-AZ database primaries and standbys with automated failover.
 
-### 2. Cache Invalidation & Stampede
-* Cache-Aside strategy: Look in Redis $\to$ if miss, read DB $\to$ write to Redis with TTL.
-* **Thundering Herd / Cache Stampede:** If a hot key expires, 10,000 concurrent requests hammer the DB simultaneously.
-  * *Fix:* Mutex lock (single flight) or probabilistic early expiration (XFetch).
+## 6. Common interview mistakes
 
-### 3. Single Points of Failure (SPOF)
-* Redundant Load Balancers using Active-Passive VRRP floating IP.
-* Multi-AZ database failover with automated leader election (Raft/Paxos).
-
----
-
-## 🚨 5 Red Flags That Fail Candidates
-
-1. ❌ **Silent Drawing:** Drawing boxes for 5 minutes without explaining your thought process.
-2. ❌ **Over-Engineering Early:** Throwing Kafka, Cassandra, Kubernetes, and Spark at a system with 50 QPS.
-3. ❌ **Ignoring Scale Constraints:** Designing a strongly-consistent multi-region relational database without addressing network latency or CAP theorem.
-4. ❌ **Vague Tech Choices:** Saying "I will store this in NoSQL" without explaining *why* Document vs. Key-Value vs. Wide-Column.
-5. ❌ **Defensive Reactions:** Fighting the interviewer when they introduce a constraint or failure scenario. Treat them as a peer brainstorming partner!
+1. **Silent drawing:** Drawing boxes for minutes without narrating why each component is there.
+2. **Premature complexity:** Adding Kafka, Cassandra, Kubernetes, and Spark to a problem with 50 writes per second.
+3. **Ignoring physical constraints:** Proposing synchronous cross-continent database replication without accounting for the ~100-150ms speed-of-light network round trip.
+4. **Generic technology labels:** Writing "NoSQL" on a box without specifying whether the workload needs a key-value store, document store, or wide-column store.
+5. **Pushing back on interviewer hints:** When an interviewer points out a failure case or changes a constraint, treat it as a prompt to adjust the design rather than defending the first draft.

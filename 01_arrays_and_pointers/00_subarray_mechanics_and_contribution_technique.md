@@ -1,51 +1,33 @@
-# 🧩 Subarray Mechanics & The Contribution Technique
+# Subarray mechanics and the contribution technique
 
-> **Course Reference:** CodeKerdos DSA — Class 6  
-> **Core Concepts:** Total subarrays formula $N(N+1)/2$, Closest Min-Max subarray, and the $\mathcal{O}(N)$ Contribution Technique for total subarray sum.
+> **Course reference:** CodeKerdos DSA, Class 6
+> **Core concepts:** Total subarrays formula $N(N+1)/2$, closest min-max subarray, and the $\mathcal{O}(N)$ contribution technique.
 
----
+## Subarray vs subsequence vs subset
 
-## 1. Subarray vs Subsequence vs Subset
-
-| Structure | Contiguous? | Order Preserved? | Total Count for Array of Size $N$ |
+| Structure | Contiguous? | Order preserved? | Count for size $N$ |
 |---|---|---|---|
-| **Subarray** | ✅ **Yes** (unbroken slice) | ✅ **Yes** | $\frac{N(N + 1)}{2}$ |
-| **Subsequence** | ❌ No (can skip elements) | ✅ **Yes** | $2^N - 1$ (non-empty) |
-| **Subset** | ❌ No | ❌ No (order doesn't matter) | $2^N$ |
+| Subarray | Yes (unbroken slice) | Yes | $\frac{N(N + 1)}{2}$ |
+| Subsequence | No (can skip elements) | Yes | $2^N - 1$ (non-empty) |
+| Subset | No | No | $2^N$ |
 
-### Why Are There $\frac{N(N+1)}{2}$ Subarrays?
-* Subarrays starting at index $0$: $N$ choices ($[0,0], [0,1], \dots, [0, N-1]$)
-* Subarrays starting at index $1$: $N - 1$ choices
-* $\dots$
-* Subarrays starting at index $N-1$: $1$ choice
-$$\text{Total} = N + (N - 1) + (N - 2) + \dots + 1 = \frac{N(N + 1)}{2}$$
+An array of size $N$ has $N$ subarrays starting at index $0$, $N - 1$ starting at index $1$, down to $1$ starting at index $N - 1$. Summing $N + (N - 1) + \dots + 1$ gives $\frac{N(N + 1)}{2}$.
 
----
+## Closest min-max subarray in $\mathcal{O}(N)$
 
-## 2. Closest Min-Max Subarray in $\mathcal{O}(N)$
+Find the length of the shortest contiguous subarray containing both the global minimum and global maximum of `ar`.
 
-Given an array, find the length of the **smallest contiguous subarray** that contains both the minimum element and the maximum element of the array.
+If `min_val == max_val`, the answer is $1$. Otherwise, scan left to right while tracking `last_min` and `last_max` (the most recent indices where `min_val` and `max_val` appeared). Whenever you hit a min or max and both indices have been seen, update `min_len = min(min_len, abs(last_min - last_max) + 1)`.
 
-```text
-Input:  ar = [ 1 , 2 , 3 , 1 , 3 , 4 , 6 , 4 , 6 , 3 ]
-Min value = 1, Max value = 6
+| Index $i$ | `ar[i]` | `last_min` (val=1) | `last_max` (val=6) | Candidate length | `min_len` |
+|---|---|---|---|---|---|
+| 0 | 1 | 0 | -1 | - | 10 |
+| 3 | 1 | 3 | -1 | - | 10 |
+| 6 | 6 | 3 | 6 | $6 - 3 + 1 = 4$ | 4 |
+| 8 | 6 | 3 | 8 | $8 - 3 + 1 = 6$ | 4 |
 
-Subarrays containing both 1 and 6:
-- Indices 0 to 6: length 7
-- Indices 3 to 6: length 4 (ar[3..6] = [1, 3, 4, 6])
-Smallest length = 4
-```
-
-### The State-Tracking Algorithm
-* Find `min_val = min(ar)` and `max_val = max(ar)`.
-* If `min_val == max_val`, return $1$.
-* Maintain two pointers tracking the **latest seen index** of each: `last_min = -1`, `last_max = -1`.
-* Traverse from left to right:
-  * When `ar[i] == min_val`: update `last_min = i`.
-  * When `ar[i] == max_val`: update `last_max = i`.
-  * If both `last_min != -1` and `last_max != -1`:
-    $$\text{current\_len} = |\text{last\_min} - \text{last\_max}| + 1$$
-    $$\text{ans} = \min(\text{ans}, \text{current\_len})$$
+<details>
+<summary>Spoiler: Solution Code</summary>
 
 ```python
 def closest_min_max_subarray(ar: list[int]) -> int:
@@ -53,9 +35,7 @@ def closest_min_max_subarray(ar: list[int]) -> int:
     if n == 0:
         return 0
 
-    min_val = min(ar)
-    max_val = max(ar)
-
+    min_val, max_val = min(ar), max(ar)
     if min_val == max_val:
         return 1
 
@@ -75,29 +55,12 @@ def closest_min_max_subarray(ar: list[int]) -> int:
 
     return min_len
 ```
-* **Time Complexity:** $\mathcal{O}(N)$ (One linear pass).
-* **Auxiliary Space:** $\mathcal{O}(1)$.
 
----
+</details>
 
-## 3. Sum of All Subarrays: The Contribution Technique
+## Sum of all subarrays: the contribution technique
 
-> **Problem:** Find the sum of all elements across every possible subarray in `ar`.
-
-### Complexity Ladder
-1. **Brute Force:** Generate all $N(N+1)/2$ subarrays, loop through each to sum $\to \mathcal{O}(N^3)$.
-2. **Prefix Sums:** Generate all pairs $(i, j)$ and get range sums in $\mathcal{O}(1) \to \mathcal{O}(N^2)$.
-3. **The Contribution Technique:** Flip perspective from "subarrays" to **"elements"** $\to \mathcal{O}(N)$!
-
----
-
-### The Derivation (Combinatorics Perspective)
-Instead of asking: *"What is the sum of each subarray?"*  
-Ask: **"How many subarrays contain `ar[i]`?"**
-
-For a subarray $[L, R]$ to contain index $i$:
-* Start index $L$ must be anywhere in $[0, i]$ $\implies (i + 1)$ valid choices.
-* End index $R$ must be anywhere in $[i, N - 1]$ $\implies (N - i)$ valid choices.
+Find the sum of elements across all $\frac{N(N+1)}{2}$ subarrays. Generating every subarray takes $\mathcal{O}(N^3)$ time, and using prefix sums still takes $\mathcal{O}(N^2)$. Instead of summing each subarray separately, count how many subarrays include index $i$.
 
 ```text
 Array indices:   0    1    2   ...   i   ...   N-2   N-1
@@ -106,24 +69,23 @@ Array indices:   0    1    2   ...   i   ...   N-2   N-1
                  choices for L             choices for R
 ```
 
-By the fundamental counting principle:
-$$\text{Total subarrays containing } ar[i] = (i + 1) \times (N - i)$$
+For a subarray $[L, R]$ to contain index $i$, the start index $L$ has $i + 1$ choices ($0 \le L \le i$) and the end index $R$ has $N - i$ choices ($i \le R \le N - 1$). Thus `ar[i]` appears in $(i + 1)(N - i)$ subarrays, contributing $ar[i] \cdot (i + 1) \cdot (N - i)$ to the total sum:
 
-Since `ar[i]` appears in $(i + 1)(N - i)$ distinct subarrays, its total contribution to the grand sum is:
-$$\text{Contribution}(ar[i]) = ar[i] \times (i + 1) \times (N - i)$$
-
-### Total Sum Formula
 $$\text{Total Sum} = \sum_{i=0}^{N-1} ar[i] \cdot (i + 1) \cdot (N - i)$$
+
+<details>
+<summary>Spoiler: Solution Code</summary>
 
 ```python
 def total_subarray_sum(ar: list[int]) -> int:
     n = len(ar)
     total = 0
     for i in range(n):
-        occurrences = (i + 1) * (n - i)
-        total += ar[i] * occurrences
+        total += ar[i] * (i + 1) * (n - i)
     return total
 ```
 
-* **Time Complexity:** $\mathcal{O}(N)$ (Single loop, no nested passes).
-* **Auxiliary Space:** $\mathcal{O}(1)$.
+</details>
+
+* **Time complexity:** $\mathcal{O}(N)$ for both algorithms.
+* **Space complexity:** $\mathcal{O}(1)$.

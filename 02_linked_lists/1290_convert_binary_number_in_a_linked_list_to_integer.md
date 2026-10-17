@@ -1,123 +1,70 @@
-# ⚡ LeetCode 1290: Convert Binary Number in a Linked List to Integer – Master Guide
+# LeetCode 1290: Convert Binary Number in a Linked List to Integer
 
+> **Pattern:** Stream accumulation (Horner's rule / bit shifting)  
 > **Difficulty:** Easy  
-> **Study Plan:** Top Interview 150 / Linked Lists & Bit Manipulation  
-> **Pattern:** Positional Stream Accumulation (Horner's Rule & Bit Shift)  
-> **LeetCode Link:** [LeetCode 1290: Convert Binary Number in a Linked List to Integer](https://leetcode.com/problems/convert-binary-number-in-a-linked-list-to-integer/)
+> **Link:** [LeetCode 1290](https://leetcode.com/problems/convert-binary-number-in-a-linked-list-to-integer/)
 
----
+## The problem
 
-## 📌 Problem in Plain English
-
-Given `head` which is a reference node to a singly-linked list. The value of each node in the linked list is either `0` or `1`. The linked list holds the binary representation of a number.
-
-Return the decimal value of the number in the linked list. The most significant bit is at the head of the linked list.
+Given `head` of a singly linked list where each node holds `0` or `1`, return the decimal value of the binary number. The most significant bit sits at the `head` of the list.
 
 ```text
-Example 1:
-Input:  head = [ 1 ] ──► [ 0 ] ──► [ 1 ] ──► None
+Input:  head = [1, 0, 1]
 Output: 5
-Explanation: (101) in base-2 is (1 * 4) + (0 * 2) + (1 * 1) = 5.
-
-Example 2:
-Input:  head = [ 0 ] ──► None
-Output: 0
-
-Example 3:
-Input:  head = [ 1, 1, 1, 1 ] ──► None
-Output: 15
+Explanation: (101) in base 2 is (1 * 4) + (0 * 2) + (1 * 1) = 5.
 ```
 
----
+## Why the naive way fails
 
-## ⚖️ Why String Concatenation is an Anti-Pattern
+A common first attempt builds a string in one loop (`num += str(head.val)`) and computes powers of 2 in a second loop. Because strings in Python are immutable, `num += ...` allocates a new string and copies previous characters on each step, turning a linear problem into $\mathcal{O}(n^2)$ time and $\mathcal{O}(n)$ extra space. You also do not know the total length of the list upfront unless you waste an extra pass counting nodes.
 
-A common initial instinct:
-```python
-num = ""
-while head:
-    num += str(head.val)   # ⚠️ O(n^2) trap!
-    head = head.next
-binary = 0
-for i in range(len(num)):
-    binary += int(num[i]) * (2 ** (len(num) - 1 - i))
-return binary
-```
+## The core trick
 
-### Why interviewers ask you to optimize this:
-1. **Python String Immutability ($\mathcal{O}(n^2)$ copying):**  
-   Every time you execute `num += str(...)`, Python allocates a new string in RAM and copies all existing characters.
-2. **Two Passes & Exponentiation:**  
-   First pass builds the string; second pass calculates powers of 2 using `2 ** (power)`.
-3. **Hardware Realities:**  
-   In hardware and systems programming (e.g. Nvidia, embedded microcontrollers), data arrives as a **stream of bits** across a wire. You process bits on the fly in $\mathcal{O}(1)$ space!
+Think about how you read a normal base-10 number like `"123"` from left to right when you do not know how many digits are left:
+- Start with `ans = 0`.
+- Read `1`: `ans = (0 * 10) + 1 = 1`
+- Read `2`: `ans = (1 * 10) + 2 = 12`
+- Read `3`: `ans = (12 * 10) + 3 = 123`
 
----
+Every new digit shifts the running total one place to the left (multiplying by the base) and adds the new digit.
 
-## 🎒 The "Aha!" Mental Model: Base-10 vs Base-2 Streams
+For base 2, do the exact same thing, except multiply by `2` instead of `10`:
+- `ans = ans * 2 + head.val`
+- Or using bitwise operators: shift all existing bits left by 1 (`ans << 1`) and drop the new bit into the ones place (`| head.val`).
 
-How do you read a standard base-10 number from a stream of incoming digits?
+## Step-by-step trace
+
+Trace on `head = [1, 0, 1]`:
 
 ```text
-Digits arrive:  '1'  ──►  '2'  ──►  '3'
-
-Start:  ans = 0
-See 1:  ans = (0 * 10) + 1  = 1
-See 2:  ans = (1 * 10) + 2  = 12
-See 3:  ans = (12 * 10) + 3 = 123
-```
-Each step **multiplies the current total by 10 and adds the new digit**!
-
----
-
-### ⚡ The Exact Same Logic in Base-2 (Binary):
-Instead of multiplying by 10, **multiply by 2**:
-
-```text
-Bits arrive:  [ 1 ]  ──►  [ 0 ]  ──►  [ 1 ]   (Binary 101)
-
-Start:  ans = 0
-See 1:  ans = (0 * 2) + 1 = 1
-See 0:  ans = (1 * 2) + 0 = 2
-See 1:  ans = (2 * 2) + 1 = 5  (Exact Answer!)
+Start:  ans = 0  (binary 0)
+Node 1 (val = 1):  ans = (0 * 2) + 1 = 1  (binary 1)
+Node 2 (val = 0):  ans = (1 * 2) + 0 = 2  (binary 10)
+Node 3 (val = 1):  ans = (2 * 2) + 1 = 5  (binary 101)
 ```
 
-This is known as **Horner's Rule** for polynomial evaluation.
+## Traps to watch for
 
----
+- **Operator precedence with bitwise shifts:** In Python, `+` has higher precedence than `<<` and `|`. If you mix them as `ans << 1 + head.val`, Python evaluates `1 + head.val` first and shifts by 2 bits. Always wrap `(ans << 1) | head.val` in parentheses, or stick to `ans = ans * 2 + head.val`.
 
-## 💻 Production Code Options
+## Solution
 
-### Option A: Clean Arithmetic (Horner's Rule)
-```python
-class Solution:
-    def getDecimalValue(self, head: ListNode | None) -> int:
-        ans = 0
-        while head:
-            ans = ans * 2 + head.val  # Shift left by 1 place, add new bit
-            head = head.next
-        return ans
-```
-
-### Option B: Low-Level Bitwise (Hardware Shift Register - Nvidia Favorite)
-Multiplying by 2 is equivalent to a **bit shift left (`<< 1`)**, and adding a single bit is a **bitwise OR (`|`)**:
+<details>
+<summary>Spoiler: Solution Code</summary>
 
 ```python
 class Solution:
     def getDecimalValue(self, head: ListNode | None) -> int:
         ans = 0
         while head:
-            ans = (ans << 1) | head.val
+            ans = (ans << 1) | head.val  # Equivalent to: ans = ans * 2 + head.val
             head = head.next
         return ans
 ```
 
----
+</details>
 
-## 📊 Complexity Analysis
+## Complexity
 
-| Metric | String Concatenation | Horner's Rule / Bit Shift |
-| :--- | :--- | :--- |
-| **Time Complexity** | $\mathcal{O}(n^2)$ (string re-allocation) | **$\mathcal{O}(n)$ single pass** 🏆 |
-| **Space Complexity** | $\mathcal{O}(n)$ (stores string) | **$\mathcal{O}(1)$ auxiliary space** 🏆 |
-| **Passes** | 2 passes | **1 single pass** |
+- **Time:** $\mathcal{O}(n)$ single pass.
+- **Space:** $\mathcal{O}(1)$ auxiliary memory.

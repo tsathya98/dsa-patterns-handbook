@@ -1,92 +1,73 @@
-# 🪟 LeetCode 1456: Maximum Number of Vowels in a Substring of Given Length
+# LeetCode 1456: Maximum Number of Vowels in a Substring of Given Length
 
-> **Difficulty:** Medium  
-> **Study Plan:** LeetCode 75  
-> **Pattern:** Fixed-Size Sliding Window (Running Differential on Frequencies)  
-> **LeetCode Link:** [LeetCode 1456: Maximum Number of Vowels](https://leetcode.com/problems/maximum-number-of-vowels-in-a-substring-of-given-length/)
+> **Difficulty:** Medium | **Pattern:** Fixed-Size Sliding Window (Running Differential)
+> **Link:** [LeetCode 1456](https://leetcode.com/problems/maximum-number-of-vowels-in-a-substring-of-given-length/)
 
----
+## The problem
 
-## 📌 Problem in Plain English
+Given a string `s` and an integer `k`, return the maximum number of vowel letters (`'a'`, `'e'`, `'i'`, `'o'`, `'u'`) in any contiguous substring of `s` with length `k`.
 
-Given a string `s` and an integer `k`, return the maximum number of vowel letters (`'a'`, `'e'`, `'i'`, `'o'`, `'u'`) in any substring of `s` with length `k`.
+## Why the naive way fails
 
-### Example:
+Slicing `s[i : i + k]` and counting vowels inside each slice takes $\mathcal{O}(k)$ work per window. When $\text{len}(s) = 10^5$ and $k = 5 \times 10^4$, that is $(5 \times 10^4)^2 = 2.5 \times 10^9$ operations, causing a Time Limit Exceeded error.
+
+## The core trick
+
+Maintain a running `count` of vowels inside a fixed window of size $k$. Count vowels in the initial window `s[0:k]`. Then slide the right edge `i` from `k` to `len(s) - 1`, doing two $\mathcal{O}(1)$ updates at each step:
+1. **Add the entering character:** If `s[i]` is a vowel, increment `count += 1`.
+2. **Subtract the leaving character:** If `s[i - k]` is a vowel, decrement `count -= 1`.
+
 ```text
-Input: s = "abciiidef", k = 3
-Output: 3
-Explanation: The substring "iii" contains 3 vowel letters.
+s = "a  b  c  i  i  i  d  e  f",  k = 3
+    [a  b  c]                     initial window (count = 1)
+     -  [b  c  i]                 'a' leaves (-1), 'i' enters (+1) -> count = 1
 ```
 
----
+## Step-by-step trace
 
-## 💡 The "Aha!" Moment: Running Differential on Counters
+Input: `s = "abciiidef"`, `k = 3` (initial window `"abc"` has `count = 1`, `max_count = 1`)
 
-### Why Brute Force Fails (TLE on testcase 104/107):
-* Slicing `s[i:i+k]` and checking every letter with an inner loop takes $\mathcal{O}(k)$ time per position.
-* When `len(s) = 100,000` and `k = 50,436`:
-  $$\text{Operations} \approx 50,000 \times 50,000 = \mathbf{2,500,000,000} \text{ (2.5 billion) } \implies \text{TLE!}$$
+| Right index $i$ | Entering `s[i]` | Leaving `s[i - 3]` | Window | `count` | `max_count` |
+|---|---|---|---|---|---|
+| 3 | `'i'` (+1) | `'a'` (-1) | `"bci"` | 1 | 1 |
+| 4 | `'i'` (+1) | `'b'` (0) | `"cii"` | 2 | 2 |
+| 5 | `'i'` (+1) | `'c'` (0) | `"iii"` | 3 | 3 (early exit: `== k`) |
 
-### The Sliding Window Insight (The VIP Room Analogy):
-You cannot do arithmetic (`+`, `-`) directly on letters, but you **can** do arithmetic on your **integer vowel score**:
-1. When a new character enters the window on the right (`s[i]`):
-   * Is it a vowel? $\implies \text{count} += 1$
-2. When an old character leaves the window on the left (`s[i - k]`):
-   * Was it a vowel? $\implies \text{count} -= 1$
-
----
-
-## 💻 Clean $\mathcal{O}(n)$ Solution
+<details>
+<summary>Spoiler: Solution Code</summary>
 
 ```python
 class Solution:
     def maxVowels(self, s: str, k: int) -> int:
-        vowels = {'a', 'e', 'i', 'o', 'u'}
-        
-        # 1. Base window: count vowels in the first k characters
-        count = 0
-        for i in range(k):
-            if s[i] in vowels:
-                count += 1
-                
+        vowels = {"a", "e", "i", "o", "u"}
+
+        count = sum(1 for i in range(k) if s[i] in vowels)
         max_count = count
-        if max_count == k:  # Early exit: can't beat k vowels!
+        if max_count == k:
             return k
-            
-        # 2. Slide window from index k to the end
+
         for i in range(k, len(s)):
-            # Add new character entering on right (use i!)
             if s[i] in vowels:
                 count += 1
-            # Subtract old character leaving on left (use i - k!)
             if s[i - k] in vowels:
                 count -= 1
-                
+
             if count > max_count:
                 max_count = count
                 if max_count == k:
                     return k
-                    
+
         return max_count
 ```
 
----
+</details>
 
-## ⚠️ The Two Big Interview Traps for this Problem
+## Traps to watch for
 
-### 1. The `s[k]` vs `s[i]` Indexing Typo:
-* **The bug:** Writing `if s[k] in vowels: count += 1` inside the loop.
-* **What happens:** As `i` moves forward, `s[k]` keeps checking the exact same index $k$ over and over again instead of the new entering character!
-* **The rule:** The entering element is always **`s[i]`**, and the leaving element is always **`s[i - k]`**.
+* **Writing `s[k]` instead of `s[i]`:** Inside the sliding loop, the entering character is `s[i]`, not `s[k]`. Using `s[k]` re-checks the fixed index `k` on every iteration.
+* **Thinking `count` can go negative:** Every leaving character `s[i - k]` entered the window $k$ steps earlier. If `s[i - k]` is a vowel, it previously incremented `count`, so `0 <= count <= k` always holds without clamping.
 
-### 2. The "Can `count` drop below 0?" Myth:
-* Beginners often write:
-  ```python
-  if count < 0:
-      count = 0  # ❌ Unnecessary defensive code!
-  ```
-* **Why it's mathematically impossible for `count` to be negative:**
-  * Every character that leaves (`s[i - k]`) was **previously added** when it entered!
-  * You only subtract if `s[i - k] in vowels` is `True`.
-  * If it is a vowel, `count` was already $\ge 1$.
-  * Therefore: **$0 \le \text{count} \le k$ at all times.**
+## Complexity
+
+* **Time:** $\mathcal{O}(n)$ with $\mathcal{O}(1)$ set lookups per character.
+* **Space:** $\mathcal{O}(1)$ for the 5-element vowel set.

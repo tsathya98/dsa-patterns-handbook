@@ -1,121 +1,111 @@
-# 🤝 Distributed Coordination, Exactly-Once & Concurrency Guide
+# Distributed coordination, transactions, and concurrency control
 
-> **Target:** FAANG System Design Interviews (L4–L6)  
-> **Core Idea:** Once you have more than one server or more than one database, networks will drop packets, machines will freeze mid-operation, and two users will click "Save" at the exact same millisecond. Here is how production systems keep data correct.
+> **Target:** System design interviews (L4 to L6)  
+> **Core concept:** Once state spans multiple servers or databases, packets drop, processes pause during GC, and concurrent requests race on the same rows. This guide covers idempotency, cross-service transactions, leader election with fencing tokens, and database locking.
 
----
+## 1. Idempotency and cross-service transactions
 
-## 🎯 1. Doing Things Exactly Once
+When an RPC times out over a network, the caller cannot tell whether the request dropped before reaching the server or succeeded on the server and dropped on the way back.
 
-In a distributed system, you never know if a timeout means *"the request failed before reaching the server"* or *"the server succeeded, and only the reply got lost."*
+### 1. Idempotency keys
+* **Problem:** A user clicks "Pay \$50", their mobile connection drops before the HTTP response returns, the client retries, and the user gets charged \$100.
+* **Fix:** The client generates a UUID (`Idempotency-Key: req_98a7`) for the payment attempt and sends it in the request header. The server stores the key and its final response in an `idempotency_keys` table inside the same database transaction as the ledger write. If a retry arrives with the same key, the server returns the stored response without charging the card again.
 
-### 1. Idempotency
-* **What goes wrong:** A user clicks "Pay \$50", their Wi-Fi blips, the app retries automatically, and their credit card gets charged \$100.
-* **Real-World Example:** Stripe payment retries or a background worker retrying a webhook after a `504 Gateway Timeout`.
-* **The Fix:** **Idempotency Keys.** The client generates a unique UUID (`idempotency_key: "req_98a7"`) and sends it in the header. The server saves that key + the response in a DB table. If the same key arrives again, the server skips execution and **replays the saved response**.
+### 2. Delivery guarantees
+* **At-most-once:** Send once and never retry. Fast, but drops events on failure.
+* **At-least-once:** Retry until acknowledged. Prevents data loss, but delivers duplicates whenever ACKs are lost or workers crash mid-flight.
+* **Effectively-once:** Combine **at-least-once delivery** with an **idempotent consumer** (deduplicating by `event_id` or using deterministic `UPSERT` keys).
 
-### 2. Delivery Guarantees
-* **What goes wrong:**
-  * *At-most-once:* Fire and forget—fast, but drops messages if a worker crashes.
-  * *At-least-once:* Retries until acknowledged—never loses data, but sends duplicates.
-  * *Exactly-once:* Mathematically impossible over a network without coordination at the receiver.
-* **The Fix:** **At-Least-Once Delivery + Idempotent Consumer.** Let the queue retry freely, and make the consumer check an idempotency table or `UPSERT` by primary key so duplicates are harmless.
-
-### 3. The Dual-Write Problem & Transactional Outbox
-* **What goes wrong:** Your code saves an order to Postgres, and on the next line publishes an `"OrderCreated"` event to Kafka. If the server crashes between line 1 and line 2, the database has the order, but Kafka never hears about it—your system is now permanently out of sync!
+### 3. Dual-write problem and the transactional outbox pattern
+* **Problem:** An application writes a row to Postgres and on the next line publishes an `OrderCreated` event to Kafka. If the process crashes between the database commit and the Kafka publish (or if Kafka is temporarily unreachable), the database has the order but downstream consumers never receive the event.
 
 ```text
-❌ Broken Dual Write:                     ✅ Transactional Outbox Pattern:
+Broken Dual Write:                        Transactional Outbox Pattern:
 App ──1. INSERT order──> [ Postgres ]     App ──1. BEGIN TX ──────────────────┐
- │  (App crashes here! 💥)                                                    ▼
- └───2. Publish (NEVER HAPPENS)           [ Postgres: orders table + outbox table ] (COMMIT!)
+ │  (App crashes here)                                                        ▼
+ └───2. Publish (Never happens)                [ Postgres: orders + outbox ] (COMMIT)
                                                               │
-                                                     2. Polls & Publishes
+                                                     2. Tail WAL / poll outbox
                                                               ▼
                                                     [ Outbox Relay ] ──> [ Kafka ]
 ```
 
-* **The Fix:** **Transactional Outbox Pattern.** Inside a **single local database transaction**, `INSERT` into the `orders` table AND `INSERT` the event payload into an `outbox` table. Commit both atomically. A separate background worker (or Debezium CDC) reads rows from the `outbox` table and publishes them to Kafka until acknowledged.
+* **Fix (Transactional Outbox):** Within a **single local SQL transaction**, `INSERT` the order into `orders` and `INSERT` the event payload into an `outbox` table, then `COMMIT`. A separate relay process (either polling the `outbox` table or tailing the Postgres WAL via Debezium CDC) publishes pending outbox rows to Kafka and marks them sent once Kafka acknowledges them.
 
-### 4. Saga Pattern
-* **What goes wrong:** One business workflow spans 3 separate microservices (e.g., Book Flight $\to$ Book Hotel $\to$ Charge Card). You can't wrap 3 separate databases in one SQL transaction. What if Flight and Hotel succeed, but the Credit Card declines?
-* **Real-World Example:** Booking a vacation bundle across Airline, Hotel, and Payment services, or publishing a report that spans both a Report Service and a Dashboard Service.
-* **The Fix:** **A Chain of Local Steps + Compensating ("Undo") Actions.** If Step 3 (`Charge Card`) fails, the Saga runs backward executing explicit undo steps: `Cancel Hotel` $\to$ `Cancel Flight`.
+### 4. Saga pattern
+* **Problem:** A checkout workflow spans three separate services with their own databases: `ReserveInventory` $\to$ `ChargeCard` $\to$ `CreateShipment`. You cannot hold a single ACID database transaction across three independent microservices.
+* **Fix:** Model the workflow as a **Saga**, which is a sequence of local transactions paired with explicit **compensating actions** (undo steps). If `ChargeCard` fails at Step 2, the Saga orchestrator executes the compensating action for Step 1 (`ReleaseInventory`) to return the system to a consistent state. Both forward steps and compensating steps must be idempotent.
 
 ### 5. Two-Phase Commit (2PC)
-* **What goes wrong:** You try to make 3 databases commit at the exact same moment using a central coordinator (Phase 1: *"Are you all ready?"* $\to$ Phase 2: *"Commit now!"*).
-* **Why interviewers hate it at scale:** Every database holds row locks while waiting for the coordinator. If the coordinator crashes mid-protocol, all databases stay locked and blocked! Use **Sagas** or **Outbox** instead whenever possible.
+* **How it works:** A coordinator asks all participating databases to prepare and lock rows (Phase 1: Voting), and once all vote `YES`, tells all of them to commit (Phase 2: Commit).
+* **Trade-offs:** 2PC is a blocking protocol. All participants hold row locks across network round trips, and if the coordinator crashes after Phase 1, participants remain blocked holding locks until the coordinator recovers. Prefer **Transactional Outbox** or **Sagas** across microservices; reserve 2PC or Paxos-backed distributed transactions (like Spanner) for storage engines designed around them.
 
-### 6. Poison Message (Poison Pill)
-* **What goes wrong:** A malformed message lands in your queue (e.g., unexpected `null` field that triggers a `NullPointerException`). The worker crashes, the message goes back to the queue, the next worker picks it up and crashes too—stuck in an infinite crash loop forever.
-* **The Fix:** **Max Receive Count + Dead-Letter Queue (DLQ).** Track delivery attempts; after $N$ failures (e.g., 3 tries), move the message aside into a DLQ and alert an engineer so healthy messages keep flowing.
+### 6. Poison pill messages
+* **Problem:** A corrupted or unexpected message payload triggers an unhandled exception in a consumer worker. The worker crashes, the message visibility timeout expires, the broker redelivers the same message to another worker, and the entire consumer fleet enters a crash loop.
+* **Fix:** Configure a maximum delivery count (for example, `maxReceiveCount = 5`) and route messages that exceed it to a **Dead Letter Queue (DLQ)** with alerting so healthy messages continue processing.
 
----
+## 2. Distributed coordination and consensus
 
-## 🧭 2. Coordinating Several Machines
+### 1. Leader election
+* **Problem:** You run 3 replicas of a scheduler service for high availability, and at midnight all 3 replicas fire the same daily billing job.
+* **Fix:** Elect a single active leader using a consensus store (`etcd`, `ZooKeeper`, `Consul`) or a database lease table so only the leader schedules singleton jobs while followers stand by.
 
-When you run 5 replicas of an orchestrator or cron scheduler, how do they agree on who is in charge without stepping on each other?
+### 2. Leases (time-bounded locks)
+* **Problem:** If a worker acquires a lock with no expiration and then loses power, no other worker can ever acquire the lock.
+* **Fix:** Grant locks as **leases with a TTL** (for example, 15 seconds). The lock holder sends periodic heartbeats every 5 seconds to extend the lease while working; if the holder crashes, the lease expires and another node takes over.
 
-### 1. Leader Election
-* **What goes wrong:** You run 3 replicas of a billing service for high availability. At midnight, all 3 wake up and run the daily billing job, charging every customer 3 times.
-* **The Fix:** Elect **one single Leader** using a coordination service (`etcd`, `ZooKeeper`, `Consul`) or a database advisory lock. Only the leader executes scheduled singleton tasks; followers stand by in case the leader dies.
-
-### 2. Lease (Time-Bounded Lock)
-* **What goes wrong:** Worker A grabs a lock to process a job, and then Worker A's hardware catches fire. If the lock never expires, no other worker can ever touch that job again.
-* **The Fix:** **Acquire a Lease with a TTL** (e.g., 30 seconds). While Worker A is alive, it sends a heartbeat every 10 seconds to renew the lease. If Worker A dies, the lease expires after 30 seconds and Worker B takes over.
-
-### 3. Fencing Token (The Zombie Leader Fix)
-* **What goes wrong:** Lease alone has a fatal flaw! Imagine Worker 1 holds a 30-second lease, then hits a **45-second Garbage Collection (GC) pause** (it freezes right before writing to storage). Meanwhile, the lease expires, and Worker 2 gets the new lease and writes fresh data. Suddenly, Worker 1 unfreezes from GC and blindly overwrites Worker 2's fresh data with old data!
+### 3. Fencing tokens (preventing zombie writes)
+* **Problem:** Leases alone do not protect storage from a paused leader. Suppose Worker 1 holds a 15-second lease, pauses for 30 seconds in a stop-the-world GC pause right before sending a write, and meanwhile its lease expires and Worker 2 acquires the lease and writes new state. When Worker 1 wakes up from GC, it finishes sending its delayed write and overwrites Worker 2's data.
 
 ```text
-Worker 1 (Zombie):  [Gets Lease #33] ──(Frozen in 45s GC Pause...)──────────> Writes with Token #33 ❌ (Rejected!)
-Worker 2 (New):                         [Gets Lease #34] ──> Writes with Token #34 ✅ (Storage sets min_token = 34)
+Worker 1 (Paused):  [Gets Lease, Token #33] ──(30s GC Pause...)──────────> Writes with Token #33 (Rejected)
+Worker 2 (New):                               [Gets Lease, Token #34] ──> Writes with Token #34 (Accepted, min_token = 34)
 ```
 
-* **The Fix:** **Monotonically Increasing Fencing Tokens (`fence_generation_num`).** Every time a lease is granted, the lock service increments a counter (`33`, `34`, `35`...). Workers must pass this number with every write. The database checks: `IF token < last_seen_token THEN REJECT`. When Zombie Worker 1 wakes up with Token `#33`, storage rejects it because it has already seen Token `#34`!
+* **Fix:** Issue a **monotonically increasing fencing token** (`33`, `34`, `35`...) every time a lease is acquired. The worker passes its fencing token on every write to the storage system, and the storage system rejects any write carrying a token smaller than the highest token it has already processed (`WHERE fencing_token >= current_fencing_token`).
 
-### 4. Split Brain
-* **What goes wrong:** A network cable between Datacenter East and Datacenter West gets cut. Neither side can ping the other, so *both* sides assume the other died and *both* elect their own Primary database—accepting conflicting writes that corrupt data.
-* **The Fix:** **Quorum (Majority Vote: $\lfloor N/2 \rfloor + 1$).** If you have 5 nodes and the network splits into `3 nodes` vs `2 nodes`, only the side with `3 nodes` (the majority) is allowed to elect a leader and accept writes. The `2-node` side automatically steps down. (Always use an **odd number** of consensus nodes: 3 or 5!).
+### 4. Split brain and quorums
+* **Problem:** A network link between two availability zones drops. Both sides think the other side crashed, and both sides promote a primary database node, accepting conflicting writes that diverge.
+* **Fix:** Require a **majority quorum ($\lfloor N/2 \rfloor + 1$)** of nodes to elect a leader or commit a write. In a 5-node cluster split into 3 nodes vs. 2 nodes, only the 3-node partition has a majority ($\ge 3$) and can continue accepting writes; the 2-node partition steps down. Deploy consensus clusters with an odd number of nodes (3 or 5).
 
-### 5. Consensus (Raft / Paxos)
-* **What goes wrong:** How do multiple machines agree on a single truth (who the leader is, or what order transactions happened) even when nodes crash or packets drop?
-* **The Fix:** Consensus algorithms like **Raft** or **Paxos** (built into `etcd`, `CockroachDB`, `Spanner`, and `Kafka KRaft`), which use quorum voting so any committed entry is guaranteed to survive node failures.
+### 5. Consensus protocols (Raft and Paxos)
+* **Role:** Consensus algorithms (`Raft` in etcd, CockroachDB, and Kafka KRaft; `Paxos` in Spanner) replicate a state machine log across a quorum of nodes so that leadership election and log commits remain linearizable across node crashes and network partitions.
 
-### 6. Clock Skew
-* **What goes wrong:** You resolve conflicting edits using "Last Write Wins" (`LWW`) based on each server's local wall-clock (`System.currentTimeMillis()`). But Server A's NTP clock is 200ms ahead of Server B's clock! Server B writes *later* in real life, but its timestamp looks *earlier*, so its update is silently thrown away.
-* **The Fix:** Never trust physical wall-clock timestamps across machines for ordering. Use **database-generated monotonically increasing version numbers**, **Lamport logical clocks**, or **Google TrueTime**.
+### 6. Clock skew
+* **Problem:** Physical wall clocks (`time.time()` synced via NTP) drift by tens of milliseconds across machines. If you resolve concurrent writes across nodes using wall-clock Last-Write-Wins (LWW), a machine whose clock is 100ms fast will overwrite later writes from a machine with an accurate clock.
+* **Fix:** Order events using monotonic version counters in the database, Lamport/vector logical clocks, or bounded-uncertainty hardware clocks (Google TrueTime).
 
----
+## 3. Database concurrency control: optimistic vs. pessimistic locking
 
-## 🔒 3. Data Consistency & Concurrent Edits
-
-### 1. Lost Update Problem (Optimistic Concurrency Control)
-* **What goes wrong:** Alice and Bob both open the same shared report (Version 1) at 10:00 AM. Alice edits the title and saves at 10:01 AM. Bob edits a paragraph and saves at 10:02 AM—unaware of Alice's save, Bob's payload overwrites the whole document and **erases Alice's work**.
-* **The Fix:** **Optimistic Concurrency Control (OCC).** Attach a `version` number (or `ETag` / `snapshot_token`) to every row:
+### 1. Lost updates and Optimistic Concurrency Control (OCC)
+* **Problem:** Alice and Bob both read Version 1 of a document at 10:00. Alice saves her edit at 10:01, and Bob saves his edit at 10:02, blindly overwriting Alice's changes.
+* **Fix (OCC / compare-and-swap):** Include a `version` column (or `ETag`) on the row and check it in the `WHERE` clause on update:
   ```sql
-  UPDATE reports 
-  SET content = 'Bob edit', version = 2 
+  UPDATE reports
+  SET content = 'Bob edit', version = 2
   WHERE id = 100 AND version = 1;
   ```
-  * Since Alice already bumped `version` to `2`, Bob's `WHERE version = 1` matches **0 rows**!
-  * The server returns `412 Precondition Failed` (or `409 Conflict`), telling Bob to refresh and merge his changes.
+  Because Alice already incremented `version` to `2`, Bob's update affects `0` rows. The application detects `rows_affected == 0` and returns `HTTP 409 Conflict` or `412 Precondition Failed` so Bob's client can fetch the latest version and merge.
 
-### 2. Pessimistic Locking
-* **What goes wrong:** When contention is super high (e.g., 500 people trying to buy the last concert seat or transfer money from the same account), optimistic retries fail 99% of the time.
-* **The Fix:** **Lock the row upfront before editing (`SELECT * FROM seats WHERE id = 5 FOR UPDATE`).** No other transaction can modify or lock that row until you `COMMIT`.
-* **Trade-off:** Safe against lost updates, but slows down throughput and risks **Deadlocks** if Transaction 1 locks Row A then wants Row B, while Transaction 2 locks Row B then wants Row A.
+### 2. Pessimistic locking (`SELECT ... FOR UPDATE`)
+* **When to use:** When contention on the same row is high (such as deducting inventory or transferring account balances) and optimistic retries would thrash.
+* **Fix:** Acquire an exclusive row lock inside the transaction before reading and modifying:
+  ```sql
+  BEGIN;
+  SELECT balance FROM accounts WHERE id = 42 FOR UPDATE;
+  UPDATE accounts SET balance = balance - 100 WHERE id = 42;
+  COMMIT;
+  ```
+* **Trade-offs:** Prevents concurrent transactions from modifying the locked row until `COMMIT`, but holds database locks longer and can deadlock if two transactions lock multiple rows in opposite orders (prevent deadlocks by always locking row IDs in ascending order).
 
----
+## 4. Self-check question
 
-## 🧠 Quick Self-Check Challenge
-
-> **Question:** Two orchestrator replicas both think they own the curation run for the same Dashboard. Which **two concepts** from Section 2 stop them from both writing, and what does each one do?
+> **Question:** Two scheduler replicas both believe they own the same background curation job. Which two mechanisms from Section 2 prevent both of them from corrupting state in the database, and what role does each play?
 
 <details>
-<summary><b>💡 Click to Reveal the Answer</b></summary>
+<summary><b>Click to reveal answer</b></summary>
 
-1. **Lease (Time-Bounded Lock):** Ensures only one orchestrator replica can acquire ownership of the curation run at a time, and automatically releases ownership if that replica crashes and stops sending heartbeats.
-2. **Fencing Token (`fence_generation_num`):** Protects against a "zombie" replica whose lease expired while it was frozen (e.g., during a GC pause or network lag). Each lease hands out an increasing number (`#1`, `#2`...). When the delayed replica wakes up and tries to write with old token `#1`, the storage layer rejects it because it has already seen token `#2`!
+1. **Lease (time-bounded lock):** Ensures only one replica holds active ownership at a time, and automatically releases ownership after the TTL expires if the holder crashes and stops heartbeating.
+2. **Fencing token:** Protects the database against a delayed or GC-paused former leader whose lease expired while it was frozen. Each lease acquisition increments the token (`#33` $\to$ `#34`), and the database rejects any write carrying an older token than the highest token it has already recorded.
 
 </details>

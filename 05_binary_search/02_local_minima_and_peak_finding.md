@@ -1,27 +1,20 @@
-# 🏔️ Local Minima & Peak Finding (Binary Search on Unsorted Arrays)
+# Local minima and peak finding (binary search on unsorted arrays)
 
-> **Course Reference:** CodeKerdos DSA — Class 8  
-> **Core Concept:** Applying Binary Search to **unsorted** arrays using slope / gradient navigation (LeetCode 162).
+> **Course reference:** CodeKerdos DSA, Class 8  
+> **Core concept:** Applying binary search to unsorted arrays using local slope navigation (LeetCode 162).
 
----
+## 1. Binary search without a sorted array
 
-## 1. The Paradox: Binary Search Without a Sorted Array
+Binary search does not require the entire array to be sorted. It works whenever a check at `mid` gives you a guaranteed directional decision that eliminates half of the remaining candidates. For peak and valley problems, a local slope between adjacent elements is enough.
 
-In beginner computer science, students are told: *"Binary Search only works on sorted arrays."*  
-**This is incomplete.**
+## 2. Local minimum in an array of distinct elements
 
-Binary Search works whenever you can make a **guaranteed directional decision** at `mid` that eliminates half the candidates. You do not need the entire array to be sorted; you only need a **local slope (gradient)**.
-
----
-
-## 2. Local Minima in an Array of Distinct Elements
-
-An element `arr[i]` is a **Local Minimum** if it is strictly smaller than both its immediate neighbors:
+An element `arr[i]` is a **local minimum** if it is strictly smaller than its immediate neighbors:
 $$\text{arr}[i] < \text{arr}[i - 1] \quad \text{AND} \quad \text{arr}[i] < \text{arr}[i + 1]$$
 
-* **Boundary Rules:**
-  * Index $0$ is a local minimum if $arr[0] < arr[1]$.
-  * Index $N - 1$ is a local minimum if $arr[N - 1] < arr[N - 2]$.
+* **Boundary rules:**
+  * Index $0$ is a local minimum if $\text{arr}[0] < \text{arr}[1]$.
+  * Index $N - 1$ is a local minimum if $\text{arr}[N - 1] < \text{arr}[N - 2]$.
 
 ```text
 arr = [ 9 ,  6 ,  3 , 14 ,  5 ,  7 ,  4 ]
@@ -29,12 +22,11 @@ arr = [ 9 ,  6 ,  3 , 14 ,  5 ,  7 ,  4 ]
          Local Min      Local Min   Local Min
 ```
 
----
+## 3. Following the downward slope
 
-## 3. The Slope / Gradient Navigation Principle
+Suppose you already checked the two ends (`arr[0]` and `arr[N - 1]`) and neither is a local minimum. That means the array slopes down going inward from both ends (`arr[0] > arr[1]` and `arr[N - 1] > arr[N - 2]`).
 
-Imagine being dropped into a mountain range in total darkness:
-* If the ground slopes downward to your left, following the downward slope is **mathematically guaranteed** to hit a valley (local minimum) or terminate at the edge!
+If you inspect `mid` and see which neighbor is smaller, following the downward slope is guaranteed to hit at least one local minimum in that half:
 
 ```text
 At index mid:
@@ -43,23 +35,21 @@ Case A: arr[mid] > arr[mid - 1]
          ▲
         /   (Sloping downward to the left)
        /
-       -> A local minimum is GUARANTEED to exist in the left half!
+       -> A local minimum is guaranteed to exist in the left half.
        -> Move left: hi = mid - 1
 
 Case B: arr[mid] > arr[mid + 1]
        \
         \   (Sloping downward to the right)
          ▼
-       -> A local minimum is GUARANTEED to exist in the right half!
+       -> A local minimum is guaranteed to exist in the right half.
        -> Move right: lo = mid + 1
 
 Case C: arr[mid] < arr[mid - 1] and arr[mid] < arr[mid + 1]
        \   /
-        \ /  (You are at the bottom of the valley!)
-       -> MATCH! Return mid!
+        \ /  (Bottom of the valley)
+       -> Return mid.
 ```
-
----
 
 ## 4. Implementation
 
@@ -69,7 +59,7 @@ def find_local_minimum(arr: list[int]) -> int:
     if n == 1:
         return 0
 
-    # 1. Check boundary elements first in O(1)
+    # 1. Check boundary elements in O(1)
     if arr[0] < arr[1]:
         return 0
     if arr[n - 1] < arr[n - 2]:
@@ -80,21 +70,18 @@ def find_local_minimum(arr: list[int]) -> int:
     while lo <= hi:
         mid = lo + (hi - lo) // 2
 
-        # Check if mid is smaller than both neighbors
         if arr[mid] < arr[mid - 1] and arr[mid] < arr[mid + 1]:
             return mid
-        # Downward slope to the left
         elif arr[mid] > arr[mid - 1]:
             hi = mid - 1
-        # Downward slope to the right
         else:
             lo = mid + 1
 
     return -1
 ```
 
-### LeetCode 162: Find Peak Element (The Inverted Twin)
-Finding a **Peak Element** ($arr[i] > arr[i-1]$ and $arr[i] > arr[i+1]$) uses the exact inverse logic:
+### LeetCode 162: Find Peak Element
+Finding a **peak element** ($\text{arr}[i] > \text{arr}[i-1]$ and $\text{arr}[i] > \text{arr}[i+1]$) follows the upward slope instead:
 ```python
 def findPeakElement(nums: list[int]) -> int:
     lo, hi = 0, len(nums) - 1
@@ -107,5 +94,5 @@ def findPeakElement(nums: list[int]) -> int:
     return lo
 ```
 
-* **Time Complexity:** $\mathcal{O}(\log N)$ — Halves search space on every step without ever sorting.
-* **Auxiliary Space:** $\mathcal{O}(1)$.
+* **Time complexity:** $\mathcal{O}(\log N)$, halving the search space on every step without sorting.
+* **Auxiliary space:** $\mathcal{O}(1)$.

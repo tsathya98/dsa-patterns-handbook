@@ -1,125 +1,84 @@
-# 🔄 LeetCode 206: Reverse Linked List – Master Guide
+# LeetCode 206: Reverse Linked List
 
+> **Pattern:** In-place 3-pointer flip  
 > **Difficulty:** Easy  
-> **Study Plan:** LeetCode 75 / Top Interview 150 / NeetCode 150  
-> **Pattern:** Linked List In-Place Arrow Reversal (The Conga Line 4-Beat Dance)  
-> **LeetCode Link:** [LeetCode 206: Reverse Linked List](https://leetcode.com/problems/reverse-linked-list/)
+> **Link:** [LeetCode 206](https://leetcode.com/problems/reverse-linked-list/)
 
----
+## The problem
 
-## 📌 Problem in Plain English
-
-Given the `head` of a singly linked list, reverse the list, and return the reversed list's head.
+Given the `head` of a singly linked list, reverse the list in-place and return the new head.
 
 ```text
 Input:  [ 1 ] ──► [ 2 ] ──► [ 3 ] ──► [ 4 ] ──► [ 5 ] ──► None
 Output: [ 5 ] ──► [ 4 ] ──► [ 3 ] ──► [ 2 ] ──► [ 1 ] ──► None
 ```
 
----
+## The core trick
 
-## 🎒 The "Aha!" Mental Model: The Preschool Conga Line
+Picture a line of people where each person holds the backpack of the person in front of them (`cur.next`). If `cur` turns around to grab `prev` behind them without someone holding onto the person in front (`cur.next`), the rest of the line walks away and gets lost in memory.
 
-Imagine 3 children walking in a line holding onto each other's backpacks:
-* Alice (1) holds Bob (2)'s backpack.
-* Bob (2) holds Charlie (3)'s backpack.
-* Charlie (3) holds nothing (`None` / empty air).
+To flip arrows safely in-place, use three pointers and a 4-step loop:
+1. `prev`: starts at `None` (the empty space behind the old head, which becomes the tail's `.next`).
+2. `cur`: starts at `head` (the node currently flipping its arrow).
+3. `nxt`: a temporary bookmark saved at the start of each iteration (`nxt = cur.next`) so you do not lose the rest of the list when you overwrite `cur.next`.
 
-```text
-               (holds)                   (holds)
-  [ Alice ] ─────────────► [ Bob ] ─────────────► [ Charlie ] ──► None
-```
-
-**Teacher's Command:**  
-> *"Turn around! Charlie at the front, Alice at the back!"*
-
-### ⚠️ The Disaster Trap:
-If Bob turns around and lets go of Charlie without someone holding Charlie:  
-**Charlie will walk away and get lost forever!** (The rest of the list is lost in memory).
-
----
-
-## 🛡️ The 3 Roles & The 4-Beat Dance
-
-1. **`prev` (Person Behind You):** Starts at `None` (empty air behind Alice).
-2. **`cur` (Person Currently Turning Around):** Starts at `head` (Alice).
-3. **`nxt` (Teacher's Spotter Hand):** Holds the child in front so they don't run off before `cur` turns around!
+## Step-by-step trace
 
 ```text
-ROUND 1 (Alice turns around):
+Initial state:
   prev     cur         nxt
    │        │           │
    ▼        ▼           ▼
-  None   [ Alice ] ──► [ Bob ] ──► [ Charlie ] ──► None
+  None   [ 1 ] ────► [ 2 ] ────► [ 3 ] ────► None
 
-Beat 1: nxt = cur.next    -> Teacher holds Bob!
-Beat 2: cur.next = prev   -> Alice lets go of Bob and grabs None (behind her).
-Beat 3: prev = cur        -> Alice is now the person "behind" for next round.
-Beat 4: cur = nxt         -> Next child's turn to turn around (cur moves to Bob).
+4-step flip on Node 1:
+  1. nxt = cur.next    (Bookmark Node 2 before breaking the link)
+  2. cur.next = prev   (Flip Node 1's arrow backward to None)
+  3. prev = cur        (Slide prev forward onto Node 1)
+  4. cur = nxt         (Slide cur forward onto Node 2)
 
-None ◄── [ Alice ]   [ Bob ] ──► [ Charlie ] ──► None
-           ▲           ▲
-          prev        cur
+After Round 1:
+  None ◄── [ 1 ]      [ 2 ] ────► [ 3 ] ────► None
+             ▲          ▲
+            prev       cur
+
+End of loop (when cur steps onto None):
+  None ◄── [ 1 ] ◄── [ 2 ] ◄── [ 3 ]        None
+                                 ▲            ▲
+                                prev         cur
 ```
 
-Repeat this exact 4-beat rhythm for every single child!
+When `cur` becomes `None`, `prev` is sitting on the last real node (`[3]`), which is the new head of the reversed list.
 
----
+## Traps to watch for
 
-## ❓ The Big Questions Answered
+- **Looping on `while cur and cur.next:`:** When `cur` reaches the final node, `cur.next` is `None`. Stopping the loop there leaves the last node disconnected from the rest of the reversed list. Use `while cur:`.
+- **Returning `cur` instead of `prev`:** The loop ends specifically because `cur` stepped off the list into `None`. Returning `cur` returns an empty list; `prev` holds the new head.
+- **Assigning `cur.next = prev` before `nxt = cur.next`:** Overwrites the forward link first, losing the rest of the list.
 
-### 1. "Why `while cur:` and NOT `while cur and cur.next:`?"
-* If you write `while cur and cur.next:`, the moment `cur` reaches Charlie (the last child), `cur.next` is `None`!
-* The loop stops early! **Charlie never turns around!**
-* Using `while cur:` ensures **every child** turns around, and the loop stops only when `cur` steps off the end into `None`.
+## Solution
 
-### 2. "Why `return prev`? Why can't we return `cur` or `cur.next`?"
-* **Why NOT `return cur`?**  
-  The loop terminates precisely when `cur` becomes **`None`**! Returning `cur` returns an empty list `[]`!
-* **Why NOT `return cur.next`?**  
-  Since `cur` is `None`, calling `cur.next` crashes with:  
-  `AttributeError: 'NoneType' object has no attribute 'next'` 💥
-* **Why `return prev`?**  
-  Look at where `prev` is standing when `cur` steps into `None`:  
-  **`prev` is standing right on Charlie (Node 3)** — the **new front of the line**!
-
-```text
-                                        prev            cur
-                                         │               │
-                                         ▼               ▼
-None ◄── [ Alice ] ◄── [ Bob ] ◄── [ Charlie ]        [ None ]
-                                         ▲
-                                 THIS IS YOUR NEW HEAD!
-```
-
----
-
-## 💻 The Clean Code (Every Line Explained)
+<details>
+<summary>Spoiler: Solution Code</summary>
 
 ```python
-# Definition for singly-linked list.
-# class ListNode:
-#     def __init__(self, val=0, next=None):
-#         self.val = val
-#         self.next = next
-
 class Solution:
     def reverseList(self, head: ListNode | None) -> ListNode | None:
         prev = None
         cur = head
-        
+
         while cur:
-            nxt = cur.next     # Beat 1 (Spotter): Hold child in front
-            cur.next = prev    # Beat 2 (Turn Around): Grab person behind
-            prev = cur         # Beat 3 (Slide Prev): You are now the person behind
-            cur = nxt          # Beat 4 (Slide Cur): Next child's turn
-            
-        return prev            # prev is standing on the new front node!
+            nxt = cur.next
+            cur.next = prev
+            prev = cur
+            cur = nxt
+
+        return prev
 ```
 
----
+</details>
 
-## ⏱️ Complexity Blueprint
+## Complexity
 
-* **Time Complexity:** $\mathcal{O}(n)$ — exactly one pass through the $n$ nodes.
-* **Space Complexity:** $\mathcal{O}(1)$ — modified strictly in-place; zero new memory allocated.
+- **Time:** $\mathcal{O}(n)$ single pass through the list.
+- **Space:** $\mathcal{O}(1)$ auxiliary memory.

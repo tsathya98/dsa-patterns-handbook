@@ -1,27 +1,23 @@
-# ⚙️ Algorithmic Foundations: Correctness, Efficiency & The Scaling Law
+# Algorithmic foundations: correctness, efficiency, and scaling
 
-> **Topic:** Foundations of Problem Solving  
-> **Cohort Lecture:** Airtribe DSA – Session 1 (Aakash Verma)  
-> **Key Analogy:** The Stopwatch vs. The Step Counter  
+> **Topic:** Foundations of problem solving  
+> **Cohort lecture:** Airtribe DSA, Session 1 (Aakash Verma)  
+> **Core comparison:** Stopwatch time vs. elementary operation count  
 
----
+## 1. What an algorithm is
 
-## 📌 1. What Exactly Is an Algorithm?
+An algorithm is a finite, step-by-step recipe that turns an input into the right output.
 
-An **algorithm** is simply a **finite, step-by-step recipe** that turns an input into the correct output.
+A working algorithm needs four things:
+1. Accepts valid input.
+2. Produces the right output for every valid input.
+3. Terminates in a finite number of steps without getting stuck in an infinite loop.
+4. Scales cleanly when input size $N$ grows large.
 
-A "good" algorithm must satisfy 4 non-negotiable rules:
-1. **Accepts valid input.**
-2. **Produces the correct output for every valid input.**
-3. **Terminates in a finite number of steps** (it never runs in an infinite loop).
-4. **Efficient enough to scale** when input size $N$ explodes.
+## 2. Correctness vs. efficiency
 
----
-
-## ⚖️ 2. Correctness vs. Efficiency
-
-* **Correctness:** Does it give the right answer?
-* **Efficiency:** Does it still give the answer before the universe ends when data grows?
+* **Correctness:** Does it return the right answer?
+* **Efficiency:** Does it still finish in reasonable time when the dataset grows by orders of magnitude?
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────┐
@@ -30,38 +26,32 @@ A "good" algorithm must satisfy 4 non-negotiable rules:
 │ Input:  Employee attendance, hourly rate, leaves, overtime, and taxes. │
 │ Output: Exact paycheck credited to the bank account.                   │
 ├────────────────────────────────────────────────────────────────────────┤
-│ • A naive algorithm works fine for 10 employees (takes 0.01 sec).       │
-│ • But when the company scales to 100,000 employees:                    │
-│   - A bad O(N²) algorithm takes 3 hours to calculate payday.          │
-│   - A good O(N) algorithm takes 0.2 seconds.                           │
+│ • A naive algorithm works fine for 10 employees (takes 0.01 sec).      │
+│ • When the company scales to 100,000 employees:                        │
+│   - A slow O(N²) algorithm takes 3 hours to calculate payday.          │
+│   - A linear O(N) algorithm takes 0.2 seconds.                         │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
-> **Takeaway:** Correctness gets you the job; efficiency keeps the servers from crashing.
-
----
-
-## ⏱️ 3. Why We NEVER Measure Speed in Milliseconds
+## 3. Why we never measure speed in milliseconds
 
 Suppose two engineers run the exact same Python script:
-* **Person A (New M-series Mac):** Finishes in **20 ms**.
-* **Person B (Older Laptop):** Finishes in **44 ms**.
+* **Person A (New M-series Mac):** Finishes in 20 ms.
+* **Person B (Older laptop):** Finishes in 44 ms.
 
-Does the algorithm have two different speeds? **No.**
-
-Real-world clock time changes because of:
-* Processor clock speed & core count
-* Operating system & background apps
-* CPU temperature / thermal throttling
-* Programming language & interpreter overhead
+The algorithm did not change speed. Wall-clock time shifts based on hardware and environment:
+* Processor clock speed and core count
+* Operating system and background processes
+* CPU temperature and thermal throttling
+* Programming language and interpreter overhead
 
 ```text
-Wall-Clock Time (Stopwatch)   ──> Measures your LAPTOP at this exact second.
-Time Complexity (Big O)       ──> Measures the ALGORITHM'S GROWTH as N grows.
+Wall-Clock Time (Stopwatch)   ──> Measures your laptop at this exact second.
+Time Complexity (Big O)       ──> Measures how operation count grows with N.
 ```
 
-Instead of a stopwatch, we count **Elementary Operations** (CPU steps):
-* Basic assignments (`x = 5`) $\to \mathcal{O}(1)$
+Instead of timing with a stopwatch, we count **elementary operations** (single CPU steps):
+* Variable assignments (`x = 5`) $\to \mathcal{O}(1)$
 * Arithmetic (`a + b`, `a * b`) $\to \mathcal{O}(1)$
 * Array index lookups (`arr[i]`) $\to \mathcal{O}(1)$
 * Comparisons (`a > b`) $\to \mathcal{O}(1)$

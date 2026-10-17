@@ -1,50 +1,42 @@
-# 🧩 Subarrays & Contribution Technique Cheat Sheet
+# Subarrays & Contribution Technique Cheat Sheet
 
-> **Scope:** Subarray combinatorics, the $\mathcal{O}(N)$ Contribution Technique, reverse iteration patterns, and state tracking.
+> Guide: [Subarray Mechanics & Contribution Technique](../01_arrays_and_pointers/00_subarray_mechanics_and_contribution_technique.md)
 
----
+## 1. Subarray vs. Subsequence vs. Subset
 
-## 1. Subarray Combinatorics & Formulas
-
-* **Subarray:** Contiguous unbroken slice of an array.
-* **Total Subarrays in array of size $N$:**
-  $$\text{Count} = \frac{N(N + 1)}{2}$$
-
-| Term | Contiguous? | Order Matter? | Total Combinations |
-|---|---|---|---|
-| **Subarray** | ✅ Yes | ✅ Yes | $\frac{N(N + 1)}{2}$ |
-| **Subsequence** | ❌ No | ✅ Yes | $2^N - 1$ |
-| **Subset** | ❌ No | ❌ No | $2^N$ |
+| Term | Contiguous? | Order Preserved? | Total Count for Length $N$ |
+| :--- | :--- | :--- | :--- |
+| **Subarray** | Yes | Yes | $\frac{N(N + 1)}{2}$ |
+| **Subsequence** | No | Yes | $2^N - 1$ (non-empty) |
+| **Subset** | No | No | $2^N$ |
 
 ---
 
 ## 2. The $\mathcal{O}(N)$ Contribution Technique
+**Problem:** Find the grand total sum of all $\frac{N(N+1)}{2}$ subarrays of `arr`.
 
-> **Problem:** Find the sum of all elements across all $\frac{N(N+1)}{2}$ subarrays.
+Instead of generating every subarray ($\mathcal{O}(N^3)$) or summing every pair of prefix sums ($\mathcal{O}(N^2)$), count how many subarrays include index `i`:
+- A subarray `[L..R]` contains index `i` if and only if $0 \le L \le i$ and $i \le R \le N - 1$.
+- Number of choices for start $L$: $i + 1$.
+- Number of choices for end $R$: $N - i$.
+- Total subarrays containing `arr[i]`: $(i + 1)(N - i)$.
 
-* **Brute Force:** $\mathcal{O}(N^3)$ (generate all subarrays, sum elements).
-* **Prefix Sums:** $\mathcal{O}(N^2)$ (all pairs $(i, j)$ with prefix differences).
-* **The Contribution Invariant:** Ask how many subarrays contain `arr[i]`:
-  * Valid starts for $L \in [0, i] \implies (i + 1)$ choices.
-  * Valid ends for $R \in [i, N - 1] \implies (N - i)$ choices.
-  $$\text{Occurrences of } arr[i] = (i + 1) \times (N - i)$$
-  $$\text{Grand Total} = \sum_{i=0}^{N-1} arr[i] \cdot (i + 1) \cdot (N - i)$$
+$$\text{Total Sum of All Subarrays} = \sum_{i=0}^{N-1} \text{arr}[i] \cdot (i + 1) \cdot (N - i)$$
 
 ```python
 def total_subarray_sum(arr: list[int]) -> int:
     n = len(arr)
     return sum(val * (i + 1) * (n - i) for i, val in enumerate(arr))
 ```
-* **Time:** $\mathcal{O}(N)$ | **Space:** $\mathcal{O}(1)$.
 
 ---
 
-## 3. High-Yield Subarray Patterns Matrix
+## 3. Core Subarray Scan Patterns
 
-| Problem | Core Strategy | Time | Space | One-Line Intuition |
-|---|---|---|---|---|
-| **Leaders in Array** | Right-to-Left Scan | $\mathcal{O}(N)$ | $\mathcal{O}(1)$ | Track `max_so_far` from $N-1$ down to $0$. Element is leader if `arr[i] > max_so_far`. |
-| **Closest Min-Max** | State Index Tracking | $\mathcal{O}(N)$ | $\mathcal{O}(1)$ | Track `last_min` and `last_max` indices; update $\min(\text{len}, |last\_min - last\_max| + 1)$. |
-| **Count Pairs $(a, g)$** | Suffix Counter | $\mathcal{O}(N)$ | $\mathcal{O}(1)$ | Scan right-to-left; count $g$'s; when seeing $a$, add running $g\_count$ to total. |
-| **Maximum Subarray (LC 53)** | Kadane's Algorithm | $\mathcal{O}(N)$ | $\mathcal{O}(1)$ | If running sum drops below $0$, declare bankruptcy and reset `curr_sum = 0`. |
-| **Subarray Sum Equals K (LC 560)** | Prefix Sum + HashMap | $\mathcal{O}(N)$ | $\mathcal{O}(N)$ | Check if `curr_prefix - k` exists in prefix frequency hash map. |
+| Problem | Strategy | Time / Space | How It Works |
+| :--- | :--- | :--- | :--- |
+| **Leaders in Array** | Right-to-left max scan | $\mathcal{O}(N)$ / $\mathcal{O}(1)$ | Walk from $N-1$ down to $0$ tracking `max_right`; `arr[i]` is a leader if `arr[i] > max_right`. |
+| **Closest Min-Max Subarray** | Last-seen index tracking | $\mathcal{O}(N)$ / $\mathcal{O}(1)$ | Track `last_min_idx` and `last_max_idx`; whenever either updates, record `abs(last_min_idx - last_max_idx) + 1`. |
+| **Count Pairs `(i < j)` with `s[i]=='a', s[j]=='g'`** | Running suffix/prefix counter | $\mathcal{O}(N)$ / $\mathcal{O}(1)$ | Count `'a'`s seen so far; each `'g'` forms a valid pair with every `'a'` before it (`ans += a_count`). |
+| **Maximum Subarray ([LC 53](../01_arrays_and_pointers/53_maximum_subarray.md))** | Kadane's Algorithm | $\mathcal{O}(N)$ / $\mathcal{O}(1)$ | Reset running sum to `nums[i]` whenever the previous prefix sum drops below `0`. |
+| **Subarray Sum Equals K (LC 560)** | Prefix sum + hash map | $\mathcal{O}(N)$ / $\mathcal{O}(N)$ | Store frequencies of past prefix sums; add `freq[cur_sum - k]` at each step. |

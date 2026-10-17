@@ -1,114 +1,80 @@
-# ✂️ LeetCode 83: Remove Duplicates from Sorted List – Master Guide
+# LeetCode 83: Remove Duplicates from Sorted List
 
+> **Pattern:** In-place pointer skipping  
 > **Difficulty:** Easy  
-> **Study Plan:** Top Interview 150 / LeetCode 75  
-> **Pattern:** Linked List In-Place Pointer Skipping  
-> **LeetCode Link:** [LeetCode 83: Remove Duplicates from Sorted List](https://leetcode.com/problems/remove-duplicates-from-sorted-list/)
+> **Link:** [LeetCode 83](https://leetcode.com/problems/remove-duplicates-from-sorted-list/)
 
----
+## The problem
 
-## 📌 Problem in Plain English
+Given the `head` of a sorted linked list, delete all duplicates such that each element appears only once. Return the linked list sorted as well.
 
-Given the `head` of a **sorted** linked list, delete all duplicates such that each element appears only once. Return the linked list **sorted** as well.
-
-### Example:
 ```text
 Input:  head = [1, 1, 2, 3, 3]
 Output: [1, 2, 3]
 ```
 
----
+## The core trick
 
-## 💡 The "Aha!" Moment: The Snip-and-Recheck Rule
+Because the list is already sorted, any duplicates sit right next to each other. You do not need a hash set to track seen values.
 
-Look at two adjacent nodes in the chain:
+Walk a single pointer `cur` from `head` and compare `cur.val` with `cur.next.val`:
+- **Values match (`cur.val == cur.next.val`):** Snip out the neighbor by setting `cur.next = cur.next.next`. Stay on `cur` without advancing it yet, because the new `cur.next` might also have the same value (like `[1, 1, 1]`).
+- **Values differ (`cur.val != cur.next.val`):** Now it is safe to step forward with `cur = cur.next`.
+
+Do you need a `dummy` node here? No. Even if the head value is duplicated (`[1, 1, 2]`), we always keep the first copy of `head` and delete the duplicates after it. Because `head` is never deleted, you can simply return `head` at the end.
+
+## Step-by-step trace
+
+Trace on consecutive duplicates `head = [1, 1, 1]`:
 
 ```text
-cur
- │
- ▼
-[ 1 ] ──► [ 1 ] ──► [ 2 ] ──► None
+Step 1: cur starts at first 1
+  cur
+   │
+   ▼
+  [ 1 ] ──► [ 1 ] ──► [ 1 ] ──► None
+  cur.val (1) == cur.next.val (1) -> snip: cur.next = cur.next.next
+  Keep cur on the first node.
+
+Step 2: Recheck from the same cur against the new neighbor
+  cur
+   │
+   ▼
+  [ 1 ] ────────────► [ 1 ] ──► None
+  cur.val (1) == cur.next.val (1) -> snip: cur.next = cur.next.next (None)
+
+Step 3: cur.next is now None, so while cur and cur.next ends
+  [ 1 ] ──► None
 ```
 
-* If `cur.val == cur.next.val` (duplicate found!):
-  * **Snip the duplicate:** Point `cur.next` to skip the neighbor: `cur.next = cur.next.next`.
-  * **Rule:** **Do not advance `cur` yet.**  
-    Why? Because the *new* neighbor might ALSO be a duplicate (e.g. `[1, 1, 1]`)!
-* If `cur.val != cur.next.val` (different numbers):
-  * Now it is safe to step forward: `cur = cur.next`.
+## Traps to watch for
 
----
+- **Advancing `cur` on the same turn you snip a node:** If you run `cur = cur.next` inside the `if` branch instead of an `else` branch, `[1, 1, 1]` leaves a duplicate `[1, 1]` behind because you skipped checking the middle `1` against the third `1`.
+- **Looping on `while cur:` instead of `while cur and cur.next:`:** Inside the loop we check `cur.next.val`. If `cur` is on the final node, `cur.next` is `None`, and `.val` raises an `AttributeError`.
+- **Returning `head.next` out of habit:** You only return `.next` when you created a fake `dummy` node. Here `head` is the real first element.
 
-## 🎬 Visual Trace on Consecutive Duplicates: `[1, 1, 1]`
+## Solution
 
-#### 📍 Step 1: `cur` at first `1`
-```text
-cur
- │
- ▼
-[ 1 ] ──► [ 1 ] ──► [ 1 ] ──► None
-```
-* `cur.val (1) == cur.next.val (1)` $\implies$ Duplicate!
-* `cur.next = cur.next.next`
-* **`cur` STAYS AT INDEX 0!**
-
-#### 📍 Step 2: Re-check new neighbor!
-```text
-cur
- │
- ▼
-[ 1 ] ─────────────► [ 1 ] ──► None
-```
-* Look! The new neighbor is ALSO `1`!
-* `cur.val (1) == cur.next.val (1)` $\implies$ Duplicate!
-* `cur.next = cur.next.next` (points to `None`)
-
-#### 📍 Step 3: Loop terminates
-```text
-head
- │
- ▼
-[ 1 ] ──► None
-```
-All duplicates are cleanly snipped out!
-
----
-
-## ❓ The Critical Question: Why `return head` and NOT `return head.next`?
-
-* In `mergeTwoLists`, you created a fake anchor: `dummy = ListNode(0)`. Returning `dummy.next` was necessary to throw away the fake `[0]`.
-* In `deleteDuplicates`, **`head` is the REAL first node** of the input!  
-  Even if there are duplicates (`1 -> 1`), you keep the first `1`!
-* Returning `head.next` would accidentally chop off that first legitimate number.
-* 👉 **Rule:** If `head` is a real starting node that belongs in the answer, write **`return head`**!
-
----
-
-## 💻 The Clean Code
+<details>
+<summary>Spoiler: Solution Code</summary>
 
 ```python
-# Definition for singly-linked list.
-# class ListNode:
-#     def __init__(self, val=0, next=None):
-#         self.val = val
-#         self.next = next
-
 class Solution:
     def deleteDuplicates(self, head: ListNode | None) -> ListNode | None:
         cur = head
-        
+
         while cur and cur.next:
             if cur.val == cur.next.val:
-                cur.next = cur.next.next  # Snip duplicate! Do NOT advance cur.
+                cur.next = cur.next.next
             else:
-                cur = cur.next            # Different values: safe to advance cur.
-                
-        return head                       # Keep original head!
+                cur = cur.next
+
+        return head
 ```
 
----
+</details>
 
-## ⏱️ Complexity Blueprint
+## Complexity
 
-* **Time Complexity:** $\mathcal{O}(n)$ — each node is visited at most once.
-* **Space Complexity:** $\mathcal{O}(1)$ — modified strictly in-place with zero extra memory.
+- **Time:** $\mathcal{O}(n)$ since each node is either visited or bypassed once.
+- **Space:** $\mathcal{O}(1)$ in-place pointer updates.

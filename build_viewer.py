@@ -13,7 +13,7 @@ ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 docs = {}
 
 for root, dirs, files in os.walk(ROOT_DIR):
-    if '.git' in root or 'static' in root or '.gemini' in root:
+    if any(x in root for x in ('.git', 'static', '.gemini', '.agents', 'notes')):
         continue
     for f in sorted(files):
         if f.endswith('.md'):

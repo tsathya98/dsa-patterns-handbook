@@ -1,85 +1,82 @@
-# 🧊 2D Matrix Manipulation Cheat Sheet
+# 2D Matrix Manipulation Cheat Sheet
 
-> **Scope:** Coordinate invariants, in-place transpositions, 90° rotations, and 4-pointer boundary traversal.
+> Guide: [2D Matrices, Diagonals & Rotations](../01_arrays_and_pointers/00_matrix_2d_arrays_and_rotations.md)
 
----
+## 1. Diagonal Coordinate Rules ($N \times N$ Grid)
 
-## 1. Diagonal Coordinate Invariants ($N \times N$ Matrix)
-
-| Diagonal Type | Condition / Invariant | Number of Diagonals | Example |
-|---|---|---|---|
-| **Principal Diagonal** (Top-L $\to$ Bottom-R) | $i == j$ | $1$ | $(0,0), (1,1), (2,2)$ |
-| **Anti-Diagonal** (Top-R $\to$ Bottom-L) | $i + j == N - 1$ | $1$ | $(0,2), (1,1), (2,0)$ |
-| **All Right-to-Left Diagonals** | $s = i + j$ | $2N - 1$ ($s \in [0, 2N - 2]$) | Group by sum $s$ |
-| **All Left-to-Right Diagonals** | $d = i - j$ | $2N - 1$ ($d \in [-(N-1), N - 1]$) | Group by difference $d$ |
+| Diagonal | Coordinate Rule | Count | Example ($3 \times 3$) |
+| :--- | :--- | :--- | :--- |
+| **Main / Principal Diagonal** (top-left to bottom-right) | `r == c` | $1$ | `(0,0), (1,1), (2,2)` |
+| **Anti-Diagonal** (top-right to bottom-left) | `r + c == N - 1` | $1$ | `(0,2), (1,1), (2,0)` |
+| **All Anti-Diagonals** ($\swarrow$) | `r + c` is constant | $2N - 1$ | Sum ranges from `0` to `2N - 2` |
+| **All Main Diagonals** ($\searrow$) | `r - c` is constant | $2N - 1$ | Diff ranges from `-(N-1)` to `N - 1` |
 
 ---
 
-## 2. In-Place Transformations (Zero Extra Memory)
+## 2. In-Place Transpose & 90° Rotations ($\mathcal{O}(1)$ Space)
 
-### In-Place Transpose (Upper Triangle Loop)
-Only loop for **$j > i$** to avoid double-swapping back:
+### In-Place Transpose (Swap across Main Diagonal)
+Only loop over the upper triangle (`c` from `r + 1` to `n - 1`). Looping `c` from `0` to `n - 1` swaps every pair twice and leaves the matrix unchanged.
+
 ```python
-for i in range(n):
-    for j in range(i + 1, n):
-        matrix[i][j], matrix[j][i] = matrix[j][i], matrix[i][j]
+for r in range(n):
+    for c in range(r + 1, n):
+        matrix[r][c], matrix[c][r] = matrix[c][r], matrix[r][c]
 ```
 
-### The 90° Rotation Formulas
-
-$$\text{90° Clockwise Rotation} = \text{Transpose} + \text{Reverse Each Row}$$
+### 90° Clockwise Rotation (LC 48)
+**Formula:** Transpose + Reverse each row left-to-right.
 ```python
-# 1. Transpose in-place (j > i)
-# 2. Reverse each row
-for row in matrix:
-    row.reverse()
+def rotate_clockwise(matrix: list[list[int]]) -> None:
+    n = len(matrix)
+    for r in range(n):
+        for c in range(r + 1, n):
+            matrix[r][c], matrix[c][r] = matrix[c][r], matrix[r][c]
+    for row in matrix:
+        row.reverse()
 ```
 
-$$\text{90° Anti-Clockwise Rotation} = \text{Transpose} + \text{Reverse Row Order}$$
-```python
-# 1. Transpose in-place (j > i)
-# 2. Reverse list of rows
-matrix.reverse()
-```
+### 90° Counter-Clockwise Rotation
+**Formula:** Transpose + Reverse the order of rows top-to-bottom (`matrix.reverse()`).
 
 ---
 
-## 3. The 4-Pointer Spiral Matrix Box Pattern
+## 3. Four-Pointer Spiral Traversal (LC 54)
+
+Maintain fourshrinking walls: `top`, `bottom`, `left`, `right`. After each edge sweep, move that wall inward by 1.
 
 ```text
-top ───►  [ 1 ,  2 ,  3 ,  4 ]
-          [ 5 ,  6 ,  7 ,  8 ]
-bottom ─► [ 9 , 10 , 11 , 12 ]
-            ▲              ▲
-           left          right
+top ───►  [ 1,  2,  3,  4 ]
+          [ 5,  6,  7,  8 ]
+bottom ─► [ 9, 10, 11, 12 ]
+            ▲           ▲
+           left       right
 ```
 
 ```python
-top, bottom = 0, len(matrix) - 1
-left, right = 0, len(matrix[0]) - 1
-result = []
+def spiralOrder(matrix: list[list[int]]) -> list[int]:
+    top, bottom = 0, len(matrix) - 1
+    left, right = 0, len(matrix[0]) - 1
+    res = []
 
-while top <= bottom and left <= right:
-    # 1. Left to Right across top
-    for c in range(left, right + 1):
-        result.append(matrix[top][c])
-    top += 1
+    while top <= bottom and left <= right:
+        for c in range(left, right + 1):      # 1. Top row (left -> right)
+            res.append(matrix[top][c])
+        top += 1
 
-    # 2. Top to Bottom down right
-    for r in range(top, bottom + 1):
-        result.append(matrix[r][right])
-    right -= 1
+        for r in range(top, bottom + 1):      # 2. Right col (top -> bottom)
+            res.append(matrix[r][right])
+        right -= 1
 
-    # 3. Right to Left across bottom (guard: top <= bottom)
-    if top <= bottom:
-        for c in range(right, left - 1, -1):
-            result.append(matrix[bottom][c])
-        bottom -= 1
+        if top <= bottom:                     # Guard for single remaining row
+            for c in range(right, left - 1, -1):  # 3. Bottom row (right -> left)
+                res.append(matrix[bottom][c])
+            bottom -= 1
 
-    # 4. Bottom to Top up left (guard: left <= right)
-    if left <= right:
-        for r in range(bottom, top - 1, -1):
-            result.append(matrix[r][left])
-        left += 1
+        if left <= right:                     # Guard for single remaining col
+            for r in range(bottom, top - 1, -1):  # 4. Left col (bottom -> top)
+                res.append(matrix[r][left])
+            left += 1
+
+    return res
 ```
-* **Time:** $\mathcal{O}(M \times N)$ | **Auxiliary Space:** $\mathcal{O}(1)$.

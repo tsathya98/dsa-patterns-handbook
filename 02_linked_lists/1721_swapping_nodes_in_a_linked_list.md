@@ -1,142 +1,96 @@
-# 🔄 LeetCode 1721: Swapping Nodes in a Linked List – Master Guide
+# LeetCode 1721: Swapping Nodes in a Linked List
 
+> **Pattern:** Two pointers with fixed offset  
 > **Difficulty:** Medium  
-> **Study Plan:** Top Interview 150 / Linked Lists  
-> **Pattern:** Two Pointers (The Measuring Stick / Offset Technique)  
-> **LeetCode Link:** [LeetCode 1721: Swapping Nodes in a Linked List](https://leetcode.com/problems/swapping-nodes-in-a-linked-list/)
+> **Link:** [LeetCode 1721](https://leetcode.com/problems/swapping-nodes-in-a-linked-list/)
 
----
+## The problem
 
-## 📌 Problem in Plain English
-
-You are given the `head` of a linked list, and an integer `k`.
-
-Return the head of the linked list after **swapping the values** of the $k^{\text{th}}$ node from the beginning and the $k^{\text{th}}$ node from the end (the list is 1-indexed).
+Given the `head` of a 1-indexed linked list and an integer `k`, swap the values of the $k$-th node from the beginning and the $k$-th node from the end, then return the head.
 
 ```text
-Example 1:
-Input:  head = [ 1, 2, 3, 4, 5 ], k = 2
-Output: [ 1, 4, 3, 2, 5 ]
-Explanation: The 2nd node from start is 2. The 2nd node from end is 4. Swapped!
-
-Example 2:
-Input:  head = [ 7, 9, 6, 6, 7, 8, 3, 0, 9, 5 ], k = 5
-Output: [ 7, 9, 6, 6, 8, 7, 3, 0, 9, 5 ]
-
-Example 3:
-Input:  head = [ 100, 90 ], k = 2
-Output: [ 90, 100 ]
+Input:  head = [1, 2, 3, 4, 5], k = 2
+Output: [1, 4, 3, 2, 5]
+Explanation: 2nd from start is 2; 2nd from end is 4.
 ```
 
----
+## Why the naive way fails
 
-## 🚨 The Sneaky Bug: Swapping Inside a Rebuild Loop
-
-When storing values in a list and rebuilding the linked list:
+Dumping the list into an array uses $\mathcal{O}(n)$ extra memory. Worse, if you try to swap array elements inside the same loop that writes values back into the linked list:
 ```python
-# ❌ TRAP: Swapping during reconstruction
 for i in range(len(lst)):
     if i == k - 1:
-        lst[k-1], lst[len(lst) - k] = lst[len(lst)-k], lst[k-1]
-        cur.val = lst[i]
+        lst[k - 1], lst[len(lst) - k] = lst[len(lst) - k], lst[k - 1]
+    cur.val = lst[i]
 ```
-### Why did this pass 68 test cases and fail 64?
-* **When $k$ is in the front half:** The loop visits index `k - 1` *before* the second node, so the swap happens early and both values are read correctly.
-* **When $k$ is in the back half (e.g. `[100, 90], k = 2`):** The loop visits index `0` *before* index `1`. It reads the unswapped value `100`, then later swaps at index `1` and reads `100` again $\implies$ outputting `[100, 100]`!
-* **The Rule:** Always complete your list manipulations **before** beginning node creation or assignment!
+this breaks whenever `k` is in the second half of the list (like `[100, 90], k = 2`). Index `0` gets written to the list before the swap happens at `i = 1`, so both nodes end up with `100`.
 
----
+## The core trick
 
-## 🎒 The "Aha!" Mental Model: The Measuring Stick 📏
+You can find both target nodes in a single pass with $\mathcal{O}(1)$ space using a fixed gap between two pointers:
+1. Start `first = head` and walk it `k - 1` steps forward. Now `first` sits on the $k$-th node from the beginning. Keep `first` parked there so you can swap its value at the end.
+2. Create a runner `fast = first` and a follower `second = head`. They are now separated by `k - 1` steps.
+3. Advance both `fast` and `second` together until `fast` lands on the final node (`while fast.next:`).
+4. Because `fast` is at the end (1st node from the back) and `second` trails by `k - 1` steps, `second` is now sitting on the $k$-th node from the end. Swap `first.val` and `second.val`.
 
-How do you find the $k^{\text{th}}$ node from the **end** without knowing the list's total length and without allocating an array?
+## Step-by-step trace
 
-Use two pointers like a **fixed-length wooden ruler**:
+Trace on `head = [1, 2, 3, 4, 5]`, `k = 2`:
 
 ```text
-head = [ 1,  2,  3,  4,  5 ], k = 2
+Step 1: Walk first k - 1 = 1 step from head
+  [ 1 ] ──► [ 2 ] ──► [ 3 ] ──► [ 4 ] ──► [ 5 ] ──► None
+              ▲
+            first (2nd from start)
 
-Step 1: Walk 'first' to the k-th node from start:
-        [ 1 ] ──► [ 2 ] ──► [ 3 ] ──► [ 4 ] ──► [ 5 ]
-                   ▲
-                 first (k-th from start)
+Step 2: Put second at head, fast at first
+  second     fast
+    │         │
+    ▼         ▼
+  [ 1 ] ──► [ 2 ] ──► [ 3 ] ──► [ 4 ] ──► [ 5 ] ──► None
 
-Step 2: Place 'second' at head, and 'fast' at 'first':
-        second    fast
-          │        │
-          ▼        ▼
-        [ 1 ] ──► [ 2 ] ──► [ 3 ] ──► [ 4 ] ──► [ 5 ] ──► None
+Step 3: Slide second and fast together while fast.next is not None
+                                second     fast
+                                  │         │
+                                  ▼         ▼
+  [ 1 ] ──► [ 2 ] ──► [ 3 ] ──► [ 4 ] ──► [ 5 ] ──► None
+                                  ▲
+                            2nd from end
 
-Step 3: Slide both together until 'fast' hits the last node!
-                             second    fast
-                               │        │
-                               ▼        ▼
-        [ 1 ] ──► [ 2 ] ──► [ 3 ] ──► [ 4 ] ──► [ 5 ] ──► None
-                               ▲
-                      k-th node from END!
+Step 4: Swap first.val (2) and second.val (4)
+  Result: [1, 4, 3, 2, 5]
 ```
 
-Because the gap between `fast` and `second` is fixed at $k$ nodes:
-When `fast` hits the final node (`fast.next is None`), **`second` is guaranteed to be standing on the $k^{\text{th}}$ node from the end!**
+## Traps to watch for
 
----
+- **The fencepost error (`range(k)` instead of `range(k - 1)`):** `first` already starts on Node 1 (`head`). Reaching Node $k$ takes $k - 1$ steps. Using `range(k)` overshoots by one node and crashes with an `AttributeError` when $k$ equals the list length.
+- **Looping `while fast:` instead of `while fast.next:`:** If `fast` walks all the way onto `None`, `second` also advances one step too far. Stop as soon as `fast` lands on the tail node (`fast.next is None`).
 
-## 🖐️ The "Fencepost" Step Rule: Why `range(k - 1)`?
+## Solution
 
-Remember: `first` **already starts on Node 1** (`head`).
-* To reach Node 1 ($k = 1$): You need **0 steps** $\implies$ `range(0)`.
-* To reach Node 2 ($k = 2$): You need **1 step** $\implies$ `range(1)`.
-* To reach Node $k$: You need **$k - 1$ steps** $\implies$ `range(k - 1)`.
-
-> [!WARNING]
-> Using `range(k)` takes 1 step too many! On $k = 1$, it lands on Node 2. On $k = 5$ on a 5-node list, it walks into `None` and crashes with `AttributeError`!
-
----
-
-## 💻 Complete Production Code ($\mathcal{O}(1)$ Space)
+<details>
+<summary>Spoiler: Solution Code</summary>
 
 ```python
-# Definition for singly-linked list.
-# class ListNode:
-#     def __init__(self, val=0, next=None):
-#         self.val = val
-#         self.next = next
-
 class Solution:
-    def swapNodes(self, head: Optional[ListNode], k: int) -> Optional[ListNode]:
-        first = head
-        second = head
+    def swapNodes(self, head: ListNode | None, k: int) -> ListNode | None:
+        first = second = head
 
-        # 1. Walk first to the k-th node from the beginning (k - 1 steps)
         for _ in range(k - 1):
             first = first.next
 
-        # 2. Put fast at first, and slide second from head
         fast = first
         while fast.next:
             fast = fast.next
             second = second.next
 
-        # 3. Swap their values directly in-place!
         first.val, second.val = second.val, first.val
-
         return head
 ```
 
----
+</details>
 
-## 📊 Complexity Analysis
+## Complexity
 
-| Metric | Approach 1 (Store Node References) | Approach 2 (Measuring Stick) |
-| :--- | :--- | :--- |
-| **Time Complexity** | $\mathcal{O}(n)$ | $\mathcal{O}(n)$ single pass |
-| **Space Complexity** | $\mathcal{O}(n)$ (array of node pointers) | **$\mathcal{O}(1)$ (Zero extra memory!)** 🏆 |
-| **Passes** | 1 pass to store, 1 pass to read | 1 single synchronized pass |
-
----
-
-## 🎯 Related Benchmark Problems
-This exact **Measuring Stick / Offset Technique** solves:
-1. **LC 19: Remove Nth Node From End of List** (Deletes the target node using dummy head).
-2. **LC 876: Middle of the Linked List** (Ratio variation where fast moves 2x).
-3. **LC 141: Linked List Cycle Detection** (Detecting closed loops).
+- **Time:** $\mathcal{O}(n)$ single pass.
+- **Space:** $\mathcal{O}(1)$ auxiliary memory.

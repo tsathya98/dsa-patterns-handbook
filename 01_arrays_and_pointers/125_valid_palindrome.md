@@ -1,63 +1,48 @@
-# 🎯 LeetCode 125: Valid Palindrome – Master Study Guide
+# LeetCode 125: Valid Palindrome
 
-> **Difficulty:** Easy | **Pattern:** Two Pointers Formation A (Inward Squeeze)  
-> **Complexity:** Time: $\mathcal{O}(n)$ | Auxiliary Space: $\mathcal{O}(1)$ (In-place, beats 95% memory!)  
+> **Difficulty:** Easy | **Pattern:** Two Pointers (Inward Squeeze)
 > **Source Code:** [`125_valid_palindrome.py`](./125_valid_palindrome.py)
 
----
+## The problem
 
-## 📌 Problem in Plain English
+A string `s` is a palindrome if, after converting uppercase letters to lowercase and removing all non-alphanumeric characters, it reads the same forward and backward. Return `True` if `s` is a palindrome, or `False` otherwise.
 
-A phrase is a **palindrome** if, after converting all uppercase letters into lowercase letters and removing all non-alphanumeric characters, it reads the same forward and backward.
-* Letters and numbers count.
-* Spaces, commas, colons, punctuation do not count.
+## Why the naive way fails
 
-```text
-Example 1:
-Input:  s = "A man, a plan, a canal: Panama"
-Cleaned: "amanaplanacanalpanama"
-Result: True (reads identical in reverse)
+Building a filtered string `[c.lower() for c in s if c.isalnum()]` and comparing it to its reverse `cleaned[::-1]` works in $\mathcal{O}(n)$ time, but allocates two new $\mathcal{O}(n)$ copies in memory and scans the entire string even if the first and last characters mismatch.
 
-Example 2:
-Input:  s = "race a car"
-Result: False ('e' != 'a')
+## The core trick
 
-Example 3:
-Input:  s = "0P"
-Result: False ('0' != 'p')
-```
-
----
-
-## 🧠 Mental Model: The Inward Squeeze
-
-Instead of allocating a whole new string with regex or list comprehensions ($\mathcal{O}(n)$ space trap), use two pointers squeezing inward:
-* Pointer `l` starts at the front (`0`).
-* Pointer `r` starts at the back (`len(s) - 1`).
+Place `l = 0` at the start and `r = len(s) - 1` at the end, then squeeze inward in $\mathcal{O}(1)$ extra space:
+1. If `s[l]` is not alphanumeric, advance `l += 1`.
+2. If `s[r]` is not alphanumeric, retreat `r -= 1`.
+3. Otherwise, compare `s[l].lower() == s[r].lower()`. If they match, move both inward (`l += 1`, `r -= 1`); if not, return `False` immediately.
 
 ```text
-  l ->                                      <- r
+  l ──►                                  ◄── r
  "A   m a n ,   a   p l a n . . .   P a n a m a"
 ```
 
-### The Squeeze Logic:
-1. If `s[l]` is punctuation/space $\to$ skip it forward (`l += 1`).
-2. If `s[r]` is punctuation/space $\to$ skip it backward (`r -= 1`).
-3. If both are alphanumeric:
-   * Compare lowercased: `s[l].lower() == s[r].lower()`.
-   * Match? Advance both inward (`l += 1`, `r -= 1`).
-   * Mismatch? **Immediately return `False`**.
-4. If pointers cross without mismatch $\to$ **Return `True`**.
+## Step-by-step trace
 
----
+Input: `s = "A man, a"`
 
-## 💻 Production Implementation
+| Step | `l` (`s[l]`) | `r` (`s[r]`) | Check | Action |
+|---|---|---|---|---|
+| 1 | 0 (`'A'`) | 7 (`'a'`) | `'a' == 'a'` | Match: `l = 1`, `r = 6` |
+| 2 | 1 (`' '`) | 6 (`' '`) | `not s[l].isalnum()` | Skip non-alnum: `l = 2` |
+| 3 | 2 (`'m'`) | 6 (`' '`) | `not s[r].isalnum()` | Skip non-alnum: `r = 5` |
+| 4 | 2 (`'m'`) | 5 (`','`) | `not s[r].isalnum()` | Skip non-alnum: `r = 4` |
+| 5 | 2 (`'m'`) | 4 (`'n'`) | `'m' != 'n'` | Mismatch: return `False` |
+
+<details>
+<summary>Spoiler: Solution Code</summary>
 
 ```python
 class Solution:
     def isPalindrome(self, s: str) -> bool:
         l, r = 0, len(s) - 1
-        
+
         while l < r:
             if not s[l].isalnum():
                 l += 1
@@ -68,15 +53,18 @@ class Solution:
                 r -= 1
             else:
                 return False
-                
+
         return True
 ```
 
----
+</details>
 
-## ⚡ Complexity & FAANG Trade-offs
+## Traps to watch for
 
-| Approach | Time | Space | Verdict in FAANG Interview |
-|---|---|---|---|
-| Filter string + Reverse `s[::-1]` | $\mathcal{O}(n)$ | $\mathcal{O}(n)$ | Works, but creates 2 new string copies. Rejected for $\mathcal{O}(1)$ follow-up. |
-| **Two Pointers Squeeze (Yours!)** | $\mathcal{O}(n)$ | $\mathcal{O}(1)$ | 🏆 **Optimal**. Zero memory allocated, early termination on first mismatch. |
+* **Using `isalpha()` instead of `isalnum()`:** Digits count as valid characters in this problem. Using `isalpha()` skips `'0'` in `"0P"` and wrongly returns `True`.
+* **Missing `l < r` inside inner `while` loops:** If you use inner `while` loops to skip punctuation, an all-punctuation string like `".,"` will push `l` past `len(s) - 1` (`IndexError`) unless guarded by `while l < r and not s[l].isalnum()`. Using `if / elif` inside the main `while l < r:` loop avoids that bug entirely.
+
+## Complexity
+
+* **Time:** $\mathcal{O}(n)$ since each pointer visits each character at most once.
+* **Space:** $\mathcal{O}(1)$ auxiliary memory.

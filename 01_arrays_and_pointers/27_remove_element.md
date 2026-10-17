@@ -1,14 +1,49 @@
-# ✂️ 27. Remove Element
+# LeetCode 27: Remove Element
 
-> **Difficulty:** Easy  
-> **Pattern:** Two Pointers — **Formation B: Scout & Writer (Fast & Slow Pointers)**  
-> **Complexity:** $\mathcal{O}(n)$ Time, $\mathcal{O}(1)$ Auxiliary Space in-place.
+> **Difficulty:** Easy | **Pattern:** Two Pointers (Scout and Writer)  
+> **Constraints:** $\mathcal{O}(n)$ time, $\mathcal{O}(1)$ auxiliary space in-place.
 
----
+## The problem
 
-## 🎯 1. Is Your Solution Good?
+Given an integer array `nums` and an integer `val`, remove all occurrences of `val` in `nums` in-place. The order of the remaining elements may be changed. Return `k`, the number of elements not equal to `val`, with the first `k` slots of `nums` holding those kept elements.
 
-**YES! It is the textbook, 100% optimal FAANG solution.**
+## The core trick: Scout and Writer
+
+Use two pointers moving left to right:
+- **Scout (`i`):** Scans every element in `nums` and checks `nums[i] != val`.
+- **Writer (`k`):** Marks the boundary of the clean prefix (`0 .. k - 1`). Whenever `i` finds a value to keep, copy `nums[k] = nums[i]` and advance `k += 1`.
+
+```text
+         Writer (k) marks where the next kept element goes
+         v
+nums = [ 0 , 1 , 2 , 2 , 3 , 0 , 4 , 2 ],  val = 2
+                 ^
+                 Scout (i) inspects every element
+
+Invariant: [ Kept elements (0 .. k-1) | Ignored / Unexplored (k .. n-1) ]
+```
+
+When the loop finishes, `k` equals the count of kept elements.
+
+## Step-by-step trace
+
+Tracing `nums = [3, 2, 2, 3]`, `val = 3`:
+
+| Step (`i`) | `nums[i]` | `nums[i] != 3`? | Action | Array state | `k` after |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `0` | `3` | False | Skip | `[3, 2, 2, 3]` | `0` |
+| `1` | `2` | True | `nums[0] = 2`, `k += 1` | `[2, 2, 2, 3]` | `1` |
+| `2` | `2` | True | `nums[1] = 2`, `k += 1` | `[2, 2, 2, 3]` | `2` |
+| `3` | `3` | False | Skip | `[2, 2, 2, 3]` | `2` |
+
+## Follow-up: What if `val` is rare?
+
+If `nums` has $100,000$ elements and only one equals `val`, the Scout and Writer loop still executes `nums[k] = nums[i]` $99,999$ times. Since the problem allows changing the relative order, you can instead swap any matching `nums[i] == val` with the last active element `nums[n - 1]` and shrink `n -= 1`. Avoid advancing `i` after a swap so the newly swapped value from the tail gets inspected on the next iteration.
+
+## Solution
+
+<details>
+<summary>Spoiler: Solution Code</summary>
 
 ```python
 class Solution:
@@ -19,124 +54,32 @@ class Solution:
                 nums[k] = nums[i]
                 k += 1
         return k
-```
 
-### Why this is top-tier:
-1. **$\mathcal{O}(n)$ Single Pass:** Visits every element exactly once.
-2. **$\mathcal{O}(1)$ Auxiliary Space:** Modifies the array in-place without allocating a second list.
-3. **Preserves Relative Order:** Although the problem says *"the order of the elements may be changed"*, this solution naturally keeps elements in their original relative sequence.
 
----
-
-## 💡 2. The Mental Model: Scout & Writer
-
-You intuitively applied **Formation B (Scout & Writer)**:
-
-```text
-                  Scout (i) -> sprints ahead to inspect every item
-                  ▼
-nums = [ 0 , 1 ,  2 ,  2 ,  3 ,  0 ,  4 ,  2 ],  val = 2
-         ▲
-         Writer (k) -> marks the boundary where the next VALID element belongs
-```
-
-### The Two Roles:
-* **`i` (The Scout / Fast):** Sprints through the entire array. It inspects every element and asks: *"Is this number NOT equal to `val`?"*
-* **`k` (The Writer / Slow):** Stands at the boundary of the **"clean zone"**. Whenever the Scout finds a valid number, the Writer copies it to `nums[k]` and takes one step forward (`k += 1`).
-
-### 📐 The Array Partition Invariant:
-At any point during the loop, the array is cleanly partitioned into two zones:
-```text
-┌───────────────────────────┬──────────────────────────────────┐
-│   Clean Valid Elements    │    Trash / Ignored / Unexplored  │
-│   (Indices 0 to k - 1)    │    (Indices k to len - 1)        │
-└───────────────────────────┴──────────────────────────────────┘
-```
-When the loop finishes, **`k` is literally the count of valid elements**! Returning `k` is instant.
-
----
-
-## 🎬 3. Visual Step-by-Step Trace
-
-Let `nums = [ 3 , 2 , 2 , 3 ]`, `val = 3`:
-
-```text
-Start:
-k = 0, i = 0: nums[0] is 3 (matches val). Skip!
-nums = [ 3 , 2 , 2 , 3 ]
-         ▲
-        k, i
-
-Step 1:
-k = 0, i = 1: nums[1] is 2 (!= val). Write nums[0] = 2, k -> 1.
-nums = [ 2 , 2 , 2 , 3 ]
-             ▲
-             k, i
-
-Step 2:
-k = 1, i = 2: nums[2] is 2 (!= val). Write nums[1] = 2, k -> 2.
-nums = [ 2 , 2 , 2 , 3 ]
-                 ▲
-                 k, i
-
-Step 3:
-k = 2, i = 3: nums[3] is 3 (matches val). Skip!
-Loop finishes.
-
-Return k = 2.
-The first 2 elements are [ 2 , 2 ] ✅
-```
-
----
-
-## 👯 4. The Family Resemblance: Notice the Pattern!
-
-Notice how this exact same **Scout & Writer** template solves multiple classic problems with just a 1-line condition change:
-
-| Problem | Condition to Keep Element | What Writer Does |
-| :--- | :--- | :--- |
-| **LC 27: Remove Element** | `if nums[i] != val:` | `nums[k] = nums[i]; k += 1` |
-| **LC 283: Move Zeroes** | `if nums[i] != 0:` | `nums[k] = nums[i]; k += 1` *(fill tail with 0s)* |
-| **LC 26: Remove Duplicates (Sorted)** | `if nums[i] != nums[k - 1]:` | `nums[k] = nums[i]; k += 1` |
-
-Once you master this template, you've solved 3 different interview problems with the same muscle memory!
-
----
-
-## 🧠 5. The Senior Follow-Up: What if `val` is Rare?
-
-Interviewers love to ask:
-> *"What if `nums` has 100,000 elements, but only 2 of them equal `val`? Your code will still execute `nums[k] = nums[i]` 99,998 times! Can you optimize the number of writes?"*
-
-### 💡 The Alternative: Two Pointers Squeeze (Swap with Tail)
-Because the problem states that **order does not matter**, we can swap the unwanted element with the **last** element and shrink the array size:
-
-```python
-class Solution:
+# Follow-up optimization when `val` is rare (does not preserve order):
+class SolutionSwapTail:
     def removeElement(self, nums: list[int], val: int) -> int:
         i = 0
         n = len(nums)
-        
         while i < n:
             if nums[i] == val:
-                nums[i] = nums[n - 1]  # Overwrite with last element
-                n -= 1                 # Shrink array boundary
+                nums[i] = nums[n - 1]
+                n -= 1
             else:
-                i += 1                 # Only advance if current element is valid!
-                
+                i += 1
         return n
 ```
 
-* **Why this is clever:** If `nums = [1, 2, 3, 5, 4]`, `val = 4`, we do only **1 assignment** instead of 4!
-* **Trade-off:** It scrambles the original relative order of elements, which is fine for LC 27.
+</details>
 
----
+## Pattern connection & complexity
 
-## 📊 6. Complexity Analysis
+The same Scout and Writer loop solves three related problems by changing one condition:
+- **LC 27: Remove Element:** `if nums[i] != val:`
+- **[LC 26: Remove Duplicates](./26_remove_duplicates_from_sorted_array.md):** `if nums[i] != nums[i - 1]:`
+- **[LC 283: Move Zeroes](./283_move_zeroes.md):** `if nums[i] != 0:` (swap `nums[k]` and `nums[i]`)
 
-| Metric | Scout & Writer (Your Solution) | Swap with Tail (Alternative) |
-| :--- | :---: | :---: |
-| **Time Complexity** | $\mathcal{O}(n)$ | $\mathcal{O}(n)$ (fewer write operations) |
-| **Space Complexity** | $\mathcal{O}(1)$ | $\mathcal{O}(1)$ |
-| **Preserves Order?** | ✅ Yes | ❌ No |
-| **Interview Recommendation** | **Primary Choice (Clean & Standard)** | **Mention as Follow-up Optimization** |
+| Variant | Time | Space | Preserves Order? | Best When |
+| :--- | :--- | :--- | :--- | :--- |
+| Scout and Writer | $\mathcal{O}(n)$ | $\mathcal{O}(1)$ | Yes | Standard default, clean and order-preserving. |
+| Swap with Tail | $\mathcal{O}(n)$ | $\mathcal{O}(1)$ | No | Target `val` is rare and writes are expensive. |

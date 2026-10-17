@@ -1,11 +1,9 @@
-# ⚡ Caching Strategies, Patterns & Redis Deep Dive
+# Caching strategies, failure modes, and Redis data structures
 
-> **Target:** System Design Interviews (FAANG)  
-> **Key Concept:** Caching sits between compute and storage to reduce latency from ~10–50ms (disk/DB) to <1ms (in-memory RAM).
+> **Target:** System design interviews  
+> **Core concept:** Putting an in-memory cache between application servers and disk databases drops read latency from ~10-50ms down to <1ms and shields the database from read spikes.
 
----
-
-## 🧭 1. The 4 Core Caching Strategies
+## 1. Four core caching patterns
 
 ```text
 1. Cache-Aside (Lazy Loading)              2. Write-Through
@@ -22,56 +20,52 @@
                        [ Database ]                                 [ Database ]
 ```
 
-| Strategy | Read Path | Write Path | Pros | Cons / Traps |
+| Pattern | Read path | Write path | Pros | Cons and failure modes |
 | :--- | :--- | :--- | :--- | :--- |
-| **Cache-Aside (Lazy Loading)** | Look in cache. On miss, read DB, store in cache, return to user. | Write directly to DB, invalidate (delete) cache entry. | Only requested data is cached; cache failures don't kill the app. | Cache miss penalty (3 round trips); stale data if invalidation fails. |
-| **Write-Through** | Read from cache. | Write to cache first; cache synchronously writes to DB before returning success. | High consistency; read hits are always fresh. | Higher write latency (writes wait for both cache and DB). |
-| **Write-Behind (Write-Back)** | Read from cache. | Write to cache only; cache asynchronously flushes writes to DB in batches. | Blazing fast writes; absorbs write spikes (e.g. IoT telemetry). | High risk of data loss if cache node crashes before flushing to DB. |
-| **Refresh-Ahead** | Read from cache. | System predicts hot keys and reloads from DB before the TTL expires. | Ultra-low read latency for predictable hot keys (e.g. top headlines). | High complexity; wasted resources if predictions are inaccurate. |
+| **Cache-aside (lazy loading)** | Check cache; on miss, read DB, populate cache with TTL, return data. | Write directly to DB, then delete (invalidate) the cache key. | Only caches data that is actually read; survives cache cluster downtime. | First read pays a cache-miss penalty (3 network hops); race conditions if a concurrent read repopulates stale data during a write. |
+| **Write-through** | Read from cache. | Write to cache and DB synchronously before returning success. | Cache is never stale relative to completed writes. | Every write pays the latency of both cache and DB; caches cold data that may never be read again. |
+| **Write-behind (write-back)** | Read from cache. | Write to cache in memory and return immediately; flush batches to DB asynchronously. | Absorbs heavy write bursts (counters, view counts, telemetry). | Data loss if the cache node crashes before dirty keys flush to disk. |
+| **Refresh-ahead** | Read from cache. | Background worker refreshes hot keys just before their TTL expires. | Avoids cache-miss latency spikes on predictable hot keys. | Wastes DB reads if access patterns shift and refreshed keys go cold. |
 
----
+> [!NOTE]
+> **Why delete the cache key instead of updating it on cache-aside writes?**
+> If two concurrent requests update the database in order $A \to B$, but their cache updates arrive over the network in order $B \to A$, the cache stays permanently stuck with stale value $A$. Deleting the key forces the next read to fetch the latest committed row from the database.
 
-## 🗑️ 2. Cache Eviction Policies
+## 2. Cache eviction policies
 
-When the cache reaches memory limits, which keys get thrown out?
+When memory fills up (`maxmemory` in Redis), the cache evicts keys according to its configured policy:
 
-1. **LRU (Least Recently Used):** Evicts the item that hasn't been accessed for the longest time. *(Default for 95% of interview architectures).*
-2. **LFU (Least Frequently Used):** Tracks access counts; evicts the item accessed the fewest number of times. *(Great for historical assets).*
-3. **FIFO (First-In, First-Out):** Evicts the oldest added key regardless of recent access.
-4. **TTL (Time-To-Live):** Keys automatically expire after a specified duration (e.g., `SET key val EX 3600`).
+1. **LRU (Least Recently Used):** Evicts the key that has gone the longest without being read or written. Good default for general workloads.
+2. **LFU (Least Frequently Used):** Tracks access frequency (using a Morris counter in Redis) and evicts keys with the lowest hit count. Keeps consistently popular keys in memory even if a batch scan touches many one-off keys.
+3. **FIFO (First-In, First-Out):** Evicts the oldest inserted key regardless of how often it is read.
+4. **TTL (Time-To-Live):** Attaches an expiration timestamp to keys (`SET key val EX 3600`). Redis expires keys both lazily on read and actively via background sampling.
 
----
+## 3. Three cache failure scenarios
 
-## 💥 3. The 3 Classic Cache Disasters (Interview Grilling)
+### 1. Cache penetration (queries for non-existent keys)
+* **Problem:** Clients or attackers request keys that do not exist in the cache or the database (such as `user_id = -999999`). Every request misses the cache and hits the database.
+* **Fixes:**
+  1. **Cache negative results:** Write `key -> NULL` into Redis with a short TTL (30 to 60 seconds).
+  2. **Bloom filter:** Maintain a Bloom filter of valid keys in front of the cache. If the Bloom filter reports the key is not present, return `404` immediately without querying Redis or the database.
 
-### Disaster 1: Cache Penetration
-* **The Problem:** Malicious client queries IDs that **do not exist** in either cache or database (e.g., `user_id = -999999`). Every request bypasses the cache and hammers the DB directly.
-* **The Solutions:**
-  1. **Cache Null Values:** Store `key: null` in Redis with a short TTL (e.g., 60 seconds).
-  2. **Bloom Filter:** Place a space-efficient Bloom filter in front of the cache. If the Bloom filter says *"ID definitely does not exist"*, reject the request immediately without touching the DB.
+### 2. Cache avalanche (mass simultaneous expiration)
+* **Problem:** A batch job loads 100,000 keys with an identical 1-hour TTL, or a cache shard reboots. When the TTL hits zero, all 100,000 keys expire at the same second and redirect full read traffic to the database.
+* **Fix:**
+  * **Add TTL jitter:** Add a random offset to every TTL (`ttl = 3600 + random.randint(0, 300)`) so expirations spread out over a 5-minute window.
 
-### Disaster 2: Cache Avalanche
-* **The Problem:** Thousands of cached keys are set with the exact same TTL (e.g., 2 hours). When that hour arrives, all keys expire simultaneously, causing a tidal wave of queries to flood the database at once.
-* **The Solution:**
-  * **Add Jitter (Random Variation):** Set TTL to `base_time + random_variance` (e.g., `7200s + rand(0, 300)s`). This staggers expirations smoothly.
+### 3. Cache breakdown / stampede (hot key expiration)
+* **Problem:** A single hot key receiving 50,000 reads/sec (like a celebrity post or homepage config) expires. Before the first miss finishes querying the database and writing back to Redis, thousands of concurrent requests also miss and run duplicate database queries.
+* **Fixes:**
+  1. **Singleflight / mutex lock:** On a cache miss, only one worker acquires a short lock (`SET lock:key 1 NX PX 2000`), queries the database, and refills Redis while other callers wait or read slightly stale data.
+  2. **Logical expiration:** Never set a hard Redis TTL on known hot keys; store a logical `expires_at` timestamp inside the value payload and trigger a single background refresh when a reader sees the logical timestamp has passed.
 
-### Disaster 3: Cache Breakdown (Thundering Herd / Cache Stampede)
-* **The Problem:** A single ultra-hot key (e.g. a viral tweet from Elon Musk) expires. At that exact millisecond, 50,000 concurrent requests get a cache miss and all execute the heavy DB query in parallel.
-* **The Solutions:**
-  1. **Distributed Mutex Lock:** Only the first request acquires a Redis lock (`SETNX lock_key 1 EX 5`) to query the DB and repopulate the cache. All other 49,999 requests wait or serve a slightly stale read.
-  2. **Soft Expiration (Probabilistic Early Refresh):** Recompute the key in background when it reaches 80% of its lifetime.
+## 4. Redis data structures in system design
 
----
-
-## 🏎️ 4. Redis Data Structures for FAANG Interviews
-
-Redis is an in-memory data structure server, not just a plain string store:
-
-| Data Structure | Use Case in System Design | Example Interview Problem |
+| Data structure | Common system design use cases | Example commands and sizing |
 | :--- | :--- | :--- |
-| **String** | Key-value caching, distributed locks (`SETNX`), counters. | URL Shortener, Rate Limiting (Token Bucket). |
-| **Hash** | Storing structured objects with multiple fields. | User profile data (`HSET user:101 name "John" age 28`). |
-| **Sorted Set (ZSET)** | Elements sorted by a floating-point score (SkipList + HashMap). | **Leaderboards**, Top-K trending items, Sliding Window Rate Limiter. |
-| **List** | Ordered sequence of strings (doubly-linked list). | Activity feeds, lightweight pub/sub queue. |
-| **Bitmap** | Bit-level manipulation (1 bit per entity). | Tracking daily active users (`SETBIT user_active:2026-10-15 user_id 1`). 100M users = ~12 MB memory! |
-| **HyperLogLog** | Probabilistic cardinality estimator (counts unique items with <1% error). | Unique page views / daily unique visitors with fixed 12 KB memory footprint. |
+| **String** | Key-value caching, atomic counters, simple locks. | `GET`, `SET key val NX EX 10`, `INCR page:views`. |
+| **Hash** | Storing flat object fields without re-serializing the whole JSON blob. | `HSET user:101 name "Ada" plan "pro"`, `HINCRBY`. |
+| **Sorted Set (ZSET)** | Real-time leaderboards, priority queues, sliding-window rate limiters (SkipList + hash table, $\mathcal{O}(\log N)$ updates). | `ZADD leaderboard 950 "u1"`, `ZREVRANGE leaderboard 0 9`. |
+| **List / Stream** | Activity timelines (`List`), durable consumer-group event streams (`Stream`). | `LPUSH`, `XADD`, `XREADGROUP`. |
+| **Bitmap** | Per-user boolean flags (daily active users, feature flags) using 1 bit per integer user ID. | `SETBIT dau:2026-10-17 48291 1`, `BITCOUNT` (~12 MB for 100M users). |
+| **HyperLogLog** | Counting unique visitors or distinct elements with ~0.81% standard error in a fixed 12 KB footprint. | `PFADD unique:page:1 "ip1" "ip2"`, `PFCOUNT`. |

@@ -1,72 +1,47 @@
-# 📊 LeetCode 228: Summary Ranges – Master Guide
+# LeetCode 228: Summary Ranges
 
-> **Difficulty:** Easy  
-> **Study Plan:** Top Interview 150 / Arrays & Strings  
-> **Pattern:** Two Pointers Formation D: Anchor & Scout (Interval Chunking)  
-> **LeetCode Link:** [LeetCode 228: Summary Ranges](https://leetcode.com/problems/summary-ranges/)
+> **Difficulty:** Easy | **Pattern:** Two Pointers (Anchor and Scout)  
+> **LeetCode:** [228. Summary Ranges](https://leetcode.com/problems/summary-ranges/)
 
----
+## The problem
 
-## 📌 Problem in Plain English
-
-You are given a **sorted unique** integer array `nums`.
-
-A range `[a, b]` is the set of all integers from `a` to `b`, inclusive. Return the smallest sorted list of ranges that cover all the numbers in the array exactly:
-* Each element of `nums` is covered by exactly one range.
-* There is no integer `x` such that `x` is in one of the ranges but not in `nums`.
-* Format: `"a->b"` if `a != b`, or `"a"` if `a == b`.
+Given a sorted unique integer array `nums`, group contiguous numbers into ranges `[a, b]`:
+- Format as `"a->b"` if `a != b`, or `"a"` if `a == b`.
+- Every number in `nums` must belong to one range, and no missing numbers can sit inside a range.
 
 ```text
-Example 1:
 Input:  nums = [0, 1, 2, 4, 5, 7]
 Output: ["0->2", "4->5", "7"]
-
-Example 2:
-Input:  nums = [0, 2, 3, 4, 6, 8, 9]
-Output: ["0", "2->4", "6", "8->9"]
 ```
 
----
+## Why a single `for` loop gets messy
 
-## 🎒 The "Aha!" Mental Model: The Anchor & Scout
+In a standard `for i in range(len(nums))` loop, you usually look backward (`nums[i] - nums[i-1] != 1`) to detect where a run broke. That creates two headaches:
+1. Off-by-one confusion over whether the range ended at `nums[i-1]` or `nums[i]`.
+2. The final range gets stranded when the loop ends because there is no next number to trigger the `else` branch, forcing you to duplicate the append logic after the loop.
 
-Why did your initial `for` loop feel awkward? Because in a traditional `for i in range(len(nums)):`:
-* You detect the break on the **next** number (`nums[i] - nums[i-1] != 1`).
-* This causes an **off-by-one trap** on where the range ended (`nums[i-1]` vs `nums[i]`).
-* More importantly: **the final range disappears!** When the loop reaches the end of the array, there is no next number to trigger the `else` block, leaving the last range un-appended.
+## The core trick: Anchor and Scout
 
-### ⚓ The Fix: Anchor & Scout
-Instead of checking backwards, look forward with an **inner `while` loop**:
+Instead of looking backward, drop an anchor at the start of a run and use an inner `while` loop to scout ahead as long as the next number is consecutive (`nums[i + 1] == nums[i] + 1`).
 
 ```text
-nums = [ 0 ,  1 ,  2 ,  4 ,  5 ,  7 ]
-
-Round 1:
-  Anchor drops at index 0:  start = nums[0] (0)
-  Scout sprints forward:    0 -> 1 -> 2
-  Scout stops at 2 (since next number 4 != 2 + 1)
-  
-  📝 Record: "0->2"
-  Advance to index 3!
-
-Round 2:
-  Anchor drops at index 3:  start = nums[3] (4)
-  Scout sprints forward:    4 -> 5
-  Scout stops at 5 (since next number 7 != 5 + 1)
-  
-  📝 Record: "4->5"
-  Advance to index 5!
-
-Round 3:
-  Anchor drops at index 5:  start = nums[5] (7)
-  Scout looks ahead:        No more numbers!
-  
-  📝 Record: "7" (since start == nums[i])
+nums = [ 0 , 1 , 2 , 4 , 5 , 7 ]
+         ^       ^
+       start     i (stops here because 4 != 2 + 1) -> records "0->2"
 ```
 
----
+| Round | Anchor (`start`) | Scout (`i`) moves | Stops at `nums[i]` | Appended | Next `i` |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | `nums[0] = 0` | `0 -> 1 -> 2` | `2` (`4 != 2 + 1`) | `"0->2"` | `3` |
+| 2 | `nums[3] = 4` | `3 -> 4` | `5` (`7 != 5 + 1`) | `"4->5"` | `5` |
+| 3 | `nums[5] = 7` | stays at `5` | `7` (end of array) | `"7"` | `6` (done) |
 
-## 💻 Clean Production Code
+When the inner `while` loop stops, `nums[i]` is the exact end of the current range. That handles single-element ranges, the final range, and even an empty array `[]` without extra cleanup after the loop.
+
+## Solution
+
+<details>
+<summary>Spoiler: Solution Code</summary>
 
 ```python
 class Solution:
@@ -78,38 +53,32 @@ class Solution:
         while i < n:
             start = nums[i]
 
-            # Fast-forward i as long as the sequence is consecutive
+            # Advance i while the next number is consecutive
             while i + 1 < n and nums[i + 1] == nums[i] + 1:
                 i += 1
 
-            # Format single numbers vs ranges
             if start == nums[i]:
                 res.append(str(start))
             else:
                 res.append(f"{start}->{nums[i]}")
 
-            # Move to the start of the next run
             i += 1
 
         return res
 ```
 
----
+</details>
 
-## 🔬 Why This Pattern Beats the Single `for` Loop
+## Complexity
 
-| Feature | Single `for` Loop with `if/else` | Two Pointers `while` Loop (Anchor & Scout) |
+| Metric | Value | Notes |
 | :--- | :--- | :--- |
-| **Handling the Last Range** | ❌ Lost! Must copy-paste append logic after loop | ✅ Automatically processed on the final iteration |
-| **Off-by-One Traps** | ⚠️ High (is it `nums[i]` or `nums[i-1]`?) | ✅ Zero (when inner loop terminates, `nums[i]` is the exact end) |
-| **Empty Array `[]`** | Needs explicit `if not nums: return []` check | ✅ `0 < 0` is false, returns `[]` automatically |
-| **Time Complexity** | $\mathcal{O}(n)$ | $\mathcal{O}(n)$ (pointer `i` only moves forward) |
-| **Space Complexity** | $\mathcal{O}(1)$ auxiliary memory | $\mathcal{O}(1)$ auxiliary memory |
+| **Time** | $\mathcal{O}(n)$ | Even with a nested `while` loop, pointer `i` only moves forward and visits each index once. |
+| **Space** | $\mathcal{O}(1)$ | Only a few scalar variables outside the output list. |
 
----
+## Related problems
 
-## 🎯 Related Benchmark Problems
-This exact **Anchor & Scout** pattern solves:
-1. **LC 443: String Compression** (Count runs of `['a', 'a', 'a', 'b', 'b']`).
-2. **LC 56: Merge Intervals** (Group contiguous overlapping time blocks).
-3. **LC 1869: Longer Contiguous Segments of Ones than Zeros**.
+This same Anchor and Scout structure works whenever you need to compress contiguous runs:
+- **LC 443: String Compression** (count consecutive identical characters)
+- **LC 56: Merge Intervals** (group overlapping sorted intervals)
+- **LC 1869: Longer Contiguous Segments of Ones than Zeros**

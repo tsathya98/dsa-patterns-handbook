@@ -1,79 +1,52 @@
-# 🗳️ 169. Majority Element
+# LeetCode 169: Majority Element
 
-> **Difficulty:** Easy (LeetCode Label) / **Classic FAANG Follow-up**  
-> **Pattern:** Boyer-Moore Voting Algorithm (The Mutual Cancellation Pattern)  
-> **Constraints:** $\mathcal{O}(n)$ Time, strictly $\mathcal{O}(1)$ Auxiliary Space.
+> **Difficulty:** Easy | **Pattern:** Boyer-Moore Voting Algorithm (Mutual Cancellation)
+> **Link:** [LeetCode 169](https://leetcode.com/problems/majority-element/)
 
----
+## The problem
 
-## 💡 1. The 3-Tier Interview Ladder
+Given an array `nums` of size $n$, return the majority element. The majority element appears strictly more than $\lfloor n / 2 \rfloor$ times and is guaranteed to exist. Solve it in $\mathcal{O}(n)$ time and $\mathcal{O}(1)$ auxiliary space.
 
-When an interviewer asks this problem, they want to observe your thought hierarchy:
+## Why the naive way fails
 
-```text
-Tier 1: Hash Map / Counter       -> O(n) Time, O(n) Space  (Mention first!)
-Tier 2: Sorting Middle Element   -> O(n log n) Time, O(1) Space
-Tier 3: Boyer-Moore Voting       -> O(n) Time, O(1) Space  (The FAANG Gold Standard)
-```
+A hash map (`Counter(nums)`) runs in $\mathcal{O}(n)$ time but uses $\mathcal{O}(n)$ space. Sorting the array and returning `nums[n // 2]` uses $\mathcal{O}(1)$ extra space (ignoring sort internals) but costs $\mathcal{O}(n \log n)$ time.
 
-> 🎯 **Pro Interview Strategy:**  
-> Start by stating: *"The straightforward solution is a HashMap/Counter to tally frequencies in $\mathcal{O}(n)$ time and $\mathcal{O}(n)$ space. But since the majority element appears more than $\lfloor n / 2 \rfloor$ times, we can optimize space to $\mathcal{O}(1)$ using Boyer-Moore Voting."*
+## The core trick
 
----
+Because the majority element appears more than $\frac{n}{2}$ times, its frequency exceeds all other elements combined:
 
-## ⚔️ 2. The Mental Model: The Battle Royale Arena
+$$\text{Count}(\text{majority}) - \text{Count}(\text{all others}) > 0$$
 
-The problem guarantees that the majority element appears **strictly more than 50% of the time**:
-
-$$\text{Majority Count} > \frac{n}{2} \implies \text{Majority Count} - \text{All Opponents Combined} > 0$$
-
-### The Analogy:
-Imagine an arena where:
-* The **Majority Clan** has $> 50\%$ of all warriors.
-* All other minority clans combined have $< 50\%$ of the warriors.
-* **The Rule:** Whenever two warriors from **different clans** fight, they eliminate each other (1-for-1 mutual cancellation).
-
-Even if every single minority warrior teams up to eliminate a majority warrior, **the majority clan is mathematically guaranteed to have survivors left standing!**
-
----
-
-## ❓ 3. Why is it Safe to Reset when `count == 0`?
+Boyer-Moore voting pairs off distinct elements 1-for-1:
+* Maintain a `candidate` and a `count = 0`.
+* When `count == 0`, adopt the current number as `candidate` and set `count = 1`.
+* Otherwise, increment `count` if `num == candidate`, or decrement `count` if `num != candidate`.
 
 ```text
-nums = [ 1 , 2 , 1 , 2 ,  3 , 3 , 3 ]
-        └─────────────┘
-       Two 1s and Two 2s
-          (Count = 0)
+nums = [ 1,  2,  1,  2,   3,  3,  3 ]
+        └─────────────┘  └─────────┘
+         Two 1s, two 2s   Remainder
+         cancel (count=0) 3 wins
 ```
 
-In that prefix `[1, 2, 1, 2]`:
-* `1` appeared 2 times (50%).
-* Opponents appeared 2 times (50%).
+Whenever `count` drops to `0`, the prefix inspected so far contains at most 50% of any single value, so discarding that prefix leaves the true majority element still holding $> 50\%$ of the remaining suffix.
 
-> 🔑 **The Mathematical Miracle:**  
-> If you discard a subsegment where elements cancelled each other out equally,  
-> **the true majority element in the entire array STILL maintains a majority (> 50%) in the remaining subarray!**  
-> Looking at the remainder: `[ 3 , 3 , 3 ]` $\implies$ `3` is still the majority!
+## Step-by-step trace
 
----
+Input: `nums = [2, 2, 1, 1, 1, 2, 2]`
 
-## ⚡ 4. Python Bytecode Optimization: Why `elif` Beats Two `if` Checks
+| Step | `num` | `count` (before) | Action | `candidate` | `count` (after) |
+|---|---|---|---|---|---|
+| 1 | 2 | 0 | Reset candidate to 2 | 2 | 1 |
+| 2 | 2 | 1 | Match (`2 == 2`) | 2 | 2 |
+| 3 | 1 | 2 | Mismatch (`1 != 2`) | 2 | 1 |
+| 4 | 1 | 1 | Mismatch (`1 != 2`) | 2 | 0 |
+| 5 | 1 | 0 | Reset candidate to 1 | 1 | 1 |
+| 6 | 2 | 1 | Mismatch (`2 != 1`) | 1 | 0 |
+| 7 | 2 | 0 | Reset candidate to 2 | 2 | 1 |
 
-Many candidates write:
-```python
-# ⚠️ Redundant evaluation on reset!
-if count == 0:
-    candidate = num
-if candidate == num:
-    count += 1
-else:
-    count -= 1
-```
-
-When `count == 0`, you set `candidate = num`. Then Python immediately evaluates `if candidate == num:`, which is **guaranteed to be True**!
-
-### The Faster `elif` Version:
-When `count == 0`, settle `count = 1` immediately and skip all other checks:
+<details>
+<summary>Spoiler: Solution Code</summary>
 
 ```python
 class Solution:
@@ -93,14 +66,14 @@ class Solution:
         return candidate
 ```
 
-*(This cuts out 6–8 CPU bytecode instructions on every reset, dropping runtime into the top percentile!)*
+</details>
 
----
+## Traps to watch for
 
-## 📊 5. Complexity Comparison
+* **When a majority element is not guaranteed:** Boyer-Moore always returns *some* survivor even on `[1, 2, 3]`. If the problem does not guarantee a $> \lfloor n/2 \rfloor$ majority, you must run a second pass (`nums.count(candidate) > len(nums) // 2`) to verify the winner.
+* **Using `if / elif` on reset:** Setting `candidate = num` and `count = 1` inside the `if count == 0:` branch avoids a redundant `if candidate == num:` check on the same iteration.
 
-| Approach | Time Complexity | Auxiliary Space | Best Used For |
-| :--- | :---: | :---: | :--- |
-| **`Counter(nums)`** | $\mathcal{O}(n)$ | $\mathcal{O}(n)$ | Rapid prototyping, when $> 50\%$ constraint isn't guaranteed |
-| **`nums.sort()`** | $\mathcal{O}(n \log n)$ | $\mathcal{O}(1)$ | Quick 1-liner (`nums[len(nums) // 2]`) |
-| **Boyer-Moore Voting** | **$\mathcal{O}(n)$** | **$\mathcal{O}(1)$** | **Strict $\mathcal{O}(1)$ space interview requirement** |
+## Complexity
+
+* **Time:** $\mathcal{O}(n)$ for a single pass.
+* **Space:** $\mathcal{O}(1)$ using two scalar variables.

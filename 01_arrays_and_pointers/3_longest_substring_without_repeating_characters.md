@@ -1,66 +1,58 @@
-# 🪟 LeetCode 3: Longest Substring Without Repeating Characters – Master Study Guide
+# LeetCode 3: Longest Substring Without Repeating Characters
 
-> **Difficulty:** Medium | **Pattern:** Dynamic Sliding Window (The Rubber Band)  
-> **Complexity:** Time: $\mathcal{O}(n)$ | Auxiliary Space: $\mathcal{O}(\min(n, m))$ where $m \le 128$ ASCII chars  
+> **Difficulty:** Medium | **Pattern:** Dynamic Sliding Window  
 > **Source Code:** [`3_longest_substring_without_repeating_characters.py`](./3_longest_substring_without_repeating_characters.py)
 
----
+## The problem
 
-## 📌 Problem in Plain English
-
-Given a string `s`, find the length of the **longest substring** without repeating characters.
+Given a string `s`, return the length of the longest contiguous substring that contains no duplicate characters.
 
 ```text
-Example 1:
-Input:  s = "abcabcbb"
-Output: 3
-Explanation: The answer is "abc", with length 3.
-
-Example 2:
-Input:  s = "bbbbb"
-Output: 1
-Explanation: The answer is "b", with length 1.
-
-Example 3:
-Input:  s = "pwwkew"
-Output: 3
-Explanation: The answer is "wke", with length 3 ("pwke" is a subsequence, not a substring!).
+Input:  s = "abcabcbb" -> Output: 3 ("abc")
+Input:  s = "bbbbb"    -> Output: 1 ("b")
+Input:  s = "pwwkew"   -> Output: 3 ("wke", note that "pwke" is a subsequence, not a substring)
 ```
 
----
+## Why the naive way fails
 
-## ⚠️ Why Brute Force Hits TLE (1028 / 1036 Passed)
+Checking every starting index and testing `len(tmp) == len(set(tmp))` inside a nested loop runs in $\mathcal{O}(n^3)$ time:
+1. String concatenation `tmp += s[j]` copies the substring on every step.
+2. `set(tmp)` rebuilds a hash set from scratch in $\mathcal{O}(k)$ time per character.
 
-If you check substrings from every index and do `len(tmp) == len(set(tmp))` inside a `while` loop:
-1. **`set(tmp)` rebuilds a set from scratch on every single character**: That takes $\mathcal{O}(k)$ time per step.
-2. **String slicing/appending `tmp += s[j]` creates new string copies** in memory.
-3. Total time explodes to $\mathcal{O}(n^3)$, which passes small inputs but hits **Time Limit Exceeded** on inputs with thousands of characters.
+## The core trick: Dynamic sliding window
 
----
-
-## 🧠 Mental Model: The Rubber Band (Dynamic Sliding Window)
-
-Instead of restarting the search or re-building sets, use a **Rubber Band window** `[left, right]`:
-* `right` stretches the window forward, absorbing new characters.
-* `seen` keeps track of characters currently inside the window.
+Maintain a window `[left, right]` and a hash set `seen` holding the characters currently inside that window:
 
 ```text
 String:   a   b   c   a   b   c   b   b
-Window:  [a   b   c]                              seen = {a, b, c}, len = 3
-                  ↑ incoming 'a' is a duplicate!
+Window:  [a   b   c]                      seen = {'a', 'b', 'c'}, len = 3
+                      ^ incoming 'a' is already in seen
 
-Action:   Snap 'left' forward past the old 'a'!
-Window:      [b   c   a]                          seen = {b, c, a}, len = 3
+Shrink from left until the old 'a' is removed:
+Window:      [b   c   a]                  seen = {'b', 'c', 'a'}, len = 3
 ```
 
-### The 2 Invariant Rules:
-1. **Stretch (`right`):** Look at incoming character `s[right]`.
-2. **Contract (`left`):** If `s[right]` is already in `seen`, contract the window by removing `s[left]` from `seen` and advancing `left += 1` until the duplicate is gone!
-3. Add `s[right]` to `seen`, and record `max_len = max(max_len, right - left + 1)`.
+1. **Expand (`right`):** Inspect the incoming character `c = s[right]`.
+2. **Shrink (`left`):** While `c` is already in `seen`, remove `s[left]` from `seen` and increment `left += 1` until the duplicate is evicted.
+3. **Record:** Add `c` to `seen` and update `max_cnt = max(max_cnt, right - left + 1)` (or `len(seen)`).
 
----
+## Step-by-step trace
 
-## 💻 Production Implementation
+Tracing `s = "pwwkew"`:
+
+| `right` | `c` | `c in seen`? | Shrink (`left` moves) | Window `[left..right]` | `len(seen)` | `max_cnt` |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `0` | `'p'` | False | None (`left = 0`) | `"p"` | `1` | `1` |
+| `1` | `'w'` | False | None (`left = 0`) | `"pw"` | `2` | `2` |
+| `2` | `'w'` | True | Remove `'p'`, `'w'` (`left -> 2`) | `"w"` | `1` | `2` |
+| `3` | `'k'` | False | None (`left = 2`) | `"wk"` | `2` | `2` |
+| `4` | `'e'` | False | None (`left = 2`) | `"wke"` | `3` | `3` |
+| `5` | `'w'` | True | Remove `'w'` (`left -> 3`) | `"kew"` | `3` | `3` |
+
+## Solution
+
+<details>
+<summary>Spoiler: Solution Code</summary>
 
 ```python
 class Solution:
@@ -68,22 +60,23 @@ class Solution:
         seen = set()
         max_cnt = 0
         left = 0
-        
-        for i, c in enumerate(s):
-            # While incoming char is a duplicate, shrink window from the left
+
+        for c in s:
             while c in seen:
                 seen.discard(s[left])
                 left += 1
-                
+
             seen.add(c)
             max_cnt = max(max_cnt, len(seen))
-            
+
         return max_cnt
 ```
 
+</details>
 
----
+## Complexity
 
-## ⚡ Complexity & FAANG Notes
-* **Time Complexity:** $\mathcal{O}(n)$ – Each character enters `seen` once and leaves `seen` at most once (at most $2n$ total pointer moves).
-* **Space Complexity:** $\mathcal{O}(\min(n, m))$ – The set never holds more than the character set size ($m \le 128$ for ASCII).
+| Metric | Value | Notes |
+| :--- | :--- | :--- |
+| **Time** | $\mathcal{O}(n)$ | Each character enters `seen` once and is removed from `seen` at most once (at most $2n$ pointer operations). |
+| **Space** | $\mathcal{O}(\min(n, m))$ | `seen` holds at most $m$ unique characters ($m \le 128$ for ASCII). |

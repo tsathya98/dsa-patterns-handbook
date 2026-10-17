@@ -1,21 +1,19 @@
-# 🔍 Binary Search Fundamentals & Occurrence Boundaries
+# Binary search fundamentals and occurrence boundaries
 
-> **Course Reference:** CodeKerdos DSA — Class 8  
-> **Core Concepts:** Search space halving, middle landing, first & last occurrence boundaries, occurrence count, floor and ceil.
+> **Course reference:** CodeKerdos DSA, Class 8  
+> **Core concepts:** Search space halving, midpoint calculation, first and last occurrence boundaries, occurrence count, floor, and ceil.
 
----
+## 1. Why binary search works
 
-## 1. Why Binary Search Works (The Search Space Invariant)
+Every binary search problem has two parts:
+1. **Target ($K$):** The value or boundary condition you want to find.
+2. **Search space $[lo, hi]$:** The range of candidate indices still in play.
 
-Every search problem needs two components:
-1. **Target ($K$):** The item or condition you seek.
-2. **Search Space $[lo, hi]$:** The range of possible positions.
-
-When an array is **ordered (sorted)**, testing the midpoint `mid = (lo + hi) // 2` splits the remaining candidates into two equal halves. With **a single comparison**, you permanently eliminate $50\%$ of all remaining elements:
+When an array is sorted, checking the midpoint `mid = lo + (hi - lo) // 2` splits the remaining candidates in half. Each comparison eliminates half of the remaining search space:
 
 $$\text{Search space after } k \text{ steps} = \frac{N}{2^k}$$
 Setting $\frac{N}{2^k} = 1 \implies k = \log_2 N$.
-For $N = 1,000,000$, binary search takes at most **$20$ comparisons**!
+For $N = 1,000,000$, binary search finishes in at most $20$ comparisons.
 
 ```text
 Indices:  0    1    2    3    4    5    6
@@ -39,11 +37,9 @@ def binary_search(arr: list[int], k: int) -> int:
     return -1
 ```
 
----
+## 2. First and last occurrence in arrays with duplicates (LC 34)
 
-## 2. First & Last Occurrence in Arrays with Duplicates (LC 34)
-
-When `arr` contains duplicate values, normal binary search halts at **any arbitrary match**, not necessarily the first or last:
+When `arr` contains duplicates, standard binary search stops at whichever copy of `k` it hits first, which might sit in the middle of a run of duplicates:
 
 ```text
 arr = [ 2 , 4 , 10 , 10 , 10 , 18 , 20 ],  k = 10
@@ -51,12 +47,11 @@ arr = [ 2 , 4 , 10 , 10 , 10 , 18 , 20 ],  k = 10
             First       Last
 ```
 
-### The Invariant for First Occurrence:
-* When `arr[mid] == k`: You found a match, but **do not stop**! A duplicate might exist earlier to the left.
-* Record `ans = mid`, and force the search space leftward: **`hi = mid - 1`**.
+### First occurrence invariant
+* When `arr[mid] == k`, record `ans = mid` as the best candidate so far, then keep searching left by setting `hi = mid - 1`.
 
-### The Invariant for Last Occurrence:
-* When `arr[mid] == k`: Record `ans = mid`, and force the search space rightward: **`lo = mid + 1`**.
+### Last occurrence invariant
+* When `arr[mid] == k`, record `ans = mid` as the best candidate so far, then keep searching right by setting `lo = mid + 1`.
 
 ```python
 def find_first_occurrence(arr: list[int], k: int) -> int:
@@ -66,7 +61,7 @@ def find_first_occurrence(arr: list[int], k: int) -> int:
         mid = lo + (hi - lo) // 2
         if arr[mid] == k:
             ans = mid
-            hi = mid - 1  # Keep searching left for earlier occurrence
+            hi = mid - 1  # Keep searching left for an earlier occurrence
         elif arr[mid] < k:
             lo = mid + 1
         else:
@@ -80,7 +75,7 @@ def find_last_occurrence(arr: list[int], k: int) -> int:
         mid = lo + (hi - lo) // 2
         if arr[mid] == k:
             ans = mid
-            lo = mid + 1  # Keep searching right for later occurrence
+            lo = mid + 1  # Keep searching right for a later occurrence
         elif arr[mid] < k:
             lo = mid + 1
         else:
@@ -88,13 +83,12 @@ def find_last_occurrence(arr: list[int], k: int) -> int:
     return ans
 ```
 
-### Total Occurrences of $K$:
+### Counting occurrences of $K$
+Once you have both boundary indices:
 $$\text{Count}(K) = \begin{cases} \text{last} - \text{first} + 1 & \text{if } \text{first} \ne -1 \\ 0 & \text{if } \text{first} == -1 \end{cases}$$
-Runs in **$\mathcal{O}(\log N)$ time** without linear scanning.
+This runs in $\mathcal{O}(\log N)$ time instead of scanning the duplicate block linearly.
 
----
-
-## 3. Floor and Ceil of $K$
+## 3. Floor and ceil of $K$
 
 Given a sorted array and target $K$:
 * **Floor of $K$:** Largest element $\le K$.
@@ -107,7 +101,7 @@ def find_floor(arr: list[int], k: int) -> int:
     while lo <= hi:
         mid = lo + (hi - lo) // 2
         if arr[mid] <= k:
-            ans = arr[mid]  # Candidate floor; try to find a larger one on the right
+            ans = arr[mid]  # Candidate floor; search right for a larger one
             lo = mid + 1
         else:
             hi = mid - 1
@@ -119,7 +113,7 @@ def find_ceil(arr: list[int], k: int) -> int:
     while lo <= hi:
         mid = lo + (hi - lo) // 2
         if arr[mid] >= k:
-            ans = arr[mid]  # Candidate ceil; try to find a smaller one on the left
+            ans = arr[mid]  # Candidate ceil; search left for a smaller one
             hi = mid - 1
         else:
             lo = mid + 1

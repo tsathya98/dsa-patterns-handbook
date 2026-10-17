@@ -1,11 +1,9 @@
-# 🗄️ Database Scaling, Sharding & The CAP Theorem
+# Database scaling, sharding, and the CAP theorem
 
-> **Target:** System Design Interviews (FAANG)  
-> **Key Focus:** Moving from a single database server to a globally distributed, partition-tolerant database cluster.
+> **Target:** System design interviews  
+> **Core concept:** Scaling a database from a single node to read replicas and horizontally partitioned shards, and trading off consistency vs. availability during network partitions.
 
----
-
-## 📈 1. The 3 Phases of Database Scaling
+## 1. Phases of database scaling
 
 ```text
 Phase 1: Read/Write Separation (Replicas)    Phase 2: Database Sharding (Horizontal Partitioning)
@@ -16,41 +14,37 @@ Phase 1: Read/Write Separation (Replicas)    Phase 2: Database Sharding (Horizon
        ▼
 ┌──────────────┬──────────────┐
 │ Read Replica │ Read Replica │ (All Reads)
-└──────────────┘──────────────┘
+└──────────────┴──────────────┘
 ```
 
-### Phase 1: Read/Write Split (Primary-Replica)
-* **Writes** go strictly to the **Primary** node.
-* **Reads** are distributed across multiple **Read Replicas** via a connection pool or proxy (e.g. ProxySQL / PgBouncer).
-* **The Gotcha — Replication Lag:**
-  * Changes take a few milliseconds to reach replicas asynchronously.
-  * *Bug:* User updates profile $\to$ page reloads $\to$ read hits replica that hasn't received the write yet $\to$ user sees old data!
-  * *Fix:* **Read-your-own-writes consistency:** Route reads for the updating user directly to the Primary for 5 seconds after a write.
+### Phase 1: Read/write split (primary-replica replication)
+* **Writes** go only to the **primary** node.
+* **Reads** fan out across **read replicas**, typically behind a connection pooler like PgBouncer or ProxySQL.
+* **Replication lag:**
+  * With asynchronous replication, the primary commits a write and returns to the client before replicas apply the WAL/binlog event (often a few milliseconds to seconds later).
+  * *Symptom:* A user edits their profile, the browser reloads immediately, the `GET` request hits a lagging replica, and the user sees their old profile.
+  * *Fix (read-your-own-writes):* Pin reads for the acting user to the primary node for a short window after they perform a write, or pass the last written log sequence number (LSN) and wait until the replica catches up to that LSN.
 
-### Phase 2: Sharding (Horizontal Partitioning)
-When database disk size exceeds ~1–2 TB or write IOPS bottleneck a single machine, split data across independent nodes (**shards**).
+### Phase 2: Horizontal sharding
+When write throughput saturates a single primary node's disk IOPS or a table grows past a few terabytes, split rows across independent database shards so each shard holds a subset of the data.
 
----
+## 2. Sharding strategies and partition keys
 
-## 🔑 2. Sharding Strategies & The Sharding Key
+Your choice of **shard key (partition key)** determines whether traffic spreads evenly or piles onto a single hot node:
 
-The choice of **Partition Key (Sharding Key)** dictates the entire architecture:
-
-| Sharding Strategy | Mechanism | Pros | Cons / Traps |
+| Strategy | How it routes | Pros | Cons and traps |
 | :--- | :--- | :--- | :--- |
-| **Range-Based** | Shard by ID range (e.g. IDs 1–1M $\to$ Shard 1, 1M–2M $\to$ Shard 2). | Simple range queries (`WHERE id BETWEEN 50 AND 100`). | Severe **Hotspotting**! Newer IDs receive 100% of the write traffic. |
-| **Hash-Based** | `shard_id = hash(key) % total_shards` | Uniform distribution of data and traffic across all nodes. | Adding/removing a shard invalidates almost all keys $\to$ massive data migration! |
-| **Directory-Based** | Lookup service / table maps keys to specific shard IDs. | Extremely flexible; easy to rebalance individual shards. | Lookup service is a potential bottleneck and Single Point of Failure (SPOF). |
+| **Range-based** | Partition by contiguous key ranges (for example, `user_id` 1-1M on Shard 1, 1M-2M on Shard 2, or by month). | Efficient range scans (`WHERE created_at BETWEEN ...`). | **Hot shards:** If keys are monotonically increasing (timestamps or auto-increment IDs), the newest shard takes 100% of writes. |
+| **Hash-based** | `shard_id = hash(key) % num_shards` | Spreads reads and writes evenly across shards. | Range queries must scatter-gather across all shards; naive `% N` hashing moves almost all keys when `num_shards` changes. |
+| **Directory-based** | A lookup service maps each partition key or tenant ID to its current physical shard. | Can move individual heavy tenants to dedicated shards without changing hash math. | Extra lookup hop (if not cached on clients), and the directory table itself must be highly available. |
 
----
+## 3. Consistent hashing
 
-## ⭕ 3. Consistent Hashing: The Distributed Saver
+With naive modular hashing (`hash(key) % N`), changing $N$ from $4$ to $5$ remaps ~80% of keys to different shards, triggering massive data migration or cache misses.
 
-Standard modular hashing (`hash(key) % N`) breaks whenever nodes are added or removed because almost every key remaps to a new node.
-
-### How Consistent Hashing Works:
-1. Map both **servers** and **keys** onto a circular 360° hash ring (0 to $2^{32}-1$).
-2. To find where a key lives: hash the key $\to$ walk **clockwise** on the ring until you hit the first server node.
+### How consistent hashing works
+1. Hash both **nodes** and **keys** onto a circular integer ring $[0, 2^{32}-1]$.
+2. To route a key, compute `hash(key)` and walk clockwise around the ring until you hit the first node.
 
 ```text
                Server A (0°)
@@ -61,16 +55,14 @@ Standard modular hashing (`hash(key) % N`) breaks whenever nodes are added or re
        (240°)      Key 2
 ```
 
-3. **When Server B fails or is removed:** Only keys between A and B need to migrate (to Server C). The rest of the keys remain completely untouched!
-4. **Virtual Nodes (V-Nodes):**
-   * *Problem:* Real servers might map unevenly on the ring (causing hotspotting).
-   * *Fix:* Assign each physical machine 100–250 "virtual nodes" across the ring. This spreads load evenly and avoids cascades when a node dies.
+3. **Adding or removing a node:** If Server B goes down, only the keys sitting on the arc between Server A and Server B shift clockwise to Server C. On average, adding or removing a node in an $N$-node ring moves only $1/N$ of the keys.
+4. **Virtual nodes (vnodes):**
+   * With only 3 physical points on the ring, random placement leaves uneven arc sizes and skewed load.
+   * Assigning 100 to 256 virtual node tokens per physical machine interleaves ranges evenly around the ring and spreads a failed machine's load across all surviving machines instead of dumping it onto a single neighbor.
 
----
+## 4. CAP theorem and PACELC
 
-## ⚖️ 4. The CAP Theorem & PACELC
-
-In any distributed data store, network partitions (dropped packets, severed cables, datacenter outages) are **inevitable physical realities**.
+In a distributed system across multiple machines or availability zones, network partitions (dropped packets, switch failures, split links) will happen.
 
 ```text
                        The CAP Theorem
@@ -78,25 +70,26 @@ In any distributed data store, network partitions (dropped packets, severed cabl
                             /\
                            /  \
                           /    \
-                         /  CA  \   (Impossible on distributed networks!)
+                         /  CA  \   (Single-node / no network partition)
                         /________\
              Availability ------ Partition Tolerance
                   (AP)                (CP)
 ```
 
-Because **Partition Tolerance (P)** is mandatory, you can only choose between:
+Because **Partition Tolerance (P)** is required whenever nodes communicate over a network, a partitioned system has to choose how to behave when nodes cannot reach each other:
 
 * **CP (Consistency + Partition Tolerance):**
-  * When a network partition occurs, the system rejects writes or returns errors rather than serving inconsistent/stale data.
-  * *Examples:* Traditional SQL with 2PC, Google Cloud Spanner, Apache HBase, ZooKeeper.
-  * *Use Cases:* Banking balances, stock trades, ticketing systems where double-booking is forbidden.
+  * During a partition, nodes on the minority side (or nodes that cannot reach a quorum) reject writes and linearizable reads rather than returning stale or conflicting state.
+  * *Examples:* Raft/Paxos state machines (etcd, ZooKeeper, Consul), Google Cloud Spanner, single-primary relational databases with synchronous quorum replication.
+  * *Use cases:* Bank ledgers, inventory deduction, seat reservation, distributed locks.
 * **AP (Availability + Partition Tolerance):**
-  * When a network partition occurs, all nodes remain available to read/write, returning whatever data they have (even if stale). Nodes reconcile conflicts later (**Eventual Consistency**).
-  * *Examples:* Apache Cassandra, DynamoDB, CouchDB.
-  * *Use Cases:* Social media feeds, YouTube view counts, shopping cart items.
+  * During a partition, isolated nodes keep accepting reads and writes locally and reconcile conflicts after the network heals (eventual consistency via LWW, vector clocks, or CRDTs).
+  * *Examples:* DynamoDB (default eventual reads), Apache Cassandra, Riak.
+  * *Use cases:* Shopping carts, social media likes/view counters, DNS propagation.
 
-### PACELC Extension (When there is NO partition):
-* If **P**artition: choose **A**vailability or **C**onsistency.
-* **E**lse (Normal Operation): choose **L**atency or **C**onsistency.
-  * *Example:* DynamoDB/Cassandra choose **PA/EL** (favor Availability during partitions, favor Low Latency during normal operations).
-  * *Example:* PostgreSQL/MongoDB choose **PC/EC** (favor Consistency always).
+### PACELC theorem (including normal operation)
+CAP only describes what happens during a partition. PACELC adds what the system trades off when the network is healthy:
+* **If Partition (P):** choose **Availability (A)** or **Consistency (C)**.
+* **Else (E, normal operation):** choose **Latency (L)** or **Consistency (C)**.
+  * *PA/EL systems (Cassandra, DynamoDB eventual reads):* Stay available during partitions and return fast local reads/writes without waiting for all replicas during normal operation.
+  * *PC/EC systems (Spanner, synchronous quorum SQL):* Require quorum agreement both during partitions and on normal reads/writes, trading higher latency for strong consistency.

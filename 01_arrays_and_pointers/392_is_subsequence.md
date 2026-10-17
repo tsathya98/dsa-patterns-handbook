@@ -1,73 +1,66 @@
-# 🎯 LeetCode 392: Is Subsequence – Master Study Guide
+# LeetCode 392: Is Subsequence
 
-> **Difficulty:** Easy | **Pattern:** Two Pointers Formation C (Two Conveyor Belts)  
-> **Complexity:** Time: $\mathcal{O}(|t|)$ | Auxiliary Space: $\mathcal{O}(1)$ (Beats 99% memory!)  
+> **Difficulty:** Easy | **Pattern:** Two Pointers (Two Conveyor Belts)  
 > **Source Code:** [`392_is_subsequence.py`](./392_is_subsequence.py)
 
----
+## The problem
 
-## 📌 Problem in Plain English
-
-Given two strings `s` and `t`, return `true` if `s` is a **subsequence** of `t`, or `false` otherwise.
-
-> A **subsequence** means you can delete some (or zero) characters from `t` without changing the relative order of the remaining characters.
+Given two strings `s` and `t`, return `True` if `s` is a subsequence of `t`, or `False` otherwise. A subsequence is formed by deleting zero or more characters from `t` without changing the order of the remaining characters.
 
 ```text
-Example 1:
-Input:  s = "abc", t = "ahbgdc"
-Output: True ('a', 'b', 'c' appear in order: a -> b -> c)
-
-Example 2:
-Input:  s = "axc", t = "ahbgdc"
-Output: False ('x' never appears after 'a')
+Input:  s = "abc", t = "ahbgdc" -> True  ('a', 'b', 'c' appear in order)
+Input:  s = "axc", t = "ahbgdc" -> False ('x' never appears)
 ```
 
----
+## The core trick: Two conveyor belts
 
-## 🧠 Mental Model: Two Conveyor Belts (Formation C)
-
-Imagine two independent conveyor belts:
-* **Belt 1 (`p1`):** The shopping checklist `s`. Only advances when an item is found!
-* **Belt 2 (`p2`):** The supermarket warehouse stream `t`. Constantly moving forward looking for matches.
+Place one pointer on each string:
+- **`p1` on `s` (the checklist):** Only steps forward when `s[p1]` matches the current character in `t`.
+- **`p2` on `t` (the stream):** Steps forward on every iteration (`p2 += 1`).
 
 ```text
 Checklist (s):  [a]   b    c
-                 ↑ p1
+                 ^ p1
 
 Stream (t):     [a]   h    b    g    d    c
-                 ↑ p2
-Match! Advance p1 -> 'b', advance p2 -> 'h'.
+                 ^ p2
+Match: advance both p1 and p2. On mismatch: advance only p2.
 ```
 
-### The Invariants:
-1. `p2` **always advances** on every step (`p2 += 1`) because we cannot rewind time in the warehouse stream.
-2. `p1` **only advances** when `s[p1] == t[p2]`.
-3. If `p1 == len(s)`, all checklist items were matched in order $\to$ **`True`**!
+If `p1` reaches `len(s)`, every character in `s` was matched in order.
 
----
+## Solution
 
-## 💻 Production Implementation
+<details>
+<summary>Spoiler: Solution Code</summary>
 
 ```python
 class Solution:
     def isSubsequence(self, s: str, t: str) -> bool:
         p1, p2 = 0, 0
-        
+
         while p1 < len(s) and p2 < len(t):
             if s[p1] == t[p2]:
                 p1 += 1
-            p2 += 1  # p2 moves every single step
-            
+            p2 += 1
+
         return p1 == len(s)
 ```
 
----
+</details>
 
-## ⚡ Complexity & Follow-up
-* **Time Complexity:** $\mathcal{O}(|t|)$ – Single pass through `t`.
-* **Auxiliary Space:** $\mathcal{O}(1)$ – Zero extra memory allocated.
+## Follow-up: Billions of incoming `s` queries against a fixed `t`
 
-### 💼 FAANG Follow-up Question:
-> *"What if there are lots of incoming `s`, say $s_1, s_2, \dots, s_k$ where $k \ge 10^9$, and you want to check one by one against a fixed `t`?"*
+If `t` is fixed and you receive $k \ge 10^9$ query strings $s_1, s_2, \dots, s_k$, scanning all of `t` for every query takes $\mathcal{O}(k \cdot |t|)$ time.
 
-* **Answer:** Preprocess `t` into a **HashMap of indices** (`char -> [idx1, idx2, ...]`). Then for each character in `s`, use **Binary Search (`bisect_right`)** to find the next valid index in $\mathcal{O}(|s| \log |t|)$ time instead of scanning `t` each time!
+Instead, preprocess `t` once into a hash map mapping each character to its sorted list of indices in `t`:
+- Example for `t = "ahbgdc"`: `{'a': [0], 'h': [1], 'b': [2], 'g': [3], 'd': [4], 'c': [5]}`.
+- For each character in a query `s`, use binary search (`bisect_right`) on that character's index list to find the smallest index strictly greater than the previous matched index.
+- Each query then runs in $\mathcal{O}(|s| \log |t|)$ time instead of $\mathcal{O}(|t|)$.
+
+## Complexity
+
+| Scenario | Time | Auxiliary Space |
+| :--- | :--- | :--- |
+| Single query (Two Pointers) | $\mathcal{O}(\|t\|)$ | $\mathcal{O}(1)$ |
+| $k$ queries with binary search preprocessing | $\mathcal{O}(\|t\| + k \cdot \|s\| \log \|t\|)$ | $\mathcal{O}(\|t\|)$ |

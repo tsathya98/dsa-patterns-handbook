@@ -1,163 +1,58 @@
-# 🏃 LeetCode 283: Move Zeroes – Master Guide
+# LeetCode 283: Move Zeroes
 
-> **Difficulty:** Easy  
-> **Study Plan:** LeetCode 75 / Top Interview 150  
-> **Pattern:** Two Pointers (Formation B: Scout & Writer / Fast & Slow)  
-> **LeetCode Link:** [LeetCode 283: Move Zeroes](https://leetcode.com/problems/move-zeroes/)
+> **Difficulty:** Easy | **Pattern:** Two Pointers (Scout and Writer)  
+> **LeetCode:** [283. Move Zeroes](https://leetcode.com/problems/move-zeroes/)
 
----
+## The problem
 
-## 📌 Problem in Plain English
+Given an integer array `nums`, move all `0`s to the end while keeping the relative order of the non-zero elements. Modify `nums` in-place in $\mathcal{O}(1)$ extra space.
 
-Given an integer array `nums`, move all `0`'s to the end of it while maintaining the relative order of the non-zero elements.
-
-**Constraint:** You must do this **in-place** without making a copy of the array ($\mathcal{O}(1)$ extra space).
-
-### Example:
 ```text
-Input: nums = [0, 1, 0, 3, 12]
+Input:  nums = [0, 1, 0, 3, 12]
 Output: [1, 3, 12, 0, 0]
 ```
 
----
+## The core trick: Swap across the wall of zeros
 
-## 💡 The "Aha!" Moment: The Two Pointers Scout & Writer
+Deleting each `0` and shifting the remaining elements left takes $\mathcal{O}(n^2)$ time. Instead, use two pointers moving left to right:
+- **`fast` (Scout):** Scans every index looking for non-zero numbers.
+- **`slow` (Writer):** Points to the leftmost `0` (the front of the wall of zeros), which is where the next non-zero number belongs.
 
-Instead of shifting elements repeatedly ($\mathcal{O}(n^2)$), use **two pointers** moving in the same direction:
-
-* **`fast` (The Scout):** Scans through every index hunting for non-zero numbers.
-* **`slow` (The Writer):** Points to the exact spot where the **next non-zero number belongs** (which is also the front of the "Wall of Zeros").
-
----
-
-## 🚜 The "Snowplow / Wall of Zeros" Visual Diagram
-
-Think of the array as partitioned into three distinct zones:
-```text
-[ Non-Zeros (Done!) ] | [ Wall of 0s ] | [ Unexplored Elements ... ]
-                      ▲                ▲
-                    slow              fast
-```
-
-### 🎬 Visual Step-by-Step Trace on `nums = [0, 1, 0, 0, 3, 12]`
-
-#### 📍 START:
-```text
-Indices:     0       1       2       3       4       5
-          ┌─────┬───────┬───────┬───────┬───────┬────────┐
-Array:    │  0  │   1   │   0   │   0   │   3   │   12   │
-          └─────┴───────┴───────┴───────┴───────┴────────┘
-             ▲
-        slow = 0
-        fast = 0
-```
-* `nums[fast] == 0` $\implies$ Ignore! `slow` stays parked at index 0. `fast` steps ahead.
-
----
-
-#### 📍 STEP 1: `fast` finds `1` (First Swap!)
-```text
-Indices:     0       1       2       3       4       5
-          ┌─────┬───────┬───────┬───────┬───────┬────────┐
-Array:    │  0  │   1   │   0   │   0   │   3   │   12   │
-          └─────┴───────┴───────┴───────┴───────┴────────┘
-             ▲       ▲
-           slow     fast
-             │       │
-             └──Swap─┘
-```
-**After Swap & `slow += 1`:**
-```text
-          ┌─────┐ ┌──────────────────────────────────────┐
-Array:    │  1  │ │   0   │   0   │   0   │   3   │  12  │
-          └─────┘ └──────────────────────────────────────┘
-          [Done!]     ▲
-                    slow=1
-```
-* Index `0` is locked in! `slow` moves to index `1` (which now holds a `0`).
-
----
-
-#### 📍 STEPS 2 & 3: Consecutive Zeros Accumulate (The Wall Grows!)
-`fast` scans index `2` and index `3`. Both are `0`.  
-`slow` stays parked at index `1`.
+At every step, the array is partitioned into three regions:
 
 ```text
-Indices:     0       1       2       3       4       5
-          ┌─────┐ ┌───────────────┐
-Array:    │  1  │ │   0   │   0   │   0   │   3   │   12   │
-          └─────┘ └───────────────┘
-          [Done!]  [ Wall of 0s  ]
-                     ▲                ▲
-                   slow=1           fast=3
-```
-* Notice how the **Wall of Zeros** is naturally bunching up between `slow` and `fast`!
-
----
-
-#### 📍 STEP 4: `fast` finds `3` (Second Swap!)
-`fast` arrives at index `4` and spots `3`!
-
-```text
-Indices:     0       1       2       3       4       5
-          ┌─────┐ ┌───────────────┐
-Array:    │  1  │ │   0   │   0   │   0   │   3   │   12   │
-          └─────┘ └───────────────┘
-                     ▲                        ▲
-                    slow                     fast
-                     │                         │
-                     └──────────Swap───────────┘
-```
-**After Swap & `slow += 1`:**
-```text
-Indices:     0       1       2       3       4       5
-          ┌─────────────┐ ┌───────────────┐
-Array:    │  1  │   3   │ │   0   │   0   │   0   │   12   │
-          └─────────────┘ └───────────────┘
-          [    Done!    ]  [ Wall of 0s  ]
-                             ▲
-                           slow=2
-```
-* `3` is placed in the front of the wall!
-* The `0` was kicked to index `4`.
-* `slow += 1` steps to index `2` — which is **already the next `0` in the wall**!
-
----
-
-#### 📍 STEP 5: `fast` finds `12` (Final Swap!)
-`fast` reaches the last index `5` and spots `12`!
-
-```text
-Indices:     0       1       2       3       4       5
-          ┌─────────────┐ ┌───────────────┐
-Array:    │  1  │   3   │ │   0   │   0   │   0   │   12   │
-          └─────────────┘ └───────────────┘
-                             ▲                        ▲
-                            slow                     fast
-                             │                         │
-                             └──────────Swap───────────┘
-```
-**After Swap & `slow += 1`:**
-```text
-Indices:     0       1       2       3       4       5
-          ┌─────────────────────┐ ┌──────────────────────┐
-Array:    │  1  │   3   │  12   │ │   0   │   0   │   0  │
-          └─────────────────────┘ └──────────────────────┘
-          [    ALL NON-ZEROS    ] [     ALL ZEROS        ]
-                                    ▲
-                                  slow=3
+[ Non-Zeros (0 .. slow-1) ] | [ Wall of 0s (slow .. fast-1) ] | [ Unexplored (fast .. n-1) ]
+                              ^                                 ^
+                            slow                              fast
 ```
 
----
+Whenever `nums[fast] != 0`, swap `nums[slow]` and `nums[fast]`, then advance `slow += 1`.
 
-## 💻 The Clean 4-Line Implementation
+### Why `slow += 1` always lands on a zero
+
+Every element between `slow` and `fast - 1` is guaranteed to be `0`. When you swap `nums[slow]` with `nums[fast]`, the non-zero value goes to `slow`, the `0` gets kicked to `fast`, and `slow + 1` is already the next `0` in the wall. If `slow == fast` (no zeros seen yet), the element swaps with itself and both pointers step forward together.
+
+## Step-by-step trace
+
+Tracing `nums = [0, 1, 0, 0, 3, 12]`:
+
+| `fast` | `nums[fast]` | `slow` (before) | Action | Array after step | `slow` (after) |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `0` | `0` | `0` | Skip (`slow` waits at `0`) | `[0, 1, 0, 0, 3, 12]` | `0` |
+| `1` | `1` | `0` | Swap indices `0` and `1` | `[1, 0, 0, 0, 3, 12]` | `1` |
+| `2` | `0` | `1` | Skip (wall of 0s grows) | `[1, 0, 0, 0, 3, 12]` | `1` |
+| `3` | `0` | `1` | Skip (wall of 0s grows) | `[1, 0, 0, 0, 3, 12]` | `1` |
+| `4` | `3` | `1` | Swap indices `1` and `4` | `[1, 3, 0, 0, 0, 12]` | `2` |
+| `5` | `12` | `2` | Swap indices `2` and `5` | `[1, 3, 12, 0, 0, 0]` | `3` |
+
+## Solution
+
+<details>
+<summary>Spoiler: Solution Code</summary>
 
 ```python
 class Solution:
     def moveZeroes(self, nums: list[int]) -> None:
-        """
-        Do not return anything, modify nums in-place instead.
-        """
         slow = 0
         for fast in range(len(nums)):
             if nums[fast] != 0:
@@ -165,30 +60,11 @@ class Solution:
                 slow += 1
 ```
 
----
+</details>
 
-## 📊 Iteration-by-Iteration Trace Table
+## Complexity
 
-| Step | `fast` | `nums[fast]` | `slow` | `nums[slow]` | Action Taken | Array After Step |
-| :---: | :---: | :---: | :---: | :---: | :--- | :--- |
-| **0** | `0` | `0` | `0` | `0` | Do nothing (`slow` waits) | `[0, 1, 0, 0, 3, 12]` |
-| **1** | `1` | `1` | `0` | `0` | **Swap** indices 0 & 1, `slow=1` | `[1, 0, 0, 0, 3, 12]` |
-| **2** | `2` | `0` | `1` | `0` | Do nothing (`slow` waits) | `[1, 0, 0, 0, 3, 12]` |
-| **3** | `3` | `0` | `1` | `0` | Do nothing (`slow` waits) | `[1, 0, 0, 0, 3, 12]` |
-| **4** | `4` | `3` | `1` | `0` | **Swap** indices 1 & 4, `slow=2` | `[1, 3, 0, 0, 0, 12]` |
-| **5** | `5` | `12` | `2` | `0` | **Swap** indices 2 & 5, `slow=3` | `[1, 3, 12, 0, 0, 0]` |
-
----
-
-## 💡 Why `slow += 1` Works (Even with Consecutive Zeros)
-
-1. **The Invariant:** All elements between `slow` and `fast` are **always `0`s**.
-2. **The Advance:** When you swap `nums[slow]` with `nums[fast]`, slot `slow` receives the non-zero number.
-3. The very next slot (`slow + 1`) is guaranteed to be the next `0` in that contiguous block of zeros. No searching needed!
-
----
-
-## ⏱️ Complexity Blueprint
-
-* **Time Complexity:** $\mathcal{O}(n)$ — exactly one pass through the array with `fast`.
-* **Space Complexity:** $\mathcal{O}(1)$ — strictly in-place modifications, zero additional memory allocated.
+| Metric | Value | Notes |
+| :--- | :--- | :--- |
+| **Time** | $\mathcal{O}(n)$ | Single pass with `fast`; each element is visited once. |
+| **Space** | $\mathcal{O}(1)$ | Swaps elements in-place using two integer pointers. |

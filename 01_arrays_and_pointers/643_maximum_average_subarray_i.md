@@ -1,104 +1,67 @@
-# 🪟 LeetCode 643: Maximum Average Subarray I – Master Guide
+# LeetCode 643: Maximum Average Subarray I
 
-> **Difficulty:** Easy  
-> **Study Plan:** LeetCode 75 / Top Interview 150  
-> **Pattern:** Fixed-Size Sliding Window (The Running Differential Pattern)  
-> **LeetCode Link:** [LeetCode 643: Maximum Average Subarray I](https://leetcode.com/problems/maximum-average-subarray-i/)
+> **Difficulty:** Easy | **Pattern:** Fixed-Size Sliding Window (Running Differential)  
+> **LeetCode:** [643. Maximum Average Subarray I](https://leetcode.com/problems/maximum-average-subarray-i/)
 
----
+## The problem
 
-## 📌 Problem in Plain English
+Given an integer array `nums` of length `n` and an integer `k`, find a contiguous subarray of length `k` with the maximum average value and return that average. Answers within $10^{-5}$ of the actual value are accepted.
 
-You are given an integer array `nums` consisting of `n` elements, and an integer `k`.
-
-Find a contiguous subarray whose **length is equal to `k`** that has the **maximum average value** and return this value. Any calculation with a precision error $\le 10^{-5}$ will be accepted.
-
-### Example:
 ```text
-Input: nums = [1, 12, -5, -6, 50, 3], k = 4
+Input:  nums = [1, 12, -5, -6, 50, 3], k = 4
 Output: 12.75
-Explanation: Subarray [12, -5, -6, 50] has sum 51, and 51 / 4 = 12.75
+Explanation: Subarray [12, -5, -6, 50] has sum 51, and 51 / 4 = 12.75.
 ```
 
----
+## Why the naive way fails
 
-## 💡 The "Aha!" Moment: The Running Differential Pattern 🪟
+Recomputing `sum(nums[i : i + k])` at every starting index adds $k$ elements $(n - k + 1)$ times, taking $\mathcal{O}(n \cdot k)$ time. For $n = 100,000$ and $k = 50,000$, that is $2.5 \times 10^9$ additions and triggers Time Limit Exceeded.
 
-### Why Brute Force Gets TLE:
-If you take a slice `nums[i:i+k]` or use a loop to add $k$ numbers for every starting point:
-* You repeat $k$ operations $(n - k + 1)$ times $\implies \mathcal{O}(n \cdot k)$ operations.
-* When $n = 100,000$ and $k = 50,000$, that's $\approx 2.5 \times 10^9$ operations $\implies$ **Instant Time Limit Exceeded (TLE)**!
+## The core trick: Subtract the leaving element, add the entering element
 
-### The Insight:
-Notice what happens when a fixed-size window of size $k=4$ moves forward by 1 step:
+When a window of size $k = 4$ slides right by one index, the middle $k - 1$ elements stay unchanged:
 
 ```text
-Step 1: [ 1,  12,  -5,  -6 ],  50,   3    -> Window sum = 1 + 12 - 5 - 6 = 2
-          ▲
-       (leaves!)
+Window 1: [ 1,  12,  -5,  -6 ],  50,   3   -> sum = 2
+            ^ leaves
 
-Step 2:   1, [ 12,  -5,  -6,   50 ], 3    -> Window sum = 12 - 5 - 6 + 50 = 51
-                               ▲
-                            (enters!)
+Window 2:   1, [ 12,  -5,  -6,   50 ], 3   -> sum = 2 - 1 + 50 = 51
+                                 ^ enters
 ```
 
-The middle numbers `[12, -5, -6]` are shared by **both** windows!  
-Instead of recalculating them from scratch, you update the sum in **$\mathcal{O}(1)$**:
+Update the running sum in $\mathcal{O}(1)$ time at each step `i` (for `i` from `k` to `n - 1`):
 
-$$\text{new\_sum} = \text{old\_sum} - \text{leaving\_element} + \text{entering\_element}$$
+$$\text{tot} = \text{tot} + \text{nums}[i] - \text{nums}[i - k]$$
 
----
+### Practical optimizations
 
-## 💻 Code Implementations & Progression
+1. **Loop `for i in range(k, len(nums))`:** Indexing by the entering element `i` makes the leaving element `i - k`, avoiding `i + k - 1` off-by-one bugs.
+2. **Divide by `k` once at the end:** Since $k > 0$ is constant, the subarray with the largest sum also has the largest average. Tracking `max_tot` as an integer and returning `max_tot / k` at the end avoids $n - k$ floating-point divisions inside the loop.
 
-### ❌ Step 1: Initial Working Sliding Window (Good, but has micro-bottlenecks)
-```python
-class Solution:
-    def findMaxAverage(self, nums: list[int], k: int) -> float:
-        tot = sum(nums[:k])
-        avg = tot / k
-        max_avg = avg
-        for i in range(1, len(nums) - k + 1):
-            tot = tot - nums[i - 1] + nums[i + k - 1]
-            avg = tot / k                         # ⚠️ Bottleneck: Float division in each loop!
-            max_avg = max(max_avg, avg)           # ⚠️ Function-call overhead
-        return max_avg
-```
+## Solution
 
-### ✅ Step 2: Fully Optimized Interview Solution (1.6× Faster, Cleaner Indices)
+<details>
+<summary>Spoiler: Solution Code</summary>
 
 ```python
 class Solution:
     def findMaxAverage(self, nums: list[int], k: int) -> float:
-        # 1. Establish the baseline sum for the first window of size k
         tot = sum(nums[:k])
         max_tot = tot
-        
-        # 2. Slide window from index k to len(nums)
-        # entering element: nums[i]
-        # leaving element:  nums[i - k]
+
         for i in range(k, len(nums)):
             tot += nums[i] - nums[i - k]
             if tot > max_tot:
                 max_tot = tot
-                
-        # 3. Divide by k once at the very end
+
         return max_tot / k
 ```
 
----
+</details>
 
-## ⚡ Key Optimizations & Interview Pro Tips
+## Complexity
 
-| Technique | Why it Matters |
-| :--- | :--- |
-| **Index Shift (`range(k, len(nums))` vs `range(1, len-k+1)`)** | Entering element is cleanly `nums[i]`, leaving element is `nums[i - k]`. Eliminates tricky `nums[i + k - 1]` off-by-one errors. |
-| **Deferred Division (`max_tot / k` at end)** | Since $k > 0$, maximizing the sum maximizes the average. Floating-point division (`/`) is much slower than integer operations; doing it only once saves $100,000$ float allocations. |
-| **`if tot > max_tot` vs `max()`** | Avoids the function-call overhead of Python's built-in `max()` inside tight loops. |
-
----
-
-## ⏱️ Complexity Blueprint
-
-* **Time Complexity:** $\mathcal{O}(n)$ — exactly one pass over the array of size $n$.
-* **Space Complexity:** $\mathcal{O}(1)$ — auxiliary storage for only two scalar variables (`tot`, `max_tot`).
+| Metric | Value | Notes |
+| :--- | :--- | :--- |
+| **Time** | $\mathcal{O}(n)$ | Sums the first $k$ elements once, then takes $n - k$ constant-time steps. |
+| **Space** | $\mathcal{O}(1)$ | Only tracks `tot` and `max_tot`. (To avoid allocating the initial `nums[:k]` slice in Python, you can use `sum(nums[i] for i in range(k))`). |

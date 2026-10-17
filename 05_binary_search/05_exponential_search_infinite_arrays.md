@@ -1,50 +1,43 @@
-# ♾️ Exponential Search in Infinite / Unbounded Arrays
+# Exponential search in infinite or unbounded arrays
 
-> **Course Reference:** CodeKerdos DSA — Class 10  
-> **Core Concept:** Solving LeetCode 702 in $\mathcal{O}(\log P)$ time using exponential boundary expansion.
+> **Course reference:** CodeKerdos DSA, Class 10  
+> **Core concept:** Solving LeetCode 702 in $\mathcal{O}(\log P)$ time using exponential window doubling followed by binary search.
 
----
+## 1. Problem statement
 
-## 📌 Problem Statement
-
-Given an **infinite sorted array** (or a data stream where `len(arr)` cannot be called, or out-of-bounds access returns $\infty$), find the index of target $K$.
+Given a sorted array of unknown or infinite length where `len(arr)` is unavailable (and out-of-bounds reads return $\infty$ or $2^{31}-1$), find the index of target $K$.
 
 ```text
 arr = [ 1 , 3 , 5 , 7 , 9 , 11 , 13 , 15 , 17 , 19 , ... ∞ ]
-Constraint: You CANNOT use len(arr) — the size is conceptually infinite.
+Constraint: len(arr) is unknown.
 Target: 13
 ```
 
----
+## 2. Two-phase algorithm: exponential doubling + binary search
 
-## 🧠 The 2-Phase Algorithm: Exponential Doubling + Binary Search
+A linear scan (`while arr[i] < k: i += 1`) takes $\mathcal{O}(P)$ time, where $P$ is the target's index. If $P = 10^9$, a linear scan times out.
 
-### Why Linear Search Fails:
-Scanning element-by-element (`while arr[i] <= k: i += 1`) takes $\mathcal{O}(P)$ time, where $P$ is the position of $K$. If $P = 10^9$, it times out.
-
-### Phase 1: Exponential Doubling ($\mathcal{O}(\log P)$)
-Since you cannot set `hi = len(arr) - 1`, **grow your own upper bound exponentially**:
-1. Start at `lo = 0, hi = 1`.
+### Phase 1: Exponential doubling ($\mathcal{O}(\log P)$)
+Since you cannot initialize `hi = len(arr) - 1`, find an upper bound by doubling `hi`:
+1. Start with `lo = 0` and `hi = 1`.
 2. While `arr[hi] < k`:
-   * Leapfrog `lo = hi`.
+   * Set `lo = hi`.
    * Double `hi = hi * 2`.
 
 ```text
 Target k = 13:
 
-Step 0: lo = 0, hi = 1   -> arr[1] = 3   < 13 -> Double!
-Step 1: lo = 1, hi = 2   -> arr[2] = 5   < 13 -> Double!
-Step 2: lo = 2, hi = 4   -> arr[4] = 9   < 13 -> Double!
-Step 3: lo = 4, hi = 8   -> arr[8] = 17  > 13 -> BOUNDARY CAPTURED!
+Step 0: lo = 0, hi = 1   -> arr[1] = 3   < 13 -> double
+Step 1: lo = 1, hi = 2   -> arr[2] = 5   < 13 -> double
+Step 2: lo = 2, hi = 4   -> arr[4] = 9   < 13 -> double
+Step 3: lo = 4, hi = 8   -> arr[8] = 17 >= 13 -> stop
         Search range [lo, hi] = [4, 8]
 ```
 
-### Phase 2: Classical Binary Search ($\mathcal{O}(\log P)$)
-Once you capture a finite interval $[lo, hi]$ where $arr[lo] \le k \le arr[hi]$, execute standard binary search inside $[lo, hi]$.
+### Phase 2: Binary search inside $[lo, hi]$ ($\mathcal{O}(\log P)$)
+Once `arr[lo] < k <= arr[hi]`, run standard binary search on `[lo, hi]`.
 
----
-
-## 💻 Implementation (LeetCode 702)
+## 3. Implementation (LeetCode 702)
 
 ```python
 class ArrayReader:
@@ -53,14 +46,14 @@ class ArrayReader:
         pass
 
 def search_infinite(reader: 'ArrayReader', target: int) -> int:
-    # Phase 1: Exponential Doubling to find boundaries
+    # Phase 1: Exponential doubling to bracket the target
     lo = 0
     hi = 1
     while reader.get(hi) < target:
         lo = hi
         hi *= 2
 
-    # Phase 2: Binary Search in [lo, hi]
+    # Phase 2: Binary search in [lo, hi]
     while lo <= hi:
         mid = lo + (hi - lo) // 2
         val = reader.get(mid)
@@ -74,15 +67,11 @@ def search_infinite(reader: 'ArrayReader', target: int) -> int:
     return -1
 ```
 
----
+## 4. Complexity derivation
 
-## ⚡ Complexity Derivation
+Let $P$ be the index of the target:
+1. **Doubling phase:** `hi` takes values $1, 2, 4, 8, \dots, 2^m$ and stops as soon as $2^m \ge P$, which takes $m = \lceil\log_2 P\rceil$ steps.
+2. **Binary search phase:** The bracketed window has size $hi - lo \le 2P - P = P$, so binary search takes at most $\log_2 P$ steps.
 
-Let $P$ be the actual index of the target:
-1. **Doubling Steps:** $1, 2, 4, 8, \dots, 2^m$.  
-   The loop terminates when $2^m \ge P \implies m = \lceil\log_2 P\rceil$ steps.
-2. **Binary Search Window:** The interval length is $hi - lo \le 2P - P = P$.  
-   Binary search takes $\log_2 P$ comparisons.
-
-$$\text{Total Time} = \mathcal{O}(\log P) + \mathcal{O}(\log P) = \mathcal{O}(\log P)$$
-* **Auxiliary Space:** $\mathcal{O}(1)$.
+$$\text{Total time} = \mathcal{O}(\log P) + \mathcal{O}(\log P) = \mathcal{O}(\log P)$$
+* **Auxiliary space:** $\mathcal{O}(1)$.

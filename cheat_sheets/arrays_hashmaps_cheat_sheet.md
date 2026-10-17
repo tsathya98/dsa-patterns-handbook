@@ -1,79 +1,61 @@
-# 🧱 Arrays, Strings & HashMaps Master Cheat Sheet & Decision Guide
+# Arrays, Strings & HashMaps Cheat Sheet
 
-> **Pattern:** Core Linear Data Structures (Arrays, Strings, Sets, and HashMaps)  
-> **Audience:** Complete Beginner / 1st-Year CS Student  
-> **Analogies:** The Row of Houses (Array) vs. The VIP Bouncer (Set) vs. The Coat Check (HashMap)
+## 1. Core Operations & Costs
 
----
-
-## 💡 1. The 4 Big Data Structures Compared
-
-| Data Structure | Plain English Analogy | Superpower | Big Weakness |
-|---|---|---|---|
-| **Array / List** | A row of houses on a street | Instant index access (`arr[4]`) in $\mathcal{O}(1)$ | Inserting/deleting in the middle is slow ($\mathcal{O}(n)$) |
-| **String** | An immutable sentence carved in stone | Fast sequential reads | Changing a character creates a whole new string! |
-| **Set** | A VIP bouncer's guest list | Instant presence check: *"Have I seen this?"* in $\mathcal{O}(1)$ | No duplicate items, no indexing (`set[0]` doesn't exist) |
-| **HashMap / Dict** | A coat-check ticket system | Look up any value by key (`ticket -> coat`) in $\mathcal{O}(1)$ | Uses more memory than an array |
+| Type | Read by Index / Key | Search (`x in c`) | Append | Insert/Pop at Index 0 | Mutable? |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **`list` (Dynamic Array)** | $\mathcal{O}(1)$ | $\mathcal{O}(n)$ | $\mathcal{O}(1)$ | $\mathcal{O}(n)$ (shifts everything) | Yes |
+| **`str` (String)** | $\mathcal{O}(1)$ | $\mathcal{O}(n)$ | $\mathcal{O}(n)$ copy | $\mathcal{O}(n)$ copy | No |
+| **`set` (Hash Set)** | N/A | $\mathcal{O}(1)$ | $\mathcal{O}(1)$ | N/A | Yes |
+| **`dict` (Hash Map)** | $\mathcal{O}(1)$ by key | $\mathcal{O}(1)$ by key | $\mathcal{O}(1)$ | N/A | Yes |
 
 ---
 
-## 🛑 2. The #1 Python String Trap: $\mathcal{O}(n^2)$ Concatenation
+## 2. Three Python Traps That Cause TLE
 
-In Python, strings are **immutable** (cannot be changed in-place).
+### Trap 1: String concatenation in a loop (`res += ch`)
+Strings are immutable. Writing `res += ch` inside a loop allocates and copies a brand-new string on every step, turning an $\mathcal{O}(n)$ loop into $\mathcal{O}(n^2)$.
 ```python
-# ❌ DANGEROUS CODE (O(n^2)):
-result = ""
-for char in s:
-    result += char  # Python builds an ENTIRE NEW STRING copy every single time!
-```
-If `s` has $100,000$ characters, this does $10^{10}$ operations and **Times Out (TLE)**!
-
-```python
-# ✅ OPTIMAL CODE (O(n)):
-result = []
-for char in s:
-    result.append(char)
-return "".join(result)  # Fast single-pass string allocation!
+# Do this instead (O(n)):
+chars = []
+for ch in s:
+    chars.append(ch)
+return "".join(chars)
 ```
 
+### Trap 2: Checking `val in my_dict.values()` ([LC 290: Word Pattern](../01_arrays_and_pointers/290_word_pattern.md))
+`key in my_dict` is $\mathcal{O}(1)$ because keys are hashed. `val in my_dict.values()` scans every entry linearly in $\mathcal{O}(n)$ time. For 1-to-1 (bijective) mappings, use two dicts or a `seen_values` set.
+
+### Trap 3: `list.pop(0)` or `list.insert(0, x)`
+Inserting or removing at index `0` shifts all $n - 1$ elements in memory ($\mathcal{O}(n)$). Use `collections.deque` (`popleft()` / `appendleft()` in $\mathcal{O}(1)$) or build the list backward and `.reverse()` it at the end.
+
 ---
 
-## 🏆 3. The "Two Sum" Complement Trick (The Most Famous Interview Pattern)
+## 3. Core HashMap Patterns
 
-When asked to find two numbers that add up to `target`:
-* **Brute Force:** Check every pair using nested loops $\to \mathcal{O}(n^2)$.
-* **HashMap Trick:** As you walk through the array, remember every number you've seen. For each number, ask the HashMap: *"Have we already seen `target - num`?"* $\to \mathcal{O}(n)$ time!
-
+### Pattern 1: One-Pass Complement Lookup (LC 1: Two Sum)
+Instead of checking all pairs in $\mathcal{O}(n^2)$, ask the dict if `target - num` has already been seen:
 ```python
 def twoSum(nums: list[int], target: int) -> list[int]:
-    seen = {}  # number -> index
-    
+    seen = {}  # value -> index
     for i, num in enumerate(nums):
-        complement = target - num
-        if complement in seen:
-            return [seen[complement], i]
+        comp = target - num
+        if comp in seen:
+            return [seen[comp], i]
         seen[num] = i
-        
     return []
 ```
 
----
-
-## 🗂️ 4. The Group Anagrams Pattern (Canonical Keys)
-
-When you need to group items together (like anagrams `"eat"`, `"tea"`, `"ate"`):
-1. **Find a signature (canonical key):** Sorting the characters of `"eat"`, `"tea"`, and `"ate"` all produce the exact same key: `"aet"`.
-2. Store the words in a dictionary where the key is the sorted signature!
-
+### Pattern 2: Canonical Signature Grouping (LC 49: Group Anagrams)
+Group items that share an underlying property by converting each item into a canonical immutable key (a sorted string or a 26-element character count `tuple`):
 ```python
 from collections import defaultdict
 
 def groupAnagrams(strs: list[str]) -> list[list[str]]:
     groups = defaultdict(list)
-    
     for word in strs:
-        sorted_key = "".join(sorted(word))  # "eat" -> "aet"
-        groups[sorted_key].append(word)
-        
+        key = "".join(sorted(word))
+        groups[key].append(word)
     return list(groups.values())
 ```
+*(Remember: `list` and `set` cannot be dictionary keys because they are mutable; convert them to `tuple` or `str` first.)*

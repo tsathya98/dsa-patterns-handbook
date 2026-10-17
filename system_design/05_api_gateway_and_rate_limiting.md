@@ -1,13 +1,11 @@
-# 🚪 API Gateway & Rate Limiting Architecture
+# API gateway and rate limiting architecture
 
-> **Target:** System Design Interviews (FAANG)  
-> **Key Focus:** Defending backend services from abuse, cascading failures, and unauthorized traffic while providing a unified API entry point.
+> **Target:** System design interviews  
+> **Core concept:** Centralizing TLS termination, authentication, routing, and rate limiting at the edge so backend microservices stay simple and protected from traffic abuse.
 
----
+## 1. What an API gateway does
 
-## 🏛️ 1. What Does an API Gateway Do?
-
-An **API Gateway** is a reverse proxy that sits between external clients and internal microservices.
+An API gateway is an L7 reverse proxy sitting between external clients and internal microservices.
 
 ```text
 [ Mobile / Web Clients ]
@@ -15,36 +13,32 @@ An **API Gateway** is a reverse proxy that sits between external clients and int
            ▼
 ┌──────────────────────────────────────────────┐
 │             API GATEWAY                      │
-│ 1. SSL / TLS Termination                    │
+│ 1. TLS Termination                           │
 │ 2. Authentication & Authorization (JWT check)│
-│ 3. Rate Limiting & Throttling (Redis)       │
-│ 4. Request Routing & Protocol Translation   │
-│ 5. Metrics, Logging & Distributed Tracing   │
+│ 3. Rate Limiting & Throttling (Redis)        │
+│ 4. Request Routing & Protocol Translation    │
+│ 5. Metrics, Logging & Distributed Tracing    │
 └───────┬──────────────┬──────────────┬────────┘
         │              │              │
         ▼              ▼              ▼
   [ User Service ] [ Order Service ] [ Payment Service ]
 ```
 
----
+## 2. Five rate limiting algorithms compared
 
-## ⏱️ 2. The 5 Rate Limiting Algorithms Compared
+Rate limiters cap how many requests a user, IP address, or API key can send within a time window to block brute-force logins, scrapers, and noisy neighbors:
 
-Rate limiters protect APIs from DDoS, brute-force logins, web scraping, and server overloads:
-
-| Algorithm | How It Works | Pros | Cons / Traps |
+| Algorithm | How it works | Pros | Cons and edge cases |
 | :--- | :--- | :--- | :--- |
-| **Token Bucket** | Tokens refill at a steady rate $r$. Each request consumes 1 token. If bucket is empty $\to$ reject. | Allows **bursts** of traffic up to bucket capacity; memory efficient. | Tuning token refill rate and bucket size requires testing. |
-| **Leaky Bucket** | Requests enter a FIFO queue and leak out at a **constant, smooth rate**. If queue overflows $\to$ drop. | Enforces a perfectly smooth, constant egress rate. | Bursts of requests can fill the queue and experience high latency. |
-| **Fixed Window Counter** | Divides timeline into fixed windows (e.g. 1 minute). Counter resets every minute. | Extremely simple and memory-efficient (1 integer per user). | **Window Boundary Spike Trap!** $2\times$ quota can slip through at window boundary (e.g. 100 requests at 00:59 + 100 at 01:00). |
-| **Sliding Window Log** | Stores timestamp of every request in a Redis Sorted Set (`ZSET`). Removes logs older than window. | Perfectly accurate; zero boundary spikes. | **Heavy memory consumption!** Storing thousands of timestamps per user balloons RAM. |
-| **Sliding Window Counter** | Combines Fixed Window + Weighted Average of previous window. | Accurate enough (<1% error); low memory footprint (stores only 2 counters). | Slight approximation assuming even distribution in previous window. |
+| **Token bucket** | Bucket holds up to $B$ tokens and refills at rate $r$ tokens/sec. Each request consumes 1 token; empty bucket rejects with `429`. | Allows short bursts up to bucket capacity $B$; only stores `{tokens, last_refill_ts}` per key. | Requires tuning two parameters (bucket capacity $B$ and refill rate $r$). |
+| **Leaky bucket** | Requests enter a bounded FIFO queue and drain out to workers at a constant rate. Full queue drops new requests. | Smooths bursty traffic into a flat, predictable downstream rate. | Bursts sit in the queue and add latency instead of finishing quickly. |
+| **Fixed window counter** | Increments an integer counter for the current time bucket (such as `rate:u1:14:01`) with a TTL of 60s. | One integer (`INCR`) per user per window. | **Boundary burst:** A client can send $100$ requests at `14:00:59` and $100$ more at `14:01:00` ($2\times$ the intended limit in 2 seconds). |
+| **Sliding window log** | Stores the exact timestamp of every request in a Redis Sorted Set (`ZSET`) and trims entries older than `now - window` via `ZREMRANGEBYSCORE`. | Exact sliding window with no boundary burst. | High memory footprint: storing 10,000 timestamps per user uses megabytes of RAM. |
+| **Sliding window counter** | Approximates the sliding window count using `curr_window_count + prev_window_count * overlap_fraction`. | Smooths boundary bursts while storing only two integer counters per user. | Slight approximation because it assumes requests in the previous window arrived at a uniform rate. |
 
----
+## 3. Distributed rate limiting with Redis and Lua
 
-## ⚡ 3. Distributed Rate Limiter: Redis + Lua Scripting
-
-In production, multiple API Gateway nodes must share the same rate limit state:
+When multiple API gateway nodes enforce a shared quota, a naive read-then-write check (`GET` followed by `INCR`) has a race condition:
 
 ```text
 [ Gateway Node 1 ] ──┐
@@ -52,18 +46,17 @@ In production, multiple API Gateway nodes must share the same rate limit state:
 [ Gateway Node 3 ] ──┘
 ```
 
-### The Concurrency Trap (Race Conditions):
-If two requests arrive simultaneously at Gateway 1 and Gateway 2:
-1. Both read `current_count = 99` from Redis.
-2. Both increment and write back `100`.
-3. An extra request slips past the limit!
+### The read-modify-write race condition
+If a user's limit is 100 and two requests arrive at Gateway 1 and Gateway 2 at the same millisecond when `count == 99`:
+1. Both gateways read `99`.
+2. Both gateways see `99 < 100` and increment the key, letting 101 requests through (or if `INCR` and `EXPIRE` are separate network calls, a crash between them leaves a key with no TTL that blocks the user forever).
 
-### The Production Fix: Atomic Redis Lua Script
-Redis executes Lua scripts **atomically on a single thread**, guaranteeing no race conditions:
+### Atomic Redis Lua script
+Redis executes a Lua script atomically on its single command thread, so no other command can interleave between `INCR` and `EXPIRE`:
 
 ```lua
--- KEYS[1]: User rate limit key (e.g., 'rate_limit:user_101')
--- ARGV[1]: Max limit (e.g., 100)
+-- KEYS[1]: Rate limit key (e.g., 'rate_limit:user_101:287150')
+-- ARGV[1]: Max allowed requests (e.g., 100)
 -- ARGV[2]: Window size in seconds (e.g., 60)
 
 local current = redis.call('INCR', KEYS[1])
@@ -72,17 +65,15 @@ if current == 1 then
 end
 
 if current > tonumber(ARGV[1]) then
-    return 0 -- Rejected (HTTP 429)
+    return 0 -- Reject (HTTP 429)
 else
-    return 1 -- Allowed (HTTP 200)
+    return 1 -- Allow (HTTP 200)
 end
 ```
 
----
+## 4. Standard rate limit HTTP response headers
 
-## 📡 4. Standard Rate Limiting HTTP Headers
-
-When returning responses, always inform the client of their quota:
+Return standard rate limit headers so well-behaved clients know their remaining quota and when to retry:
 
 ```http
 HTTP/1.1 429 Too Many Requests

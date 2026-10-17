@@ -1,87 +1,81 @@
-# 🍞 LeetCode 238: Product of Array Except Self – Master Study Guide
+# LeetCode 238: Product of Array Except Self
 
-> **Difficulty:** Medium | **Pattern:** Prefix & Suffix Accumulator (The Sandwich Pattern)  
-> **Complexity:** Time: $\mathcal{O}(n)$ | Auxiliary Space: $\mathcal{O}(1)$ (Output array excluded)  
+> **Difficulty:** Medium | **Pattern:** Prefix and Suffix Accumulator  
 > **Source Code:** [`238_product_of_array_except_self.py`](./238_product_of_array_except_self.py)
 
----
+## The problem
 
-## 📌 Problem in Plain English
-
-Given an integer array `nums`, return an array `res` such that `res[i]` is equal to the product of all elements of `nums` **except `nums[i]`**.
-
-* **Constraint 1:** You must write an algorithm that runs in $\mathcal{O}(n)$ time.
-* **Constraint 2:** You **cannot use the division operation `/`**.
+Given an integer array `nums`, return an array `res` where `res[i]` is the product of all elements in `nums` except `nums[i]`.
+- Must run in $\mathcal{O}(n)$ time.
+- Cannot use the division operator `/`.
 
 ```text
-Example 1:
 Input:  nums = [1, 2, 3, 4]
 Output: [24, 12, 8, 6]
 
-Explanation:
-- res[0] = 2 * 3 * 4 = 24
-- res[1] = 1 * 3 * 4 = 12
-- res[2] = 1 * 2 * 4 = 8
-- res[3] = 1 * 2 * 3 = 6
-
-Example 2:
 Input:  nums = [-1, 1, 0, -3, 3]
 Output: [0, 0, 9, 0, 0]
 ```
 
----
+## Why division fails
 
-## 🧠 Mental Model: The Sandwich (Left × Right)
+Even if division were allowed, taking the total product and dividing by `nums[i]` breaks as soon as the array contains a `0` (`ZeroDivisionError`). You would have to write separate branches for zero count $= 0$, $= 1$, and $\ge 2$.
 
-Without division, the product of everything except index `i` is simply:
-$$\text{res}[i] = (\text{product of everything to the LEFT of } i) \times (\text{product of everything to the RIGHT of } i)$$
+## The core trick: Left product times right product
+
+Without division, the product of everything except index `i` is the product of everything to its left multiplied by everything to its right:
+
+$$\text{res}[i] = \left(\prod_{j=0}^{i-1} \text{nums}[j]\right) \times \left(\prod_{j=i+1}^{n-1} \text{nums}[j]\right)$$
 
 ```text
-Array:               [ 1,      2,      3,      4 ]
-
-Prefix (Left):       [ 1,      1,      2,      6 ]   (what's before each element)
-Suffix (Right):      [ 24,     12,     4,      1 ]   (what's after each element)
---------------------------------------------------------------------------------
-Result (Left × Right): [ 24,    12,     8,      6 ]
+nums:                [  1,   2,   3,   4 ]
+Prefix (left of i):  [  1,   1,   2,   6 ]
+Suffix (right of i): [ 24,  12,   4,   1 ]
+------------------------------------------
+res (Left * Right):  [ 24,  12,   8,   6 ]
 ```
 
----
+## Cutting space from $\mathcal{O}(n)$ to $\mathcal{O}(1)$
 
-## 🚀 The $\mathcal{O}(1)$ Extra Space Optimization (FAANG Follow-Up)
+Allocating separate `prefix` and `suffix` arrays works in $\mathcal{O}(n)$ space, but you can do both passes directly inside the output array `res`:
+1. **Forward pass:** Sweep left to right with a running `prefix = 1`. Write `prefix` into `res[i]`, then multiply `prefix` by `nums[i]`.
+2. **Backward pass:** Sweep right to left with a running `suffix = 1`. Multiply `res[i]` by `suffix`, then multiply `suffix` by `nums[i]`.
 
-Instead of allocating two separate lists `prefix = []` and `suffix = []`, we reuse `res`!
+## Solution
 
-1. **Forward Pass:** Store all left products directly into `res`.
-2. **Backward Pass:** Use a single scalar variable `suffix = 1` moving backward, multiplying directly into `res[i]` on the fly.
+<details>
+<summary>Spoiler: Solution Code</summary>
 
 ```python
+from typing import List
+
 class Solution:
     def productExceptSelf(self, nums: List[int]) -> List[int]:
         n = len(nums)
         res = [1] * n
-        
-        # 1. Forward Pass: Collect products to the left
+
+        # Forward pass: store product of elements to the left of i
         prefix = 1
         for i in range(n):
             res[i] = prefix
             prefix *= nums[i]
-            
-        # 2. Backward Pass: Multiply products to the right on the fly
+
+        # Backward pass: multiply by product of elements to the right of i
         suffix = 1
         for i in range(n - 1, -1, -1):
             res[i] *= suffix
             suffix *= nums[i]
-            
+
         return res
 ```
 
----
+</details>
 
-## ⚡ Complexity & Trade-offs
+## Complexity
 
-| Approach | Time | Aux Space | Notes |
-|---|---|---|---|
-| Brute Force (Nested loops) | $\mathcal{O}(n^2)$ | $\mathcal{O}(1)$ | TLE for $n = 10^5$. |
-| Total Product with Division `/` | $\mathcal{O}(n)$ | $\mathcal{O}(1)$ | Breaks on `0` (ZeroDivisionError) and banned by problem. |
-| Separate `prefix[]` & `suffix[]` | $\mathcal{O}(n)$ | $\mathcal{O}(n)$ | ✅ Great intuitive baseline (what you coded!). |
-| **Running In-Place `res[]` (Optimal)** | $\mathcal{O}(n)$ | **$\mathcal{O}(1)$** | 🏆 FAANG Standard. Beats memory percentiles. |
+| Approach | Time | Auxiliary Space | Notes |
+| :--- | :--- | :--- | :--- |
+| Brute force (nested loops) | $\mathcal{O}(n^2)$ | $\mathcal{O}(1)$ | Hits TLE for $n = 10^5$. |
+| Total product with `/` | $\mathcal{O}(n)$ | $\mathcal{O}(1)$ | Disallowed by prompt and breaks on zeros. |
+| Separate `prefix` and `suffix` lists | $\mathcal{O}(n)$ | $\mathcal{O}(n)$ | Good starting point, allocates two extra arrays. |
+| Two passes inside `res` | $\mathcal{O}(n)$ | $\mathcal{O}(1)$ | Optimal (output array excluded from extra space). |

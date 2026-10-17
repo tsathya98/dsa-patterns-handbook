@@ -1,131 +1,84 @@
-# ⚡ Bit Manipulation Master Cheat Sheet & Decision Guide
+# Bit Manipulation Cheat Sheet
 
-> **Pattern:** Bit Manipulation & Bitwise Operations  
-> **Target Audience:** Hardware, Systems (Nvidia, Qualcomm), and High-Performance Software Engineering.  
-> **Philosophy:** Bits are the native language of the CPU. What takes loops and dictionaries in high-level code often takes **1 single clock cycle** with bitwise operators.
+## 1. The 6 Bitwise Operators
 
----
-
-## 💡 1. The 6 Fundamental Bitwise Operators
-
-| Operator | Name | What it Does | Silicon Rule | Example (a = 5 = 101₂, b = 3 = 011₂) |
-| :---: | :--- | :--- | :--- | :--- |
-| **`&`** | **AND** | `1` only if BOTH bits are 1 | Multiplies bits | `5 & 3` $\implies 001_2 = \mathbf{1}$ |
-| **`\|`** | **OR** | `1` if AT LEAST ONE bit is 1 | Sets a bit | `5 \| 3` $\implies 111_2 = \mathbf{7}$ |
-| **`^`** | **XOR** | `1` if bits are DIFFERENT (`0^1=1`, `1^1=0`) | Toggles a bit | `5 ^ 3` $\implies 110_2 = \mathbf{6}$ |
-| **`~`** | **NOT** | Flips all bits (`~x = -(x + 1)`) | Inverts | `~5` $\implies \mathbf{-6}$ |
-| **`<<`** | **Left Shift** | Shifts bits left, fills with 0 (Multiplies by $2^k$) | Shift left | `5 << 1` $\implies 1010_2 = \mathbf{10}$ |
-| **`>>`** | **Right Shift** | Shifts bits right (Divides by $2^k$) | Shift right | `5 >> 1` $\implies 10_2 = \mathbf{2}$ |
+| Operator | Name | Rule | Example (`5 = 101₂`, `3 = 011₂`) |
+| :--- | :--- | :--- | :--- |
+| `&` | AND | `1` only if both bits are `1` | `5 & 3` $\to 001_2 = 1$ |
+| `\|` | OR | `1` if at least one bit is `1` | `5 \| 3` $\to 111_2 = 7$ |
+| `^` | XOR | `1` if bits differ (`0^1 = 1`, `1^1 = 0`) | `5 ^ 3` $\to 110_2 = 6$ |
+| `~` | NOT | Inverts all bits (`~x == -(x + 1)`) | `~5` $\to -6$ |
+| `<<` | Left Shift | Shifts bits left, multiplies by $2^k$ | `5 << 1` $\to 1010_2 = 10$ |
+| `>>` | Right Shift | Shifts bits right, floor-divides by $2^k$ | `5 >> 1` $\to 10_2 = 2$ |
 
 ---
 
-## 🕹️ 2. The Stream Accumulation Pattern (Horner's Rule in Bits)
+## 2. Core Tricks
 
-When reading an incoming stream of bits from left to right (like in a network packet or [LC 1290: Convert Binary in Linked List](../02_linked_lists/1290_convert_binary_number_in_a_linked_list_to_integer.md)):
-
-```text
-Bits arrive:  [ 1 ]  ──►  [ 0 ]  ──►  [ 1 ]   (Binary 101 = Decimal 5)
-
-Step 1: Start ans = 0
-Step 2: ans = (ans << 1) | 1  -> 0001 (1)
-Step 3: ans = (ans << 1) | 0  -> 0010 (2)
-Step 4: ans = (ans << 1) | 1  -> 0101 (5)
-```
-
+### Trick 1: Stream Accumulation / Horner's Rule ([LC 1290](../02_linked_lists/1290_convert_binary_number_in_a_linked_list_to_integer.md))
+When reading bits from left to right, shift the running total left by 1 (multiply by 2) and attach the incoming bit:
 ```python
 ans = 0
 while head:
-    ans = (ans << 1) | head.val  # Shift left by 1 (multiply by 2), attach new bit!
+    ans = (ans << 1) | head.val
     head = head.next
 ```
 
----
-
-## 🏆 3. The 5 Essential "Power Hacks" (Interview Weapons)
-
-### 🔹 Hack 1: Odd or Even Check
-* **Normal Code:** `if n % 2 == 1:` (requires division/modulo).
-* **Bitwise Hack:**
-  ```python
-  if n & 1:  # The least significant bit (LSB) is 1 for odd numbers!
-      # n is Odd
-  ```
-
----
-
-### 🔹 Hack 2: Is `n` a Power of 2? (LC 231)
-Powers of 2 have **exactly one bit set**:
-* $4 = 100_2$
-* $8 = 1000_2$
-* $16 = 10000_2$
-
-Notice what happens when you subtract 1:
-* $8 - 1 = 7 = 0111_2$
-* $8 \ \& \ 7 = 1000_2 \ \& \ 0111_2 = \mathbf{0}$!
-
+### Trick 2: Odd or Even Check
+Check the least significant bit (LSB):
 ```python
-def isPowerOfTwo(n: int) -> bool:
-    return n > 0 and (n & (n - 1)) == 0
+is_odd = (n & 1) == 1
 ```
 
----
-
-### 🔹 Hack 3: Clear the Lowest Set Bit (Brian Kernighan's Algorithm - LC 191)
-`n & (n - 1)` always wipes out the **rightmost `1` bit** to `0`:
+### Trick 3: Clear the Lowest Set Bit (`n & (n - 1)`) (LC 191, LC 231)
+Subtracting 1 flips the rightmost `1` bit to `0` and turns all trailing zeros after it to `1`. ANDing `n` with `n - 1` wipes out that lowest `1` bit in one operation:
 
 ```text
-  n     = 1 1 0 1 0 0
-  n - 1 = 1 1 0 0 1 1
-──────────────────────
-  n & (n-1) = 1 1 0 0 0 0  (Lowest 1 bit wiped out!)
+  n         = 110100
+  n - 1     = 110011
+  n & (n-1) = 110000  (rightmost 1 cleared)
 ```
 
-#### Count Number of Set Bits (Hamming Weight) in $\mathcal{O}(\text{bits})$ time:
-```python
-def hammingWeight(n: int) -> int:
-    count = 0
-    while n > 0:
-        n = n & (n - 1)  # Strips 1 set bit per round!
-        count += 1
-    return count
-```
+- **Power of two check (LC 231):** Powers of two have a single `1` bit (`4 = 100₂`, `8 = 1000₂`).
+  ```python
+  def isPowerOfTwo(n: int) -> bool:
+      return n > 0 and (n & (n - 1)) == 0
+  ```
+- **Count set bits / Hamming Weight (LC 191):** Loop only as many times as there are `1` bits.
+  ```python
+  def hammingWeight(n: int) -> int:
+      count = 0
+      while n > 0:
+          n &= (n - 1)
+          count += 1
+      return count
+  ```
 
----
+### Trick 4: Isolate the Lowest Set Bit (`n & -n`)
+Two's complement negation `-n` is `~n + 1`, so `n & -n` zeroes everything except the rightmost `1` bit (`12 & -12 == 4`). Used in Fenwick Trees (Binary Indexed Trees).
 
-### 🔹 Hack 4: Extract the Lowest Set Bit (LSB)
-To isolate **only** the lowest set bit and turn everything else to `0`:
-```python
-lowest_bit = n & -n
-```
-* Example: $12 = 1100_2 \implies 12 \ \& \ (-12) = 0100_2 = \mathbf{4}$!
-* *Why it works:* Two's complement negation `-n` inverts all bits and adds 1.
+### Trick 5: XOR Duplicate Cancellation (LC 136, LC 268)
+XOR obeys three rules:
+1. $x \oplus x = 0$ (duplicates cancel out).
+2. $x \oplus 0 = x$.
+3. Order does not matter ($a \oplus b \oplus a = b$).
 
----
-
-### 🔹 Hack 5: XOR Cancellation / The Duplicate Eraser (LC 136)
-The 3 magical properties of XOR:
-1. $x \oplus x = \mathbf{0}$ (Any number XORed with itself vanishes!).
-2. $x \oplus 0 = \mathbf{x}$ (Any number XORed with 0 stays itself).
-3. Order doesn't matter: $a \oplus b \oplus a = (a \oplus a) \oplus b = 0 \oplus b = \mathbf{b}$.
-
-#### Find the Single Number in an array of duplicates:
 ```python
 def singleNumber(nums: list[int]) -> int:
     res = 0
     for num in nums:
-        res ^= num  # All duplicates destroy each other!
+        res ^= num
     return res
 ```
 
 ---
 
-## 🎯 4. Quick Decision Matrix
+## 3. Quick Decision Table
 
-| What is the problem asking? | Bitwise Formula | Classic Problem |
+| Problem Goal | Bitwise Expression | Classic Problem |
 | :--- | :--- | :--- |
-| Accumulate stream of bits | `(ans << 1) \| bit` | LC 1290: Convert Binary in Linked List |
-| Find single non-duplicate | `res ^= num` | LC 136: Single Number |
-| Check power of two | `n > 0 and (n & (n - 1)) == 0` | LC 231: Power of Two |
-| Count number of 1-bits | `n = n & (n - 1)` loop | LC 191: Number of 1 Bits |
-| Missing number in range `0..n` | XOR all indices and values | LC 268: Missing Number |
-| Swap two numbers without temp | `a ^= b; b ^= a; a ^= b` | Bitwise Swap |
+| Convert bit stream to int | `ans = (ans << 1) \| bit` | LC 1290 |
+| Find single non-duplicate | `res ^= num` | LC 136 |
+| Check power of two | `n > 0 and (n & (n - 1)) == 0` | LC 231 |
+| Count set `1` bits | `n &= (n - 1)` in a `while n:` loop | LC 191 |
+| Missing number in `0..n` | XOR all indices `0..n` with all values | LC 268 |

@@ -1,104 +1,62 @@
-# 🔦 LeetCode 5: Longest Palindromic Substring – Master Study Guide
+# LeetCode 5: Longest Palindromic Substring
 
-> **Difficulty:** Medium | **Pattern:** Two Pointers Formation F (Outward Expand Around Center / The Flashlight Beam)  
-> **Complexity:** Time: $\mathcal{O}(n^2)$ | Auxiliary Space: $\mathcal{O}(1)$ (Beats 92.04% memory!)  
+> **Difficulty:** Medium | **Pattern:** Two Pointers (Expand Around Center)  
 > **Source Code:** [`5_longest_palindromic_substring.py`](./5_longest_palindromic_substring.py)
 
----
+## The problem
 
-## 📌 Problem in Plain English
-
-Given a string `s`, return the **longest palindromic substring** in `s` (a contiguous slice that reads the exact same forward and backward).
+Given a string `s`, return the longest palindromic substring in `s`.
 
 ```text
-Example 1:
-Input:  s = "babad"
-Output: "bab" (or "aba")
-
-Example 2:
-Input:  s = "cbbd"
-Output: "bb"
+Input:  s = "babad" -> Output: "bab" (or "aba")
+Input:  s = "cbbd"  -> Output: "bb"
 ```
 
----
+## The core trick: Expand outward from every center
 
-## 🧠 Mental Model: The Flashlight Beam (Expand Around Center)
+Checking whether a known string is a palindrome uses inward pointers (`l = 0, r = n - 1`). Finding a palindrome inside a larger string reverses the direction: start at a center and expand outward (`l -= 1`, `r += 1`) while `s[l] == s[r]`.
 
-* **Validating** if a known string is a palindrome (*LC 125*) uses **Inward Squeeze** (`l = 0, r = n - 1`).
-* **Finding** a palindrome hidden inside a string (*LC 5, LC 647*) flips the pointers inside-out: **Outward Expansion**!
-
-Think of a **Flashlight Beam** starting at a center index `i` and shining outward (`l -= 1`, `r += 1`) as long as the left and right characters mirror each other (`s[l] == s[r]`).
-
-### Why Are There 2 Types of Centers? ($2N$ Centers Total)
-Every palindrome has either an **Odd** length or an **Even** length:
+Every palindrome has one of two center types ($2n$ centers in total):
 
 ```text
-1. ODD-LENGTH PALINDROME ("b a b") -> Center is ON character i:
+1. Odd-length palindrome ("bab") -> Center is on index i:
    Start: l = i, r = i
-         ◄── l   r ──►
-       " b   [a]   b "
+         <-- l   r -->
+       " b  [a]  b "
 
-2. EVEN-LENGTH PALINDROME ("c b b d") -> Center is BETWEEN i and i + 1:
+2. Even-length palindrome ("cbbd") -> Center is between i and i + 1:
    Start: l = i, r = i + 1
-         ◄── l       r ──►
-       " c   [b   b]   d "
+         <-- l     r -->
+       " c  [b  b]  d "
 ```
 
----
+## Boundary math: Why the valid slice is `s[l + 1 : r]`
 
-## 🔍 The Boundary Rule: Why `return s[l + 1 : r]`?
-
-Inside the `while` loop:
+Inside the expansion loop:
 ```python
 while l >= 0 and r < len(s) and s[l] == s[r]:
     l -= 1
     r += 1
 ```
-When the `while` loop finally stops, `l` and `r` have **already stepped 1 index too far outward** (either out of bounds or onto mismatched characters)!
+When the `while` loop terminates, `l` and `r` have already stepped one index past the palindrome (either out of bounds or onto mismatched characters):
 
 ```text
 s = "x  b  a  b  y"
      0  1  2  3  4
-     ▲           ▲
-     l           r    <-- Loop stops here because s[0] ('x') != s[4] ('y')!
-```
-* Last **valid** left index = `l + 1` (`1`)
-* Last **valid** right index = `r - 1` (`3`)
-* In Python slicing `s[start:stop]`, `stop` is exclusive, so `(r - 1) + 1 = r`.
-* Therefore: **`s[l + 1 : r]`** (and its length is `(r - 1) - (l + 1) + 1 = r - l - 1`).
-
----
-
-## 💻 Production Implementation (Your Accepted Solution)
-
-```python
-class Solution:
-    def longestPalindrome(self, s: str) -> str:
-        def _expand(l: int, r: int) -> str:
-            while l >= 0 and r < len(s) and s[l] == s[r]:
-                l -= 1
-                r += 1
-            return s[l + 1 : r]
-
-        max_len = 0
-        max_pal = ""
-        for i in range(len(s)):
-            pal = _expand(i, i)
-            if len(pal) > max_len:
-                max_len = len(pal)
-                max_pal = pal
-            pal = _expand(i, i + 1)
-            if len(pal) > max_len:
-                max_len = len(pal)
-                max_pal = pal
-        return max_pal
+     ^           ^
+     l           r   (loop stops here because s[0] != s[4])
 ```
 
----
+- Last valid left index: `l + 1` (`1`)
+- Last valid right index: `r - 1` (`3`)
+- Since Python's slice stop index is exclusive, `s[l + 1 : r]` extracts indices `l + 1` through `r - 1`, with length `r - (l + 1) = r - l - 1`.
 
-## ⚡ Micro-Optimization: Slice Once at the End ($\mathcal{O}(1)$ Pure Space)
+Returning the index pair `(l + 1, r)` from the helper and slicing `s` once at the very end avoids allocating $2n$ intermediate strings during the loop.
 
-In `_expand`, returning `s[l+1:r]` allocates $2N$ string slices across the loop. If you instead return just the length or indices `(l + 1, r)` and slice `s` **only once** at the very end, you avoid $2N$ heap allocations:
+## Solution
+
+<details>
+<summary>Spoiler: Solution Code</summary>
 
 ```python
 class Solution:
@@ -107,7 +65,7 @@ class Solution:
             while l >= 0 and r < len(s) and s[l] == s[r]:
                 l -= 1
                 r += 1
-            return l + 1, r  # Just 2 integers, zero string copying!
+            return l + 1, r
 
         best_l, best_r = 0, 0
         for i in range(len(s)):
@@ -118,13 +76,13 @@ class Solution:
         return s[best_l:best_r]
 ```
 
----
+</details>
 
-## 🏆 Complexity & FAANG Trade-offs
+## Complexity
 
-| Approach | Time | Auxiliary Space | Interview Verdict |
-|---|---|---|---|
-| **Brute Force (All substrings + reverse)** | $\mathcal{O}(n^3)$ | $\mathcal{O}(n)$ | ❌ TLE ($1000^3 = 10^9$ ops). |
-| **2D Dynamic Programming (`dp[i][j]`)** | $\mathcal{O}(n^2)$ | $\mathcal{O}(n^2)$ | ⚠️ Wastes $N^2$ matrix memory and slower than Two Pointers. |
-| **Expand Around Center (Yours!)** | $\mathcal{O}(n^2)$ | $\mathcal{O}(1)$ | 🏆 **FAANG Gold Standard** — Intuitive, zero DP table overhead, beats 92% memory. |
-| **Manacher's Algorithm** | $\mathcal{O}(n)$ | $\mathcal{O}(n)$ | 🤓 Overkill trivia; interviewers never expect you to code Manacher's from memory. |
+| Approach | Time | Auxiliary Space | Notes |
+| :--- | :--- | :--- | :--- |
+| Brute force (all substrings) | $\mathcal{O}(n^3)$ | $\mathcal{O}(n)$ | Hits TLE for $n = 1000$. |
+| 2D Dynamic Programming (`dp[i][j]`) | $\mathcal{O}(n^2)$ | $\mathcal{O}(n^2)$ | Allocates an $n \times n$ boolean table. |
+| Expand Around Center | $\mathcal{O}(n^2)$ | $\mathcal{O}(1)$ | Optimal practical interview solution. |
+| Manacher's Algorithm | $\mathcal{O}(n)$ | $\mathcal{O}(n)$ | Linear time, rarely expected in interviews. |
