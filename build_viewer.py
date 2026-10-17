@@ -24,14 +24,15 @@ CATEGORY_META = {
     "03_stacks_and_queues": {"label": "03. Stacks & Queues", "order": 4, "icon": "🥞"},
     "04_sorting": {"label": "04. Sorting", "order": 5, "icon": "📊"},
     "05_binary_search": {"label": "05. Binary Search", "order": 6, "icon": "🔍"},
-    "system_design": {"label": "System Design", "order": 7, "icon": "🏗️"},
-    "cheat_sheets": {"label": "Cheat Sheets", "order": 8, "icon": "⚡"},
+    "06_recursion_and_backtracking": {"label": "06. Recursion & Backtracking", "order": 7, "icon": "🌳"},
+    "system_design": {"label": "System Design", "order": 8, "icon": "🏗️"},
+    "cheat_sheets": {"label": "Cheat Sheets", "order": 9, "icon": "⚡"},
 }
 
 DEFAULT_SOLVED_NUMBERS = {
-    2, 3, 5, 11, 12, 13, 15, 19, 20, 21, 26, 27, 48, 53, 54, 55, 66,
-    80, 83, 88, 121, 122, 125, 141, 142, 143, 167, 169, 189, 206, 228,
-    234, 238, 274, 283, 290, 392, 643, 678, 704, 724, 1290, 1456, 1721
+    2, 3, 5, 11, 12, 13, 15, 19, 20, 21, 26, 27, 48, 51, 53, 54, 55, 66,
+    75, 78, 80, 83, 88, 121, 122, 125, 141, 142, 143, 167, 169, 189, 206, 228,
+    234, 238, 241, 274, 283, 290, 392, 459, 643, 678, 704, 724, 779, 1290, 1456, 1721
 }
 
 # Official LeetCode Top Interview 150 (Exact 150 problems across 23 categories)
@@ -325,8 +326,8 @@ def parse_doc_metadata(rel_path: str, filename: str, content: str) -> dict:
 
     m_lc_title = re.search(r"LeetCode\s+(\d+)", title, re.IGNORECASE)
     lc_number = int(m_lc_title.group(1)) if m_lc_title else None
-    if lc_number is None and cat_raw in ("01_arrays_and_pointers", "02_linked_lists", "03_stacks_and_queues"):
-        if prefix_num > 0 and not filename.startswith("00_") and not filename.startswith("01_linked_list_fundamentals"):
+    if lc_number is None and cat_raw in ("01_arrays_and_pointers", "02_linked_lists", "03_stacks_and_queues", "06_recursion_and_backtracking"):
+        if prefix_num > 0 and not filename.startswith("00_") and not filename.startswith("01_"):
             lc_number = prefix_num
 
     short_title = re.sub(r"^(?:LeetCode\s+\d+\s*[:\-–]\s*|\d+\.\s*)", "", title, flags=re.IGNORECASE).strip()
