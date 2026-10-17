@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """
 Generate the unified DSA Study Hub & Tracker web application:
-- Bundles all 94 markdown study guides, cheat sheets, and system design docs as JSON.
+- Separates Concept/Theory Notes from LeetCode Problem Walkthroughs & Cheat Sheets.
+- Replaces olive/emerald green with 4 modern developer palettes:
+  1. Linear Indigo (Default Dark)
+  2. Tokyo Night (Cyan & Lavender Dark)
+  3. Catppuccin Mocha (Warm Pastel Dark)
+  4. Daylight Clean (Crisp Light)
 - Renders Markdown (marked.js), Syntax Highlighting (highlight.js), Math (KaTeX),
-  and Flowcharts (Mermaid.js) locally via static/vendor/ with zero CORS issues on file://.
-- Outputs viewer.html (defaults to Reader view), tracker.html (defaults to Tracker view),
-  and index.html (defaults to Reader/Tracker hub).
+  and Flowcharts (Mermaid.js) locally via static/vendor/.
 """
 
 import os
@@ -16,14 +19,14 @@ ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 CATEGORY_META = {
     "Root": {"label": "Overview & Plans", "order": 0, "icon": "🧭"},
-    "cheat_sheets": {"label": "Cheat Sheets", "order": 1, "icon": "⚡"},
-    "00_foundations": {"label": "00. Foundations", "order": 2, "icon": "🧱"},
-    "01_arrays_and_pointers": {"label": "01. Arrays & Pointers", "order": 3, "icon": "🎯"},
-    "02_linked_lists": {"label": "02. Linked Lists", "order": 4, "icon": "🔗"},
-    "03_stacks_and_queues": {"label": "03. Stacks & Queues", "order": 5, "icon": "🥞"},
-    "04_sorting": {"label": "04. Sorting", "order": 6, "icon": "📊"},
-    "05_binary_search": {"label": "05. Binary Search", "order": 7, "icon": "🔍"},
-    "system_design": {"label": "System Design", "order": 8, "icon": "🏗️"},
+    "00_foundations": {"label": "00. Foundations", "order": 1, "icon": "🧱"},
+    "01_arrays_and_pointers": {"label": "01. Arrays & Pointers", "order": 2, "icon": "🎯"},
+    "02_linked_lists": {"label": "02. Linked Lists", "order": 3, "icon": "🔗"},
+    "03_stacks_and_queues": {"label": "03. Stacks & Queues", "order": 4, "icon": "🥞"},
+    "04_sorting": {"label": "04. Sorting", "order": 5, "icon": "📊"},
+    "05_binary_search": {"label": "05. Binary Search", "order": 6, "icon": "🔍"},
+    "system_design": {"label": "System Design", "order": 7, "icon": "🏗️"},
+    "cheat_sheets": {"label": "Cheat Sheets", "order": 8, "icon": "⚡"},
 }
 
 DEFAULT_SOLVED_PATHS = [
@@ -78,20 +81,30 @@ def parse_doc_metadata(rel_path: str, filename: str, content: str) -> dict:
     m_title = re.search(r"^#\s+(.+)$", content, re.MULTILINE)
     title = m_title.group(1).strip() if m_title else filename
 
-    # Check if filename starts with a number (either LC number or 00/01 prefix)
+    # Check if filename starts with a number
     m_num = re.match(r"^(\d+)_", filename)
     prefix_num = int(m_num.group(1)) if m_num else 9999
 
-    # Determine if it's a LeetCode problem
+    # Determine if it's a LeetCode problem walkthrough vs Concept guide
     m_lc_title = re.search(r"LeetCode\s+(\d+)", title, re.IGNORECASE)
     lc_number = int(m_lc_title.group(1)) if m_lc_title else None
     if lc_number is None and cat_raw in ("01_arrays_and_pointers", "02_linked_lists", "03_stacks_and_queues"):
         if prefix_num > 0 and not filename.startswith("00_") and not filename.startswith("01_linked_list_fundamentals"):
             lc_number = prefix_num
 
+    # Clean short display title (strips "LeetCode 88: " or "53. ")
+    short_title = re.sub(r"^(?:LeetCode\s+\d+\s*[:\-–]\s*|\d+\.\s*)", "", title, flags=re.IGNORECASE).strip()
+
     # Difficulty
     m_diff = re.search(r"\*\*Difficulty:\*\*\s*(Easy|Medium|Hard)", content, re.IGNORECASE)
-    difficulty = m_diff.group(1).capitalize() if m_diff else ("Cheat Sheet" if cat_raw == "cheat_sheets" else "Concept")
+    if m_diff:
+        difficulty = m_diff.group(1).capitalize()
+    elif cat_raw == "cheat_sheets":
+        difficulty = "Cheat Sheet"
+    elif lc_number is not None:
+        difficulty = "Easy"
+    else:
+        difficulty = "Concept"
 
     # Pattern
     m_pat = re.search(r"\*\*Pattern:\*\*\s*([^\n|]+)", content)
@@ -101,39 +114,33 @@ def parse_doc_metadata(rel_path: str, filename: str, content: str) -> dict:
     m_url = re.search(r"\((https://leetcode\.com/problems/[^)]+)\)", content)
     lc_url = m_url.group(1).strip() if m_url else ""
 
-    # Short 1-line summary (first normal paragraph line)
+    # Short 1-line summary
     summary = ""
     for line in content.splitlines():
         s = line.strip()
         if not s or s.startswith("#") or s.startswith(">") or s.startswith("```") or s.startswith("|") or s.startswith("---") or s.startswith("<"):
             continue
-        # Clean markdown formatting
         clean_s = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", s)
         clean_s = clean_s.replace("**", "").replace("`", "")
         if len(clean_s) > 20:
             summary = clean_s[:160] + ("..." if len(clean_s) > 160 else "")
             break
 
-    # Doc type & sort key
+    # Doc type: separate 'concept', 'problem', 'cheat_sheet'
     if cat_raw == "cheat_sheets":
         doc_type = "cheat_sheet"
-        sort_key = (0, prefix_num, title.lower())
-    elif cat_raw == "system_design":
-        doc_type = "system_design"
-        sort_key = (0, prefix_num, title.lower())
-    elif cat_raw == "Root":
-        doc_type = "overview"
-        sort_key = (0, prefix_num, title.lower())
+        sort_key = (2, prefix_num, short_title.lower())
     elif lc_number is not None:
         doc_type = "problem"
-        sort_key = (1, lc_number, title.lower())
+        sort_key = (1, lc_number, short_title.lower())
     else:
         doc_type = "concept"
-        sort_key = (0, prefix_num, title.lower())
+        sort_key = (0, prefix_num, short_title.lower())
 
     return {
         "path": rel_path,
         "title": title,
+        "shortTitle": short_title,
         "category": cat_raw,
         "categoryLabel": cat_info["label"],
         "categoryOrder": cat_info["order"],
@@ -163,7 +170,6 @@ for root, dirs, files in os.walk(ROOT_DIR):
                 content = fp.read()
             raw_docs.append(parse_doc_metadata(rel_path, f, content))
 
-# Sort deterministically by category order, then doc_type (concepts before LC problems), then LC number
 raw_docs.sort(key=lambda d: (d["categoryOrder"], d["sortOrder"][0], d["sortOrder"][1], d["sortOrder"][2]))
 
 docs = {}
@@ -180,13 +186,13 @@ hl_css = open(hl_css_path, "r", encoding="utf-8").read() if os.path.exists(hl_cs
 docs_json_str = json.dumps(docs)
 
 
-def build_html(default_view: str = "reader") -> str:
+def build_html(default_view: str = "concepts") -> str:
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DSA Visual Study Hub & Tracker</title>
+  <title>DSA Visual Study Hub & Problem Tracker</title>
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
   <link rel="stylesheet" href="static/vendor/katex.min.css">
   <script src="static/vendor/marked.min.js"></script>
@@ -197,52 +203,92 @@ def build_html(default_view: str = "reader") -> str:
   <style>
     {hl_css}
 
-    /* THEME 1: OBSIDIAN CHARCOAL (DEFAULT) */
-    body.theme-charcoal {{
-      --bg: #0c0e12;
-      --surface: #13171f;
-      --surface-card: #181d27;
-      --surface-hover: #1f2633;
-      --border: #262f3f;
+    /* =======================================================================
+       4 MODERN, CRISP DEVELOPER PALETTES (NO SWAMPY OLIVE GREEN!)
+       ======================================================================= */
+
+    /* 1. LINEAR INDIGO (Default: Sleek Slate + Electric Indigo & Sky Blue) */
+    body.theme-indigo {{
+      --bg: #0b0d13;
+      --surface: #111520;
+      --surface-card: #161b28;
+      --surface-hover: #1e2536;
+      --border: #262f45;
       --text: #f1f5f9;
       --text-muted: #94a3b8;
-      --accent: #10b981;
-      --accent-soft: rgba(16, 185, 129, 0.14);
-      --code-bg: #090b0e;
-      --heading-h1: #34d399;
+      --accent: #6366f1;
+      --accent-text: #818cf8;
+      --accent-fg: #ffffff;
+      --accent-soft: rgba(99, 102, 241, 0.14);
+      --accent-border: rgba(99, 102, 241, 0.38);
+      --code-bg: #080a0f;
+      --code-inline-bg: #1e2538;
+      --code-inline-text: #a5b4fc;
+      --heading-h1: #f8fafc;
       --heading-h2: #38bdf8;
     }}
 
-    /* THEME 2: MATCHA / GRUVBOX */
-    body.theme-matcha {{
-      --bg: #141615;
-      --surface: #1b1e1c;
-      --surface-card: #222623;
-      --surface-hover: #2b302c;
-      --border: #333935;
-      --text: #ebdbb2;
-      --text-muted: #a89984;
-      --accent: #a9b665;
-      --accent-soft: rgba(169, 182, 101, 0.16);
-      --code-bg: #0f1110;
-      --heading-h1: #a9b665;
-      --heading-h2: #7daea3;
+    /* 2. TOKYO NIGHT (Deep Neon Blue-Black + Cyan & Lavender) */
+    body.theme-tokyo {{
+      --bg: #16161e;
+      --surface: #1a1b26;
+      --surface-card: #212434;
+      --surface-hover: #292e42;
+      --border: #333952;
+      --text: #c0caf5;
+      --text-muted: #7aa2f7;
+      --accent: #7dcfff;
+      --accent-text: #7dcfff;
+      --accent-fg: #0f111a;
+      --accent-soft: rgba(125, 207, 255, 0.14);
+      --accent-border: rgba(125, 207, 255, 0.38);
+      --code-bg: #111219;
+      --code-inline-bg: #282c40;
+      --code-inline-text: #bb9af7;
+      --heading-h1: #7dcfff;
+      --heading-h2: #bb9af7;
     }}
 
-    /* THEME 3: WARM PAPER (KINDLE SEPIA) */
-    body.theme-sepia {{
-      --bg: #f6f1e7;
-      --surface: #ece4d7;
+    /* 3. CATPPUCCIN MOCHA (Cozy Pastel Mauve & Sapphire Dark) */
+    body.theme-mocha {{
+      --bg: #181825;
+      --surface: #1e1e2e;
+      --surface-card: #252538;
+      --surface-hover: #313244;
+      --border: #3b3d54;
+      --text: #cdd6f4;
+      --text-muted: #a6adc8;
+      --accent: #cba6f7;
+      --accent-text: #cba6f7;
+      --accent-fg: #11111b;
+      --accent-soft: rgba(203, 166, 247, 0.15);
+      --accent-border: rgba(203, 166, 247, 0.4);
+      --code-bg: #11111b;
+      --code-inline-bg: #2b2c40;
+      --code-inline-text: #f5c2e7;
+      --heading-h1: #cba6f7;
+      --heading-h2: #89b4fa;
+    }}
+
+    /* 4. DAYLIGHT CLEAN (Stripe / Linear Crisp Light Mode) */
+    body.theme-daylight {{
+      --bg: #f8fafc;
+      --surface: #f1f5f9;
       --surface-card: #ffffff;
-      --surface-hover: #e5dccb;
-      --border: #d8ccb8;
-      --text: #282320;
-      --text-muted: #6e635d;
-      --accent: #059669;
-      --accent-soft: rgba(5, 150, 105, 0.12);
-      --code-bg: #1e242b;
-      --heading-h1: #047857;
-      --heading-h2: #0369a1;
+      --surface-hover: #e2e8f0;
+      --border: #cbd5e1;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --accent: #4f46e5;
+      --accent-text: #4f46e5;
+      --accent-fg: #ffffff;
+      --accent-soft: rgba(79, 70, 229, 0.1);
+      --accent-border: rgba(79, 70, 229, 0.3);
+      --code-bg: #0f172a;
+      --code-inline-bg: #eef2ff;
+      --code-inline-text: #4338ca;
+      --heading-h1: #0f172a;
+      --heading-h2: #2563eb;
     }}
 
     body {{
@@ -259,6 +305,19 @@ def build_html(default_view: str = "reader") -> str:
     .ui-text-muted {{ color: var(--text-muted); }}
     .ui-border {{ border-color: var(--border); }}
 
+    .ui-accent-btn {{
+      background-color: var(--accent);
+      color: var(--accent-fg);
+    }}
+    .ui-accent-soft {{
+      background-color: var(--accent-soft);
+      color: var(--accent-text);
+      border-color: var(--accent-border);
+    }}
+    .ui-accent-text {{
+      color: var(--accent-text);
+    }}
+
     ::-webkit-scrollbar {{ width: 6px; height: 6px; }}
     ::-webkit-scrollbar-track {{ background: transparent; }}
     ::-webkit-scrollbar-thumb {{ background: var(--border); border-radius: 9999px; }}
@@ -266,23 +325,24 @@ def build_html(default_view: str = "reader") -> str:
     /* Markdown Reader Typography */
     .md-body {{
       color: var(--text);
-      line-height: 1.72;
+      line-height: 1.75;
       font-size: 0.95rem;
     }}
     .md-body h1 {{
-      font-size: 1.65rem;
+      font-size: 1.7rem;
       font-weight: 800;
       color: var(--heading-h1);
       margin-top: 0.25rem;
       margin-bottom: 1rem;
-      padding-bottom: 0.5rem;
+      padding-bottom: 0.6rem;
       border-bottom: 1px solid var(--border);
+      letter-spacing: -0.02em;
     }}
     .md-body h2 {{
       font-size: 1.22rem;
       font-weight: 700;
       color: var(--heading-h2);
-      margin-top: 1.75rem;
+      margin-top: 1.85rem;
       margin-bottom: 0.65rem;
       padding-bottom: 0.35rem;
       border-bottom: 1px solid var(--border);
@@ -292,7 +352,7 @@ def build_html(default_view: str = "reader") -> str:
       font-size: 1.05rem;
       font-weight: 600;
       color: var(--text);
-      margin-top: 1.25rem;
+      margin-top: 1.3rem;
       margin-bottom: 0.45rem;
       scroll-margin-top: 5rem;
     }}
@@ -305,13 +365,13 @@ def build_html(default_view: str = "reader") -> str:
     }}
     .md-body ul {{ list-style-type: disc; }}
     .md-body ol {{ list-style-type: decimal; }}
-    .md-body li {{ margin-bottom: 0.3rem; }}
+    .md-body li {{ margin-bottom: 0.35rem; }}
     .md-body blockquote {{
       border-left: 3px solid var(--accent);
       background: var(--accent-soft);
-      padding: 0.6rem 1rem;
-      border-radius: 0 0.5rem 0.5rem 0;
-      margin-bottom: 1rem;
+      padding: 0.65rem 1rem;
+      border-radius: 0 0.6rem 0.6rem 0;
+      margin-bottom: 1.1rem;
       font-size: 0.875rem;
     }}
     .md-body blockquote p {{ margin-bottom: 0.2rem; }}
@@ -320,9 +380,9 @@ def build_html(default_view: str = "reader") -> str:
       color: #e2e8f0;
       border: 1px solid var(--border);
       border-radius: 0.75rem;
-      padding: 0.9rem 1rem;
+      padding: 0.95rem 1.1rem;
       overflow-x: auto;
-      margin-bottom: 1rem;
+      margin-bottom: 1.1rem;
       font-size: 0.84rem;
       line-height: 1.55;
     }}
@@ -331,16 +391,17 @@ def build_html(default_view: str = "reader") -> str:
       font-size: 0.84em;
     }}
     .md-body :not(pre) > code {{
-      background: var(--surface);
+      background: var(--code-inline-bg);
       border: 1px solid var(--border);
-      padding: 0.12rem 0.38rem;
+      padding: 0.14rem 0.4rem;
       border-radius: 0.35rem;
-      color: var(--heading-h1);
+      color: var(--code-inline-text);
+      font-weight: 500;
     }}
     .md-body table {{
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 1.2rem;
+      margin-bottom: 1.25rem;
       font-size: 0.85rem;
       border: 1px solid var(--border);
       border-radius: 0.5rem;
@@ -350,15 +411,15 @@ def build_html(default_view: str = "reader") -> str:
       background: var(--surface);
       font-weight: 600;
       text-align: left;
-      padding: 0.55rem 0.75rem;
+      padding: 0.6rem 0.8rem;
       border-bottom: 1px solid var(--border);
     }}
     .md-body td {{
-      padding: 0.5rem 0.75rem;
+      padding: 0.55rem 0.8rem;
       border-bottom: 1px solid var(--border);
     }}
     .md-body a {{
-      color: var(--heading-h1);
+      color: var(--accent-text);
       text-decoration: underline;
       text-underline-offset: 3px;
     }}
@@ -366,13 +427,13 @@ def build_html(default_view: str = "reader") -> str:
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 0.75rem;
-      padding: 0.65rem 1rem;
+      padding: 0.7rem 1rem;
       margin-bottom: 1rem;
     }}
     .md-body summary {{
       cursor: pointer;
       font-weight: 600;
-      color: var(--heading-h1);
+      color: var(--accent-text);
       user-select: none;
     }}
     .md-body details[open] summary {{
@@ -381,88 +442,100 @@ def build_html(default_view: str = "reader") -> str:
       border-bottom: 1px solid var(--border);
     }}
 
-    /* Visual-Only Focus Mode: dims paragraphs so diagrams, flowcharts, tables, and code pop */
+    /* Visual-Only Focus Mode */
     .md-body.visual-focus-mode > p,
     .md-body.visual-focus-mode > ul,
     .md-body.visual-focus-mode > ol {{
       display: none;
     }}
-
     .md-body.hide-flowcharts-mode .mermaid-figure {{
       display: none;
     }}
 
-    /* Native Dialog Backdrop */
     dialog::backdrop {{
-      background: rgba(0, 0, 0, 0.72);
+      background: rgba(8, 10, 18, 0.75);
       backdrop-filter: blur(4px);
     }}
   </style>
 </head>
-<body class="theme-charcoal min-h-screen flex flex-col selection:bg-emerald-500 selection:text-black antialiased">
+<body class="theme-indigo min-h-screen flex flex-col antialiased">
 
-  <!-- 1. UNIFIED TOP NAVIGATION BAR -->
+  <!-- 1. UNIFIED TOP NAVIGATION BAR (Separates Concepts vs Problems vs Cheat Sheets vs Tracker) -->
   <header class="sticky top-0 z-30 ui-surface border-b px-3 sm:px-5 py-2.5 flex items-center justify-between gap-3">
     <div class="flex items-center gap-2.5">
       <button type="button" id="mobile-sidebar-btn" class="lg:hidden p-1.5 rounded-lg ui-card border ui-text-muted hover:opacity-80" aria-label="Toggle navigation sidebar">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
       </button>
       <div class="flex items-center gap-2">
-        <span class="text-lg font-extrabold tracking-tight text-emerald-400">DSA Hub</span>
-        <span id="global-progress-pill" class="hidden sm:inline-flex items-center gap-1 text-xs font-mono px-2 py-0.5 rounded-full ui-card border ui-text-muted">
+        <span class="text-base sm:text-lg font-extrabold tracking-tight ui-accent-text">DSA Hub</span>
+        <span id="global-progress-pill" class="hidden md:inline-flex items-center gap-1 text-xs font-mono px-2.5 py-0.5 rounded-full ui-card border ui-text-muted" title="LeetCode Problems Solved">
           0 Solved
         </span>
       </div>
     </div>
 
-    <!-- Primary View Switcher Tabs -->
-    <nav class="flex items-center gap-1 ui-card p-1 rounded-xl border" aria-label="Primary views">
-      <button type="button" onclick="switchView('reader')" id="nav-btn-reader" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5">
-        <span aria-hidden="true">📖</span> Study Notes
+    <!-- 5 Distinct Views: Concepts | Problems | Cheat Sheets | Problem Tracker | 12-Wk Plan -->
+    <nav class="flex items-center gap-1 ui-card p-1 rounded-xl border overflow-x-auto" aria-label="Primary sections">
+      <button type="button" onclick="switchView('concepts')" id="nav-btn-concepts" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
+        <span aria-hidden="true">📘</span> Concepts
       </button>
-      <button type="button" onclick="switchView('cheatsheets')" id="nav-btn-cheatsheets" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5">
+      <button type="button" onclick="switchView('problems')" id="nav-btn-problems" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
+        <span aria-hidden="true">🧩</span> LeetCode Guides
+      </button>
+      <button type="button" onclick="switchView('cheatsheets')" id="nav-btn-cheatsheets" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
         <span aria-hidden="true">⚡</span> Cheat Sheets
       </button>
-      <button type="button" onclick="switchView('tracker')" id="nav-btn-tracker" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5">
+      <button type="button" onclick="switchView('tracker')" id="nav-btn-tracker" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
         <span aria-hidden="true">✅</span> Tracker
       </button>
-      <button type="button" onclick="switchView('roadmap')" id="nav-btn-roadmap" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5">
+      <button type="button" onclick="switchView('roadmap')" id="nav-btn-roadmap" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
         <span aria-hidden="true">🗺️</span> 12-Wk Plan
       </button>
     </nav>
 
-    <!-- Right Controls: Quick Search (Cmd+K) & Theme Switcher -->
+    <!-- Right Controls: Quick Search (Cmd+K) & 4-Palette Picker -->
     <div class="flex items-center gap-2">
       <button type="button" id="open-cmdk-btn" class="px-2.5 py-1.5 rounded-lg ui-card border text-xs ui-text-muted hover:opacity-90 flex items-center gap-2 transition-colors" aria-label="Search all notes and problems">
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-        <span class="hidden md:inline">Search 94 docs...</span>
+        <span class="hidden xl:inline">Search...</span>
         <kbd class="px-1.5 py-0.5 text-xs font-mono ui-surface rounded border">⌘K</kbd>
       </button>
 
-      <div class="hidden sm:flex items-center ui-card rounded-lg p-0.5 border text-xs" role="group" aria-label="Color theme">
-        <button type="button" onclick="setTheme('charcoal')" id="btn-theme-charcoal" class="px-2 py-1 rounded font-medium transition-all" title="Obsidian Charcoal">🌑</button>
-        <button type="button" onclick="setTheme('matcha')" id="btn-theme-matcha" class="px-2 py-1 rounded font-medium transition-all" title="Matcha Gruvbox">🍵</button>
-        <button type="button" onclick="setTheme('sepia')" id="btn-theme-sepia" class="px-2 py-1 rounded font-medium transition-all" title="Warm Paper">📜</button>
+      <!-- Palette Switcher: Indigo | Tokyo Night | Catppuccin Mocha | Daylight -->
+      <div class="hidden sm:flex items-center ui-card rounded-lg p-0.5 border text-xs" role="group" aria-label="Color palette">
+        <button type="button" onclick="setTheme('indigo')" id="btn-theme-indigo" class="px-2 py-1 rounded font-medium transition-all" title="Linear Indigo (Sleek Slate & Violet)">⚡ Indigo</button>
+        <button type="button" onclick="setTheme('tokyo')" id="btn-theme-tokyo" class="px-2 py-1 rounded font-medium transition-all" title="Tokyo Night (Cyan & Lavender)">🌃 Tokyo</button>
+        <button type="button" onclick="setTheme('mocha')" id="btn-theme-mocha" class="px-2 py-1 rounded font-medium transition-all" title="Catppuccin Mocha (Warm Pastel)">🌸 Mocha</button>
+        <button type="button" onclick="setTheme('daylight')" id="btn-theme-daylight" class="px-2 py-1 rounded font-medium transition-all" title="Daylight Clean (Light Mode)">☀️ Light</button>
       </div>
     </div>
   </header>
 
   <!-- ===================================================================== -->
-  <!-- VIEW 1: STUDY READER (3-Column Clean Layout)                          -->
+  <!-- READER WORKSPACE (Used by both 📘 Concepts and 🧩 LeetCode Guides)    -->
   <!-- ===================================================================== -->
   <main id="view-reader" class="flex-1 flex overflow-hidden">
     
-    <!-- Left Categorized Sidebar -->
-    <aside id="reader-sidebar" class="w-72 shrink-0 ui-surface border-r flex flex-col h-[calc(100vh-53px)] sticky top-[53px] hidden lg:flex">
-      <div class="p-3 border-b ui-border space-y-2">
+    <!-- Left Sidebar (Filtered cleanly by Concepts vs Problems) -->
+    <aside id="reader-sidebar" class="w-76 shrink-0 ui-surface border-r flex flex-col h-[calc(100vh-53px)] sticky top-[53px] hidden lg:flex">
+      <div class="p-3 border-b ui-border space-y-2.5">
+        <!-- Sidebar Scope Toggle: Concepts vs Problems vs All -->
+        <div class="grid grid-cols-3 gap-1 ui-card p-1 rounded-lg border text-xs" role="group" aria-label="Sidebar filter">
+          <button type="button" onclick="setSidebarScope('concept')" id="sb-scope-concept" class="py-1 rounded font-semibold transition-colors">📘 Concepts</button>
+          <button type="button" onclick="setSidebarScope('problem')" id="sb-scope-problem" class="py-1 rounded font-semibold transition-colors">🧩 Problems</button>
+          <button type="button" onclick="setSidebarScope('all')" id="sb-scope-all" class="py-1 rounded font-semibold transition-colors">All (94)</button>
+        </div>
+
         <search>
-          <input id="sidebar-filter-input" type="search" placeholder="Filter sidebar topics..." aria-label="Filter sidebar topics" class="w-full ui-card border rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-emerald-500">
+          <input id="sidebar-filter-input" type="search" placeholder="Filter current list..." aria-label="Filter sidebar items" class="w-full ui-card border rounded-lg px-3 py-1.5 text-xs focus:outline-none">
         </search>
+
         <div class="flex items-center justify-between text-xs ui-text-muted px-1">
-          <span id="sidebar-count-label">94 Study Docs</span>
-          <button type="button" id="toggle-all-cats-btn" class="hover:underline text-emerald-400">Collapse all</button>
+          <span id="sidebar-count-label">Showing items</span>
+          <button type="button" id="toggle-all-cats-btn" class="hover:underline ui-accent-text">Collapse all</button>
         </div>
       </div>
+
       <div id="sidebar-tree" class="flex-1 overflow-y-auto p-2.5 space-y-2">
         <!-- Populated by JS -->
       </div>
@@ -472,38 +545,36 @@ def build_html(default_view: str = "reader") -> str:
     <div id="reader-scroll-container" class="flex-1 overflow-y-auto h-[calc(100vh-53px)] px-4 sm:px-8 py-6">
       <div class="max-w-3xl mx-auto space-y-5 pb-16">
 
-        <!-- Sticky Document Control Bar -->
+        <!-- Document Control Bar -->
         <div class="ui-card border rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-3 shadow-sm">
           <div class="flex items-center gap-2 flex-wrap">
+            <span id="doc-type-badge" class="text-xs font-semibold px-2.5 py-0.5 rounded-full border ui-accent-soft">Type</span>
             <span id="doc-cat-badge" class="text-xs font-medium px-2.5 py-0.5 rounded-full ui-surface border ui-text-muted">Module</span>
             <span id="doc-diff-badge" class="text-xs font-semibold px-2.5 py-0.5 rounded-full">Difficulty</span>
-            <a id="doc-lc-link" href="#" target="_blank" rel="noopener noreferrer" class="hidden text-xs font-medium text-emerald-400 hover:underline flex items-center gap-1">
+            <a id="doc-lc-link" href="#" target="_blank" rel="noopener noreferrer" class="hidden text-xs font-semibold ui-accent-text hover:underline flex items-center gap-1">
               LeetCode ↗
             </a>
           </div>
 
           <!-- Visual Mode & Status Controls -->
           <div class="flex items-center gap-2 flex-wrap">
-            <!-- Reading Mode Toggle: Text+Diagrams vs Visuals Only -->
             <div class="flex items-center ui-surface rounded-lg p-0.5 border text-xs" role="group" aria-label="Reading mode">
-              <button type="button" onclick="setReaderMode('full')" id="mode-btn-full" class="px-2.5 py-1 rounded font-medium bg-emerald-500/20 text-emerald-400">
+              <button type="button" onclick="setReaderMode('full')" id="mode-btn-full" class="px-2.5 py-1 rounded font-semibold ui-accent-soft border">
                 Text + Diagrams
               </button>
               <button type="button" onclick="setReaderMode('visual')" id="mode-btn-visual" class="px-2.5 py-1 rounded font-medium ui-text-muted" title="Hide paragraphs and show only flowcharts, arrow traces, tables, and code">
-                ⚡ Visuals Only
+                ⚡ Diagrams Only
               </button>
             </div>
 
-            <!-- Flowchart Visibility Toggle -->
-            <button type="button" onclick="toggleFlowcharts()" id="btn-toggle-flowcharts" class="px-2.5 py-1 rounded-lg border ui-surface text-xs font-medium text-emerald-400" title="Show or hide Mermaid flowcharts">
+            <button type="button" onclick="toggleFlowcharts()" id="btn-toggle-flowcharts" class="px-2.5 py-1 rounded-lg border ui-accent-soft text-xs font-semibold" title="Show or hide Mermaid flowcharts">
               📊 Flowcharts: ON
             </button>
 
-            <!-- 1-Click Problem Status Selector -->
             <div class="flex items-center ui-surface rounded-lg p-0.5 border text-xs" role="group" aria-label="Study status">
               <button type="button" onclick="setCurrentDocStatus('todo')" id="status-btn-todo" class="px-2 py-1 rounded font-medium">○ Todo</button>
               <button type="button" onclick="setCurrentDocStatus('review')" id="status-btn-review" class="px-2 py-1 rounded font-medium">🔁 Review</button>
-              <button type="button" onclick="setCurrentDocStatus('solved')" id="status-btn-solved" class="px-2 py-1 rounded font-medium">✓ Solved</button>
+              <button type="button" onclick="setCurrentDocStatus('solved')" id="status-btn-solved" class="px-2 py-1 rounded font-medium">✓ Done</button>
             </div>
           </div>
         </div>
@@ -512,24 +583,24 @@ def build_html(default_view: str = "reader") -> str:
         <article id="rendered-content" class="md-body ui-card border rounded-2xl p-5 sm:p-8 shadow-sm">
         </article>
 
-        <!-- Personal Takeaway Note for this Doc -->
+        <!-- Personal Takeaway Note -->
         <section class="ui-card border rounded-xl p-4 space-y-2" aria-label="Personal notes">
           <div class="flex items-center justify-between">
-            <label for="doc-personal-note" class="text-xs font-bold uppercase tracking-wider text-emerald-400">📌 Your Personal Takeaway / Mistake Log</label>
+            <label for="doc-personal-note" class="text-xs font-bold uppercase tracking-wider ui-accent-text">📌 Personal Takeaway / Mistake to Remember</label>
             <span id="note-saved-indicator" class="text-xs ui-text-muted">Auto-saves locally</span>
           </div>
-          <textarea id="doc-personal-note" rows="2" placeholder="Write your 1-sentence mental trigger or edge case for this topic..." class="w-full ui-surface border rounded-lg p-2.5 text-xs focus:outline-none focus:border-emerald-500"></textarea>
+          <textarea id="doc-personal-note" rows="2" placeholder="Write your 1-sentence mental trigger or edge case for this topic..." class="w-full ui-surface border rounded-lg p-2.5 text-xs focus:outline-none"></textarea>
         </section>
 
         <!-- Prev / Next Navigation Footer -->
         <nav class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2" aria-label="Document pagination">
-          <button type="button" id="prev-doc-btn" class="ui-card border rounded-xl p-3.5 text-left hover:border-emerald-500/50 transition-all group">
-            <div class="text-xs ui-text-muted">← Previous Guide</div>
-            <div id="prev-doc-title" class="text-sm font-semibold mt-0.5 group-hover:text-emerald-400 truncate">-</div>
+          <button type="button" id="prev-doc-btn" class="ui-card border rounded-xl p-3.5 text-left hover:opacity-90 transition-all group">
+            <div class="text-xs ui-text-muted">← Previous in List</div>
+            <div id="prev-doc-title" class="text-sm font-semibold mt-0.5 ui-accent-text truncate">-</div>
           </button>
-          <button type="button" id="next-doc-btn" class="ui-card border rounded-xl p-3.5 text-right hover:border-emerald-500/50 transition-all group">
-            <div class="text-xs ui-text-muted">Next Guide →</div>
-            <div id="next-doc-title" class="text-sm font-semibold mt-0.5 group-hover:text-emerald-400 truncate">-</div>
+          <button type="button" id="next-doc-btn" class="ui-card border rounded-xl p-3.5 text-right hover:opacity-90 transition-all group">
+            <div class="text-xs ui-text-muted">Next in List →</div>
+            <div id="next-doc-title" class="text-sm font-semibold mt-0.5 ui-accent-text truncate">-</div>
           </button>
         </nav>
 
@@ -544,45 +615,44 @@ def build_html(default_view: str = "reader") -> str:
         </nav>
       </div>
       <div class="ui-card border rounded-xl p-3 space-y-1.5 text-xs">
-        <div class="font-semibold text-emerald-400">Keyboard Shortcuts</div>
+        <div class="font-semibold ui-accent-text">Keyboard Shortcuts</div>
         <div class="flex justify-between ui-text-muted"><span>Search all docs</span><kbd class="font-mono">⌘K / /</kbd></div>
         <div class="flex justify-between ui-text-muted"><span>Prev / Next doc</span><kbd class="font-mono">[ / ]</kbd></div>
-        <div class="flex justify-between ui-text-muted"><span>Toggle Visual Mode</span><kbd class="font-mono">v</kbd></div>
+        <div class="flex justify-between ui-text-muted"><span>Diagrams Only</span><kbd class="font-mono">v</kbd></div>
       </div>
     </aside>
 
   </main>
 
   <!-- ===================================================================== -->
-  <!-- VIEW 2: CHEAT SHEETS DECK (Visual Card Grid of All 21 Cheat Sheets)   -->
+  <!-- VIEW 2: CHEAT SHEETS DECK (21 Quick-Reference Cards)                  -->
   <!-- ===================================================================== -->
   <section id="view-cheatsheets" class="hidden flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 space-y-5">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b ui-border pb-4">
       <div>
-        <h1 class="text-xl sm:text-2xl font-bold text-emerald-400">⚡ Pattern Cheat Sheets Deck (21)</h1>
+        <h1 class="text-xl sm:text-2xl font-bold ui-accent-text">⚡ Pattern Cheat Sheets Deck (21)</h1>
         <p class="text-xs ui-text-muted mt-0.5">Quick-reference pattern triggers, decision flowcharts, and copy-paste templates.</p>
       </div>
       <search>
-        <input id="cs-search-input" type="search" placeholder="Filter cheat sheets..." aria-label="Filter cheat sheets" class="ui-card border rounded-xl px-3.5 py-2 text-xs w-full sm:w-64 focus:outline-none focus:border-emerald-500">
+        <input id="cs-search-input" type="search" placeholder="Filter cheat sheets..." aria-label="Filter cheat sheets" class="ui-card border rounded-xl px-3.5 py-2 text-xs w-full sm:w-64 focus:outline-none">
       </search>
     </div>
 
     <div id="cheatsheets-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      <!-- Populated by JS -->
     </div>
   </section>
 
   <!-- ===================================================================== -->
-  <!-- VIEW 3: UNIFIED TRACKER (All 94 Repo Docs + Custom Logged Problems)   -->
+  <!-- VIEW 3: PROBLEM TRACKER (Dedicated to LeetCode Problems by default!)  -->
   <!-- ===================================================================== -->
   <section id="view-tracker" class="hidden flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 space-y-5">
     
-    <!-- Top Stats Row -->
+    <!-- Top Stats Row (Counts LeetCode Problems separately from Concept Notes!) -->
     <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
       <div class="ui-card border rounded-xl p-3.5">
-        <div class="text-xs ui-text-muted">Total Completed</div>
-        <div class="text-2xl font-black text-emerald-400 mt-0.5" id="stat-solved">0</div>
-        <div class="text-xs ui-text-muted mt-0.5" id="stat-total-label">of 94 study items</div>
+        <div class="text-xs ui-text-muted">Problems Solved</div>
+        <div class="text-2xl font-black ui-accent-text mt-0.5" id="stat-solved">0</div>
+        <div class="text-xs ui-text-muted mt-0.5" id="stat-total-label">of 38 repo problems</div>
       </div>
       <div class="ui-card border rounded-xl p-3.5">
         <div class="text-xs ui-text-muted">Needs Review</div>
@@ -591,17 +661,17 @@ def build_html(default_view: str = "reader") -> str:
       </div>
       <div class="ui-card border rounded-xl p-3.5">
         <div class="text-xs ui-text-muted">Easy Solved</div>
-        <div class="text-2xl font-black text-emerald-400 mt-0.5" id="stat-easy">0</div>
-        <div class="text-xs ui-text-muted mt-0.5">Foundation builders</div>
+        <div class="text-2xl font-black text-sky-400 mt-0.5" id="stat-easy">0</div>
+        <div class="text-xs ui-text-muted mt-0.5">Speed & accuracy</div>
       </div>
       <div class="ui-card border rounded-xl p-3.5">
         <div class="text-xs ui-text-muted">Medium / Hard</div>
-        <div class="text-2xl font-black text-sky-400 mt-0.5" id="stat-medium">0</div>
+        <div class="text-2xl font-black text-purple-400 mt-0.5" id="stat-medium">0</div>
         <div class="text-xs ui-text-muted mt-0.5">Interview core</div>
       </div>
       <div class="ui-card border rounded-xl p-3.5 col-span-2 sm:col-span-1 flex flex-col justify-between">
-        <div class="text-xs ui-text-muted">Log External Problem</div>
-        <button type="button" id="open-log-dialog-btn" class="mt-2 w-full py-1.5 px-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold text-xs transition-all">
+        <div class="text-xs ui-text-muted">Log New Problem</div>
+        <button type="button" id="open-log-dialog-btn" class="mt-2 w-full py-1.5 px-3 rounded-lg ui-accent-btn font-semibold text-xs transition-all hover:opacity-90">
           + Log Problem
         </button>
       </div>
@@ -609,27 +679,32 @@ def build_html(default_view: str = "reader") -> str:
 
     <!-- Filter Bar -->
     <div class="ui-card border rounded-xl p-3 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-      <search class="flex-1">
-        <input id="tracker-search-input" type="search" placeholder="Search by problem #, title, pattern, or takeaway..." aria-label="Search tracker items" class="w-full ui-surface border rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-emerald-500">
-      </search>
+      <div class="flex items-center gap-2 flex-1">
+        <!-- Scope Toggle: Only LeetCode Problems vs Concept Guides -->
+        <div class="flex items-center ui-surface rounded-lg p-0.5 border text-xs shrink-0" role="group" aria-label="Tracker item type">
+          <button type="button" onclick="setTrackerTypeFilter('problem')" id="trk-type-problem" class="px-2.5 py-1 rounded font-semibold ui-accent-soft border">🧩 Problems Only</button>
+          <button type="button" onclick="setTrackerTypeFilter('concept')" id="trk-type-concept" class="px-2.5 py-1 rounded font-medium ui-text-muted">📘 Concepts</button>
+        </div>
+
+        <search class="flex-1">
+          <input id="tracker-search-input" type="search" placeholder="Search by LC #, title, pattern, or takeaway..." aria-label="Search tracker items" class="w-full ui-surface border rounded-lg px-3 py-1.5 text-xs focus:outline-none">
+        </search>
+      </div>
 
       <div class="flex flex-wrap items-center gap-2">
-        <!-- Category Filter -->
-        <select id="tracker-cat-filter" aria-label="Filter by module" class="ui-surface border rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-emerald-500">
-          <option value="ALL">All Modules (94)</option>
+        <select id="tracker-cat-filter" aria-label="Filter by module" class="ui-surface border rounded-lg px-2.5 py-1.5 text-xs focus:outline-none">
+          <option value="ALL">All Topic Folders</option>
           <option value="01_arrays_and_pointers">01. Arrays & Pointers</option>
           <option value="02_linked_lists">02. Linked Lists</option>
           <option value="03_stacks_and_queues">03. Stacks & Queues</option>
           <option value="04_sorting">04. Sorting</option>
           <option value="05_binary_search">05. Binary Search</option>
           <option value="00_foundations">00. Foundations</option>
-          <option value="cheat_sheets">Cheat Sheets</option>
           <option value="system_design">System Design</option>
         </select>
 
-        <!-- Status Filter -->
         <div class="flex items-center ui-surface rounded-lg p-0.5 border text-xs" role="group" aria-label="Filter by status">
-          <button type="button" onclick="setTrackerStatusFilter('ALL')" data-status="ALL" class="tracker-status-btn px-2.5 py-1 rounded font-medium bg-emerald-500/20 text-emerald-400">All</button>
+          <button type="button" onclick="setTrackerStatusFilter('ALL')" data-status="ALL" class="tracker-status-btn px-2.5 py-1 rounded font-semibold ui-accent-soft border">All</button>
           <button type="button" onclick="setTrackerStatusFilter('solved')" data-status="solved" class="tracker-status-btn px-2.5 py-1 rounded font-medium ui-text-muted">✓ Solved</button>
           <button type="button" onclick="setTrackerStatusFilter('review')" data-status="review" class="tracker-status-btn px-2.5 py-1 rounded font-medium ui-text-muted">🔁 Review</button>
           <button type="button" onclick="setTrackerStatusFilter('todo')" data-status="todo" class="tracker-status-btn px-2.5 py-1 rounded font-medium ui-text-muted">○ Todo</button>
@@ -645,13 +720,12 @@ def build_html(default_view: str = "reader") -> str:
             <tr class="ui-surface border-b ui-border ui-text-muted uppercase tracking-wider">
               <th class="py-3 px-3 w-28">Status</th>
               <th class="py-3 px-3">Problem / Topic</th>
-              <th class="py-3 px-3 hidden sm:table-cell">Pattern / Module</th>
+              <th class="py-3 px-3 hidden sm:table-cell">Pattern</th>
               <th class="py-3 px-3 hidden lg:table-cell">Core Trick / Takeaway</th>
-              <th class="py-3 px-3 text-right w-36">Actions</th>
+              <th class="py-3 px-3 text-right w-40">Actions</th>
             </tr>
           </thead>
           <tbody id="tracker-tbody" class="divide-y ui-border">
-            <!-- Populated by JS -->
           </tbody>
         </table>
       </div>
@@ -664,28 +738,27 @@ def build_html(default_view: str = "reader") -> str:
   <section id="view-roadmap" class="hidden flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 space-y-5">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b ui-border pb-4">
       <div>
-        <h1 class="text-xl sm:text-2xl font-bold text-emerald-400">🗺️ 12-Week FAANG Preparation Roadmap</h1>
+        <h1 class="text-xl sm:text-2xl font-bold ui-accent-text">🗺️ 12-Week FAANG Preparation Roadmap</h1>
         <p class="text-xs ui-text-muted mt-0.5">2 problems/day on weekdays • 5/day on weekends • Click any topic to open its study note.</p>
       </div>
-      <button type="button" onclick="openDocInReader('faang_preparation_plan.md')" class="px-3 py-1.5 rounded-lg ui-card border text-xs font-semibold text-emerald-400 hover:opacity-90">
+      <button type="button" onclick="openDocInReader('faang_preparation_plan.md')" class="px-3 py-1.5 rounded-lg ui-card border text-xs font-semibold ui-accent-text hover:opacity-90">
         Read Full Plan Doc →
       </button>
     </div>
 
-    <!-- Phase Switcher Controls -->
     <div id="roadmap-accordion">
       <div class="flex items-center gap-2 overflow-x-auto pb-3" role="tablist">
-        <button type="button" onclick="selectRoadmapPhase('rm-phase-1')" id="btn-rm-phase-1" aria-expanded="true" aria-controls="rm-phase-1" class="rm-tab-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 whitespace-nowrap">
+        <button type="button" onclick="selectRoadmapPhase('rm-phase-1')" id="btn-rm-phase-1" aria-expanded="true" aria-controls="rm-phase-1" class="rm-tab-btn px-3.5 py-2 rounded-xl text-xs font-semibold ui-accent-soft border whitespace-nowrap">
           Phase 1: Arrays, Pointers & Windows (W1–3)
         </button>
         <button type="button" onclick="selectRoadmapPhase('rm-phase-2')" id="btn-rm-phase-2" aria-expanded="false" aria-controls="rm-phase-2" class="rm-tab-btn px-3.5 py-2 rounded-xl text-xs font-semibold ui-card border ui-text-muted whitespace-nowrap">
           Phase 2: Linked Lists, Stacks & Binary Search (W4–6)
         </button>
         <button type="button" onclick="selectRoadmapPhase('rm-phase-3')" id="btn-rm-phase-3" aria-expanded="false" aria-controls="rm-phase-3" class="rm-tab-btn px-3.5 py-2 rounded-xl text-xs font-semibold ui-card border ui-text-muted whitespace-nowrap">
-          Phase 3: Trees, Graphs & Heaps (W7–9)
+          Phase 3: Pattern Cheat Sheets (W7–9)
         </button>
         <button type="button" onclick="selectRoadmapPhase('rm-phase-4')" id="btn-rm-phase-4" aria-expanded="false" aria-controls="rm-phase-4" class="rm-tab-btn px-3.5 py-2 rounded-xl text-xs font-semibold ui-card border ui-text-muted whitespace-nowrap">
-          Phase 4: Backtracking, DP & System Design (W10–12)
+          Phase 4: System Design & Architecture (W10–12)
         </button>
       </div>
 
@@ -711,7 +784,7 @@ def build_html(default_view: str = "reader") -> str:
     <div class="p-3.5 border-b ui-border flex items-center gap-2.5">
       <svg class="w-4 h-4 ui-text-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
       <search class="flex-1">
-        <input id="cmdk-input" type="search" placeholder="Search any problem #, pattern, flowchart, or keyword..." aria-label="Search all study guides" class="w-full bg-transparent text-sm focus:outline-none">
+        <input id="cmdk-input" type="search" placeholder="Search any concept, LC #, pattern, or keyword..." aria-label="Search all study guides" class="w-full bg-transparent text-sm focus:outline-none">
       </search>
       <form method="dialog">
         <button type="submit" class="px-2 py-0.5 rounded text-xs ui-surface border ui-text-muted">Esc</button>
@@ -722,7 +795,7 @@ def build_html(default_view: str = "reader") -> str:
   </dialog>
 
   <!-- ===================================================================== -->
-  <!-- NATIVE DIALOG 2: QUICK-PEEK STUDY DRAWER (From Tracker)               -->
+  <!-- NATIVE DIALOG 2: QUICK-PEEK STUDY DRAWER                              -->
   <!-- ===================================================================== -->
   <dialog id="peek-dialog" closedby="any" class="ui-card border rounded-2xl w-full max-w-3xl p-0 text-[var(--text)] shadow-2xl max-h-[88vh]">
     <div class="sticky top-0 z-10 ui-surface border-b px-5 py-3 flex items-center justify-between gap-3">
@@ -730,7 +803,7 @@ def build_html(default_view: str = "reader") -> str:
         <span id="peek-title" class="font-bold text-sm truncate">Study Guide</span>
       </div>
       <div class="flex items-center gap-2 shrink-0">
-        <button type="button" id="peek-open-full-btn" class="px-2.5 py-1 rounded-lg bg-emerald-500 text-slate-950 font-semibold text-xs">
+        <button type="button" id="peek-open-full-btn" class="px-3 py-1 rounded-lg ui-accent-btn font-semibold text-xs">
           Open Full Reader ↗
         </button>
         <form method="dialog">
@@ -783,7 +856,7 @@ def build_html(default_view: str = "reader") -> str:
       </div>
       <div class="flex justify-end gap-2 pt-2 border-t ui-border">
         <button type="button" onclick="document.getElementById('log-dialog').close()" class="px-3 py-1.5 rounded-lg ui-surface border">Cancel</button>
-        <button type="submit" class="px-3.5 py-1.5 rounded-lg bg-emerald-500 text-slate-950 font-semibold">Save Problem</button>
+        <button type="submit" class="px-3.5 py-1.5 rounded-lg ui-accent-btn font-semibold">Save Problem</button>
       </div>
     </form>
   </dialog>
@@ -796,51 +869,37 @@ def build_html(default_view: str = "reader") -> str:
     const STATUS_STORAGE_KEY = 'dsa_hub_status_v2';
     const NOTES_STORAGE_KEY = 'dsa_hub_notes_v2';
     const CUSTOM_PROBS_KEY = 'dsa_hub_custom_probs_v2';
-    const THEME_KEY = 'dsa_tracker_theme';
+    const THEME_KEY = 'dsa_hub_palette_v3';
 
     let docStatusMap = {{}};
     let docNotesMap = {{}};
     let customProblems = [];
     let currentView = DEFAULT_INITIAL_VIEW;
-    let currentDocPath = "dsa_patterns_study_guide.md";
+    let sidebarScope = 'concept'; // 'concept' | 'problem' | 'all'
+    let currentDocPath = "00_foundations/01_algorithms_correctness_efficiency.md";
     let readerMode = 'full';
     let showFlowcharts = true;
     let trackerStatusFilter = 'ALL';
+    let trackerTypeFilter = 'problem'; // Tracker defaults strictly to LeetCode Problems!
 
-    // 1. Initialize Storage & Migrate Old Tracker State
+    // 1. Initialize Storage
     function initState() {{
       try {{
         const savedStatus = localStorage.getItem(STATUS_STORAGE_KEY);
         if (savedStatus) {{
           docStatusMap = JSON.parse(savedStatus);
         }} else {{
-          // Seed from default solved problems
           DOC_KEYS.forEach(k => {{
             if (DOCS_DATA[k].defaultSolved) docStatusMap[k] = 'solved';
           }});
-          // Also migrate any old tracker entries from dsa_tracker_adhd_v17
-          const legacy = localStorage.getItem('dsa_tracker_adhd_v17');
-          if (legacy) {{
-            const arr = JSON.parse(legacy);
-            arr.forEach(item => {{
-              if (item.file && DOCS_DATA[item.file]) {{
-                docStatusMap[item.file] = 'solved';
-                if (item.notes) docNotesMap[item.file] = item.notes;
-              }}
-            }});
-          }}
           localStorage.setItem(STATUS_STORAGE_KEY, JSON.stringify(docStatusMap));
         }}
 
         const savedNotes = localStorage.getItem(NOTES_STORAGE_KEY);
-        if (savedNotes) {{
-          docNotesMap = {{ ...docNotesMap, ...JSON.parse(savedNotes) }};
-        }}
+        if (savedNotes) docNotesMap = JSON.parse(savedNotes);
 
         const savedCustom = localStorage.getItem(CUSTOM_PROBS_KEY);
-        if (savedCustom) {{
-          customProblems = JSON.parse(savedCustom);
-        }}
+        if (savedCustom) customProblems = JSON.parse(savedCustom);
       }} catch (e) {{
         console.warn(e);
       }}
@@ -861,69 +920,118 @@ def build_html(default_view: str = "reader") -> str:
     }}
 
     function updateGlobalProgressPill() {{
-      const solvedCount = DOC_KEYS.filter(k => getDocStatus(k) === 'solved').length + customProblems.filter(p => p.status === 'solved').length;
+      const problemKeys = DOC_KEYS.filter(k => DOCS_DATA[k].docType === 'problem');
+      const solvedProbs = problemKeys.filter(k => getDocStatus(k) === 'solved').length + customProblems.length;
       const pill = document.getElementById('global-progress-pill');
-      if (pill) pill.textContent = `${{solvedCount}} / ${{DOC_KEYS.length}} Completed`;
+      if (pill) pill.textContent = `🧩 ${{solvedProbs}} / ${{problemKeys.length + customProblems.length}} Problems Solved`;
     }}
 
-    // 2. Theme Management (Charcoal, Matcha, Sepia) + Mermaid Theme Sync
+    // 2. Palette Switcher (Indigo, Tokyo Night, Catppuccin Mocha, Daylight)
     function setTheme(theme) {{
-      document.body.className = `theme-${{theme}} min-h-screen flex flex-col selection:bg-emerald-500 selection:text-black antialiased`;
+      const valid = ['indigo', 'tokyo', 'mocha', 'daylight'];
+      if (!valid.includes(theme)) theme = 'indigo';
+      document.body.className = `theme-${{theme}} min-h-screen flex flex-col antialiased`;
       localStorage.setItem(THEME_KEY, theme);
 
-      ['charcoal', 'matcha', 'sepia'].forEach(t => {{
+      valid.forEach(t => {{
         const btn = document.getElementById(`btn-theme-${{t}}`);
         if (!btn) return;
         if (t === theme) {{
-          btn.className = 'px-2 py-1 rounded font-medium transition-all bg-emerald-500/20 text-emerald-400';
+          btn.className = 'px-2 py-1 rounded font-semibold transition-all ui-accent-soft border';
         }} else {{
-          btn.className = 'px-2 py-1 rounded font-medium transition-all opacity-60 hover:opacity-100';
+          btn.className = 'px-2 py-1 rounded font-medium transition-all ui-text-muted hover:opacity-100';
         }}
       }});
 
       if (typeof mermaid !== 'undefined') {{
         mermaid.initialize({{
           startOnLoad: false,
-          theme: theme === 'sepia' ? 'neutral' : 'dark',
+          theme: theme === 'daylight' ? 'neutral' : 'dark',
           flowchart: {{ curve: 'basis', padding: 12 }},
           securityLevel: 'loose'
         }});
-        if (currentView === 'reader' && currentDocPath) {{
+        if ((currentView === 'concepts' || currentView === 'problems') && currentDocPath) {{
           renderMermaidDiagrams(document.getElementById('rendered-content'));
         }}
       }}
     }}
 
-    // 3. View Switching (Reader, Cheat Sheets, Tracker, Roadmap)
-    function switchView(view) {{
-      currentView = view;
-      ['reader', 'cheatsheets', 'tracker', 'roadmap'].forEach(v => {{
-        const sec = document.getElementById(`view-${{v}}`);
-        const btn = document.getElementById(`nav-btn-${{v}}`);
-        if (v === view) {{
-          sec.classList.remove('hidden');
-          btn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 bg-emerald-500 text-slate-950 shadow-sm';
+    // 3. Sidebar Scope Filter (Separates Concepts from LeetCode Problems!)
+    function setSidebarScope(scope) {{
+      sidebarScope = scope;
+      ['concept', 'problem', 'all'].forEach(s => {{
+        const btn = document.getElementById(`sb-scope-${{s}}`);
+        if (!btn) return;
+        if (s === scope) {{
+          btn.className = 'py-1 rounded font-semibold transition-colors ui-accent-btn shadow-sm';
         }} else {{
-          sec.classList.add('hidden');
-          btn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ui-text-muted hover:opacity-100';
+          btn.className = 'py-1 rounded font-medium transition-colors ui-text-muted hover:text-[var(--text)]';
         }}
       }});
+      renderSidebarTree();
+    }}
+
+    // 4. Primary Navigation Switcher (5 Tabs)
+    function switchView(view) {{
+      currentView = view;
+      ['concepts', 'problems', 'cheatsheets', 'tracker', 'roadmap'].forEach(v => {{
+        const btn = document.getElementById(`nav-btn-${{v}}`);
+        if (!btn) return;
+        if (v === view) {{
+          btn.className = 'px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap ui-accent-btn shadow-sm';
+        }} else {{
+          btn.className = 'px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap ui-text-muted hover:text-[var(--text)]';
+        }}
+      }});
+
+      const readerEl = document.getElementById('view-reader');
+      const csEl = document.getElementById('view-cheatsheets');
+      const trkEl = document.getElementById('view-tracker');
+      const rmEl = document.getElementById('view-roadmap');
+
+      [readerEl, csEl, trkEl, rmEl].forEach(el => el.classList.add('hidden'));
+
+      if (view === 'concepts') {{
+        readerEl.classList.remove('hidden');
+        setSidebarScope('concept');
+        if (DOCS_DATA[currentDocPath]?.docType === 'problem') {{
+          renderDoc("00_foundations/01_algorithms_correctness_efficiency.md");
+        }}
+      }} else if (view === 'problems') {{
+        readerEl.classList.remove('hidden');
+        setSidebarScope('problem');
+        if (DOCS_DATA[currentDocPath]?.docType !== 'problem') {{
+          renderDoc("01_arrays_and_pointers/3_longest_substring_without_repeating_characters.md");
+        }}
+      }} else if (view === 'cheatsheets') {{
+        csEl.classList.remove('hidden');
+        renderCheatSheetsGrid();
+      }} else if (view === 'tracker') {{
+        trkEl.classList.remove('hidden');
+        renderTrackerTable();
+      }} else if (view === 'roadmap') {{
+        rmEl.classList.remove('hidden');
+        renderRoadmapGrids();
+      }}
 
       const url = new URL(window.location);
       url.searchParams.set('view', view);
       window.history.replaceState({{}}, '', url);
-
-      if (view === 'cheatsheets') renderCheatSheetsGrid();
-      if (view === 'tracker') renderTrackerTable();
-      if (view === 'roadmap') renderRoadmapGrids();
     }}
 
     function openDocInReader(docPath) {{
-      switchView('reader');
-      renderDoc(docPath);
+      const key = resolveDocKey(docPath);
+      const doc = DOCS_DATA[key];
+      const targetTab = doc?.docType === 'problem' ? 'problems' : 'concepts';
+      currentDocPath = key;
+      switchView(targetTab);
+      if (doc?.docType === 'cheat_sheet') {{
+        setSidebarScope('all');
+      }}
+      renderDoc(key);
     }}
 
-    // 4. Markdown, Math (KaTeX), and Flowchart (Mermaid) Pipeline
+    // 5. Markdown + KaTeX + Mermaid Pipeline
     function renderMarkdownInto(containerEl, markdownText, basePath) {{
       if (typeof marked !== 'undefined') {{
         containerEl.innerHTML = marked.parse(markdownText, {{ breaks: true, gfm: true }});
@@ -931,23 +1039,21 @@ def build_html(default_view: str = "reader") -> str:
         containerEl.innerHTML = '<pre><code>' + markdownText + '</code></pre>';
       }}
 
-      // Convert ```mermaid code blocks into <figure class="mermaid-figure">
-      containerEl.querySelectorAll('pre code.language-mermaid').forEach((codeEl, idx) => {{
+      containerEl.querySelectorAll('pre code.language-mermaid').forEach((codeEl) => {{
         const pre = codeEl.parentElement;
         const graphDef = codeEl.textContent;
         const fig = document.createElement('figure');
         fig.className = 'mermaid-figure my-4 ui-surface border rounded-xl p-4 overflow-x-auto';
         fig.innerHTML = `
           <figcaption class="flex items-center justify-between text-xs ui-text-muted mb-2 pb-1.5 border-b ui-border">
-            <span class="font-semibold text-emerald-400 flex items-center gap-1.5">📊 Visual Flowchart</span>
-            <span>Follow arrows top-to-bottom / left-to-right</span>
+            <span class="font-semibold ui-accent-text flex items-center gap-1.5">📊 Decision Flowchart</span>
+            <span>Follow arrows step-by-step</span>
           </figcaption>
           <div class="mermaid-render flex justify-center py-1" data-graph="${{encodeURIComponent(graphDef)}}"></div>
         `;
         pre.replaceWith(fig);
       }});
 
-      // Make all <pre> blocks keyboard focusable (modern-web-guidance) + add Copy button
       containerEl.querySelectorAll('pre').forEach(pre => {{
         pre.setAttribute('tabindex', '0');
         if (typeof hljs !== 'undefined') {{
@@ -956,7 +1062,6 @@ def build_html(default_view: str = "reader") -> str:
         }}
       }});
 
-      // Render KaTeX math ($...$ and $$...$$)
       if (typeof renderMathInElement !== 'undefined') {{
         try {{
           renderMathInElement(containerEl, {{
@@ -971,10 +1076,8 @@ def build_html(default_view: str = "reader") -> str:
         }} catch (e) {{}}
       }}
 
-      // Render Mermaid flowcharts
       renderMermaidDiagrams(containerEl);
 
-      // Intercept internal .md links
       containerEl.querySelectorAll('a').forEach(anchor => {{
         const href = anchor.getAttribute('href');
         if (href && (href.endsWith('.md') || href.includes('.md#'))) {{
@@ -1012,13 +1115,21 @@ def build_html(default_view: str = "reader") -> str:
       }}
     }}
 
-    // 5. Render Active Document in Study Reader
+    // 6. Render Active Document in Reader
     function resolveDocKey(docPath) {{
-      if (!docPath) return "dsa_patterns_study_guide.md";
+      if (!docPath) return "00_foundations/01_algorithms_correctness_efficiency.md";
       const clean = docPath.replace(/^(\\.\\/|\\/)/, '');
       if (DOCS_DATA[clean]) return clean;
       const match = DOC_KEYS.find(k => k.endsWith(clean) || clean.endsWith(k));
-      return match || "dsa_patterns_study_guide.md";
+      return match || "00_foundations/01_algorithms_correctness_efficiency.md";
+    }}
+
+    function getFilteredSidebarDocs() {{
+      return DOC_KEYS.map(k => DOCS_DATA[k]).filter(d => {{
+        if (sidebarScope === 'concept') return d.docType === 'concept';
+        if (sidebarScope === 'problem') return d.docType === 'problem';
+        return true;
+      }});
     }}
 
     function renderDoc(docPath) {{
@@ -1032,18 +1143,19 @@ def build_html(default_view: str = "reader") -> str:
       window.history.replaceState({{}}, '', url);
 
       document.title = `${{doc.title}} | DSA Study Hub`;
+      document.getElementById('doc-type-badge').textContent = doc.docType === 'problem' ? '🧩 LeetCode Walkthrough' : (doc.docType === 'cheat_sheet' ? '⚡ Cheat Sheet' : '📘 Concept Guide');
       document.getElementById('doc-cat-badge').textContent = `${{doc.categoryIcon}} ${{doc.categoryLabel}}`;
 
       const diffBadge = document.getElementById('doc-diff-badge');
       diffBadge.textContent = doc.difficulty;
       if (doc.difficulty === 'Easy') {{
-        diffBadge.className = 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30';
+        diffBadge.className = 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-sky-500/15 text-sky-400 border border-sky-500/30';
       }} else if (doc.difficulty === 'Medium') {{
         diffBadge.className = 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30';
       }} else if (doc.difficulty === 'Hard') {{
         diffBadge.className = 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-rose-500/15 text-rose-400 border border-rose-500/30';
       }} else {{
-        diffBadge.className = 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-sky-500/15 text-sky-400 border border-sky-500/30';
+        diffBadge.className = 'hidden';
       }}
 
       const lcLink = document.getElementById('doc-lc-link');
@@ -1060,24 +1172,23 @@ def build_html(default_view: str = "reader") -> str:
       renderMarkdownInto(contentEl, doc.content, targetKey);
       buildTableOfContents(contentEl);
 
-      // Personal note
       const noteInput = document.getElementById('doc-personal-note');
       noteInput.value = docNotesMap[targetKey] || doc.summary || '';
 
-      // Prev / Next buttons
-      const idx = doc.index;
-      const prevKey = idx > 0 ? DOC_KEYS[idx - 1] : DOC_KEYS[DOC_KEYS.length - 1];
-      const nextKey = idx < DOC_KEYS.length - 1 ? DOC_KEYS[idx + 1] : DOC_KEYS[0];
+      // Prev / Next scoped to current sidebar list
+      const scopedList = getFilteredSidebarDocs();
+      const curIdx = scopedList.findIndex(d => d.path === targetKey);
+      const prevDoc = curIdx > 0 ? scopedList[curIdx - 1] : scopedList[scopedList.length - 1] || doc;
+      const nextDoc = curIdx >= 0 && curIdx < scopedList.length - 1 ? scopedList[curIdx + 1] : scopedList[0] || doc;
 
-      document.getElementById('prev-doc-title').textContent = DOCS_DATA[prevKey].title;
-      document.getElementById('prev-doc-btn').onclick = () => renderDoc(prevKey);
-      document.getElementById('next-doc-title').textContent = DOCS_DATA[nextKey].title;
-      document.getElementById('next-doc-btn').onclick = () => renderDoc(nextKey);
+      document.getElementById('prev-doc-title').textContent = prevDoc.title;
+      document.getElementById('prev-doc-btn').onclick = () => renderDoc(prevDoc.path);
+      document.getElementById('next-doc-title').textContent = nextDoc.title;
+      document.getElementById('next-doc-btn').onclick = () => renderDoc(nextDoc.path);
 
-      // Highlight active sidebar item
       document.querySelectorAll('.sidebar-doc-link').forEach(el => {{
         if (el.dataset.path === targetKey) {{
-          el.className = 'sidebar-doc-link flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+          el.className = 'sidebar-doc-link flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold ui-accent-soft border';
         }} else {{
           el.className = 'sidebar-doc-link flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-xs ui-text-muted hover:text-[var(--text)] hover:bg-[var(--surface-hover)] transition-colors';
         }}
@@ -1097,8 +1208,8 @@ def build_html(default_view: str = "reader") -> str:
         a.href = '#' + id;
         a.textContent = h.textContent;
         a.className = h.tagName === 'H3'
-          ? 'block pl-3 py-1 ui-text-muted hover:text-emerald-400 truncate transition-colors'
-          : 'block py-1 font-medium ui-text-muted hover:text-emerald-400 truncate transition-colors';
+          ? 'block pl-3 py-1 ui-text-muted hover:text-[var(--accent-text)] truncate transition-colors'
+          : 'block py-1 font-medium ui-text-muted hover:text-[var(--accent-text)] truncate transition-colors';
         a.addEventListener('click', (e) => {{
           e.preventDefault();
           h.scrollIntoView({{ behavior: 'smooth', block: 'start' }});
@@ -1115,11 +1226,11 @@ def build_html(default_view: str = "reader") -> str:
 
       if (mode === 'visual') {{
         contentEl.classList.add('visual-focus-mode');
-        btnVis.className = 'px-2.5 py-1 rounded font-medium bg-emerald-500/20 text-emerald-400';
+        btnVis.className = 'px-2.5 py-1 rounded font-semibold ui-accent-soft border';
         btnFull.className = 'px-2.5 py-1 rounded font-medium ui-text-muted';
       }} else {{
         contentEl.classList.remove('visual-focus-mode');
-        btnFull.className = 'px-2.5 py-1 rounded font-medium bg-emerald-500/20 text-emerald-400';
+        btnFull.className = 'px-2.5 py-1 rounded font-semibold ui-accent-soft border';
         btnVis.className = 'px-2.5 py-1 rounded font-medium ui-text-muted';
       }}
     }}
@@ -1131,7 +1242,7 @@ def build_html(default_view: str = "reader") -> str:
       if (showFlowcharts) {{
         contentEl.classList.remove('hide-flowcharts-mode');
         btn.textContent = '📊 Flowcharts: ON';
-        btn.className = 'px-2.5 py-1 rounded-lg border ui-surface text-xs font-medium text-emerald-400';
+        btn.className = 'px-2.5 py-1 rounded-lg border ui-accent-soft text-xs font-semibold';
       }} else {{
         contentEl.classList.add('hide-flowcharts-mode');
         btn.textContent = '📊 Flowcharts: OFF';
@@ -1148,7 +1259,7 @@ def build_html(default_view: str = "reader") -> str:
       }};
       Object.keys(map).forEach(k => {{
         if (k === st) {{
-          const activeColor = k === 'solved' ? 'bg-emerald-500/20 text-emerald-400' : (k === 'review' ? 'bg-amber-500/20 text-amber-400' : 'ui-card text-[var(--text)]');
+          const activeColor = k === 'solved' ? 'ui-accent-soft border' : (k === 'review' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'ui-card text-[var(--text)] border');
           map[k].className = `px-2 py-1 rounded font-semibold ${{activeColor}}`;
         }} else {{
           map[k].className = 'px-2 py-1 rounded font-medium ui-text-muted hover:opacity-100';
@@ -1160,18 +1271,22 @@ def build_html(default_view: str = "reader") -> str:
       setDocStatus(currentDocPath, status);
     }}
 
-    // 6. Sidebar Tree Construction (Grouped & Naturally Sorted)
+    // 7. Sidebar Tree Construction (Separates Concepts from LeetCode Problems)
     function renderSidebarTree() {{
       const container = document.getElementById('sidebar-tree');
       const q = (document.getElementById('sidebar-filter-input')?.value || '').toLowerCase().trim();
       container.innerHTML = '';
 
+      const scopedDocs = getFilteredSidebarDocs().filter(d => {{
+        if (!q) return true;
+        return d.title.toLowerCase().includes(q) || d.pattern.toLowerCase().includes(q) || d.path.toLowerCase().includes(q);
+      }});
+
+      const scopeLabel = sidebarScope === 'concept' ? 'Concept Guides' : (sidebarScope === 'problem' ? 'LeetCode Problems' : 'Total Docs');
+      document.getElementById('sidebar-count-label').textContent = `${{scopedDocs.length}} ${{scopeLabel}}`;
+
       const groups = {{}};
-      DOC_KEYS.forEach(path => {{
-        const d = DOCS_DATA[path];
-        if (q && !d.title.toLowerCase().includes(q) && !d.pattern.toLowerCase().includes(q) && !path.toLowerCase().includes(q)) {{
-          return;
-        }}
+      scopedDocs.forEach(d => {{
         if (!groups[d.category]) groups[d.category] = [];
         groups[d.category].push(d);
       }});
@@ -1179,7 +1294,7 @@ def build_html(default_view: str = "reader") -> str:
       Object.keys(groups).forEach(cat => {{
         const items = groups[cat];
         const first = items[0];
-        const solvedInCat = items.filter(i => getDocStatus(i.path) === 'solved').length;
+        const doneCount = items.filter(i => getDocStatus(i.path) === 'solved').length;
 
         const details = document.createElement('details');
         details.open = true;
@@ -1189,7 +1304,7 @@ def build_html(default_view: str = "reader") -> str:
         summary.className = 'flex items-center justify-between px-2 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider ui-text-muted hover:text-[var(--text)] cursor-pointer select-none';
         summary.innerHTML = `
           <span>${{first.categoryIcon}} ${{first.categoryLabel}}</span>
-          <span class="font-mono text-xs px-1.5 py-0.5 rounded ui-card border">${{solvedInCat}}/${{items.length}}</span>
+          <span class="font-mono text-xs px-1.5 py-0.5 rounded ui-card border">${{doneCount}}/${{items.length}}</span>
         `;
         details.appendChild(summary);
 
@@ -1202,17 +1317,17 @@ def build_html(default_view: str = "reader") -> str:
           a.dataset.path = item.path;
           const isCurrent = item.path === currentDocPath;
           a.className = isCurrent
-            ? 'sidebar-doc-link flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+            ? 'sidebar-doc-link flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold ui-accent-soft border'
             : 'sidebar-doc-link flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-xs ui-text-muted hover:text-[var(--text)] hover:bg-[var(--surface-hover)] transition-colors';
 
           const st = getDocStatus(item.path);
           const statusIcon = st === 'solved'
-            ? '<span class="text-emerald-400 font-bold shrink-0">✓</span>'
+            ? '<span class="ui-accent-text font-bold shrink-0">✓</span>'
             : (st === 'review' ? '<span class="text-amber-400 shrink-0">🔁</span>' : '');
 
           const shortLabel = item.lcNumber
-            ? `<span class="truncate"><span class="font-mono opacity-60 mr-1">#${{item.lcNumber}}</span>${{item.title.replace(/^LeetCode\\s+\\d+:\\s*/i, '')}}</span>`
-            : `<span class="truncate">${{item.title}}</span>`;
+            ? `<span class="truncate"><span class="font-mono opacity-60 mr-1.5">#${{item.lcNumber}}</span>${{item.shortTitle}}</span>`
+            : `<span class="truncate">${{item.shortTitle}}</span>`;
 
           a.innerHTML = `${{shortLabel}}${{statusIcon}}`;
           a.addEventListener('click', (e) => {{
@@ -1227,26 +1342,26 @@ def build_html(default_view: str = "reader") -> str:
       }});
     }}
 
-    // 7. Cheat Sheets Deck View
+    // 8. Cheat Sheets Deck View
     function renderCheatSheetsGrid() {{
       const grid = document.getElementById('cheatsheets-grid');
       const q = (document.getElementById('cs-search-input')?.value || '').toLowerCase().trim();
-      const sheets = DOC_KEYS.map(k => DOCS_DATA[k]).filter(d => d.category === 'cheat_sheets' || d.category === 'Root');
+      const sheets = DOC_KEYS.map(k => DOCS_DATA[k]).filter(d => d.category === 'cheat_sheets' || d.path === 'dsa_patterns_study_guide.md');
 
       const filtered = sheets.filter(d => !q || d.title.toLowerCase().includes(q) || d.summary.toLowerCase().includes(q));
       grid.innerHTML = filtered.map(d => `
-        <div class="ui-card border rounded-2xl p-4 flex flex-col justify-between gap-3 hover:border-emerald-500/50 transition-all">
+        <div class="ui-card border rounded-2xl p-4 flex flex-col justify-between gap-3 hover:border-[var(--accent)] transition-all">
           <div class="space-y-2">
             <div class="flex items-center justify-between gap-2">
-              <span class="text-xs font-mono px-2 py-0.5 rounded ui-surface border text-emerald-400">${{d.categoryIcon}} ${{d.categoryLabel}}</span>
-              ${{d.hasMermaid ? '<span class="text-xs px-2 py-0.5 rounded bg-sky-500/15 text-sky-400 border border-sky-500/30">📊 Flowchart</span>' : ''}}
+              <span class="text-xs font-mono px-2 py-0.5 rounded ui-surface border ui-accent-text">${{d.categoryIcon}} ${{d.categoryLabel}}</span>
+              ${{d.hasMermaid ? '<span class="text-xs px-2 py-0.5 rounded ui-accent-soft border">📊 Flowchart</span>' : ''}}
             </div>
             <h2 class="text-base font-bold">${{d.title}}</h2>
             <p class="text-xs ui-text-muted leading-relaxed">${{d.summary || 'Complete pattern triggers, visual arrows, and Python templates.'}}</p>
           </div>
           <div class="pt-3 border-t ui-border flex items-center justify-between">
             <button type="button" onclick="openPeekDialog('${{d.path}}')" class="text-xs ui-text-muted hover:text-[var(--text)]">Quick Peek</button>
-            <button type="button" onclick="openDocInReader('${{d.path}}')" class="px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold hover:bg-emerald-500 hover:text-slate-950 transition-all">
+            <button type="button" onclick="openDocInReader('${{d.path}}')" class="px-3 py-1.5 rounded-lg ui-accent-soft border text-xs font-semibold hover:opacity-90 transition-all">
               Open Sheet →
             </button>
           </div>
@@ -1254,12 +1369,26 @@ def build_html(default_view: str = "reader") -> str:
       `).join('');
     }}
 
-    // 8. Unified Tracker Table View
+    // 9. Problem Tracker View (Strictly separates Problems from Concepts)
+    function setTrackerTypeFilter(t) {{
+      trackerTypeFilter = t;
+      const btnProb = document.getElementById('trk-type-problem');
+      const btnConc = document.getElementById('trk-type-concept');
+      if (t === 'problem') {{
+        btnProb.className = 'px-2.5 py-1 rounded font-semibold ui-accent-soft border';
+        btnConc.className = 'px-2.5 py-1 rounded font-medium ui-text-muted';
+      }} else {{
+        btnConc.className = 'px-2.5 py-1 rounded font-semibold ui-accent-soft border';
+        btnProb.className = 'px-2.5 py-1 rounded font-medium ui-text-muted';
+      }}
+      renderTrackerTable();
+    }}
+
     function setTrackerStatusFilter(st) {{
       trackerStatusFilter = st;
       document.querySelectorAll('.tracker-status-btn').forEach(btn => {{
         if (btn.dataset.status === st) {{
-          btn.className = 'tracker-status-btn px-2.5 py-1 rounded font-medium bg-emerald-500/20 text-emerald-400';
+          btn.className = 'tracker-status-btn px-2.5 py-1 rounded font-semibold ui-accent-soft border';
         }} else {{
           btn.className = 'tracker-status-btn px-2.5 py-1 rounded font-medium ui-text-muted';
         }}
@@ -1278,19 +1407,21 @@ def build_html(default_view: str = "reader") -> str:
       const q = (document.getElementById('tracker-search-input')?.value || '').toLowerCase().trim();
       const catFilter = document.getElementById('tracker-cat-filter')?.value || 'ALL';
 
-      // Update top metrics
-      const allDocs = DOC_KEYS.map(k => DOCS_DATA[k]);
-      const solvedDocs = allDocs.filter(d => getDocStatus(d.path) === 'solved');
-      const reviewDocs = allDocs.filter(d => getDocStatus(d.path) === 'review');
-      const easySolved = solvedDocs.filter(d => d.difficulty === 'Easy').length;
-      const medHardSolved = solvedDocs.filter(d => d.difficulty === 'Medium' || d.difficulty === 'Hard').length;
+      const allProblems = DOC_KEYS.map(k => DOCS_DATA[k]).filter(d => d.docType === 'problem');
+      const solvedProblems = allProblems.filter(d => getDocStatus(d.path) === 'solved');
+      const reviewProblems = allProblems.filter(d => getDocStatus(d.path) === 'review');
+      const easySolved = solvedProblems.filter(d => d.difficulty === 'Easy').length;
+      const medHardSolved = solvedProblems.filter(d => d.difficulty === 'Medium' || d.difficulty === 'Hard').length;
 
-      document.getElementById('stat-solved').textContent = solvedDocs.length + customProblems.length;
-      document.getElementById('stat-review').textContent = reviewDocs.length;
+      document.getElementById('stat-solved').textContent = solvedProblems.length + customProblems.length;
+      document.getElementById('stat-total-label').textContent = `of ${{allProblems.length + customProblems.length}} LeetCode problems`;
+      document.getElementById('stat-review').textContent = reviewProblems.length;
       document.getElementById('stat-easy').textContent = easySolved;
       document.getElementById('stat-medium').textContent = medHardSolved;
 
-      const rows = allDocs.filter(d => {{
+      const baseItems = DOC_KEYS.map(k => DOCS_DATA[k]).filter(d => d.docType === trackerTypeFilter);
+
+      const rows = baseItems.filter(d => {{
         if (catFilter !== 'ALL' && d.category !== catFilter) return false;
         const st = getDocStatus(d.path);
         if (trackerStatusFilter !== 'ALL' && st !== trackerStatusFilter) return false;
@@ -1307,12 +1438,12 @@ def build_html(default_view: str = "reader") -> str:
       tbody.innerHTML = rows.map(d => {{
         const st = getDocStatus(d.path);
         const stBadge = st === 'solved'
-          ? '<span class="px-2.5 py-1 rounded-lg font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">✓ Solved</span>'
+          ? '<span class="px-2.5 py-1 rounded-lg font-semibold ui-accent-soft border">✓ Solved</span>'
           : (st === 'review'
             ? '<span class="px-2.5 py-1 rounded-lg font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/30">🔁 Review</span>'
             : '<span class="px-2.5 py-1 rounded-lg font-medium ui-surface border ui-text-muted">○ Todo</span>');
 
-        const diffColor = d.difficulty === 'Easy' ? 'text-emerald-400' : (d.difficulty === 'Medium' ? 'text-amber-400' : (d.difficulty === 'Hard' ? 'text-rose-400' : 'text-sky-400'));
+        const diffColor = d.difficulty === 'Easy' ? 'text-sky-400' : (d.difficulty === 'Medium' ? 'text-amber-400' : (d.difficulty === 'Hard' ? 'text-rose-400' : 'ui-text-muted'));
         const noteText = docNotesMap[d.path] || d.summary || '-';
 
         return `
@@ -1324,25 +1455,24 @@ def build_html(default_view: str = "reader") -> str:
             </td>
             <td class="py-3 px-3">
               <div class="font-semibold text-sm flex items-center gap-2">
-                ${{d.lcNumber ? `<span class="font-mono text-xs px-1.5 py-0.5 rounded ui-surface border ui-text-muted">#${{d.lcNumber}}</span>` : ''}}
-                <button type="button" onclick="openPeekDialog('${{d.path}}')" class="text-left hover:text-emerald-400 transition-colors">
-                  ${{d.title.replace(/^LeetCode\\s+\\d+:\\s*/i, '')}}
+                ${{d.lcNumber ? `<span class="font-mono text-xs px-1.5 py-0.5 rounded ui-surface border ui-accent-text">#${{d.lcNumber}}</span>` : ''}}
+                <button type="button" onclick="openPeekDialog('${{d.path}}')" class="text-left hover:underline transition-colors">
+                  ${{d.shortTitle}}
                 </button>
               </div>
-              <div class="text-xs ${{diffColor}} mt-0.5">${{d.difficulty}} ${{d.hasMermaid ? '• 📊 Flowchart' : ''}}</div>
+              <div class="text-xs ${{diffColor}} mt-0.5">${{d.difficulty}} • ${{d.categoryLabel}}</div>
             </td>
             <td class="py-3 px-3 hidden sm:table-cell">
               <span class="px-2 py-0.5 rounded ui-surface border text-xs">${{d.pattern}}</span>
-              <div class="text-xs ui-text-muted mt-0.5">${{d.categoryLabel}}</div>
             </td>
             <td class="py-3 px-3 hidden lg:table-cell max-w-md">
               <p class="text-xs ui-text-muted line-clamp-2">${{noteText}}</p>
             </td>
             <td class="py-3 px-3 text-right whitespace-nowrap space-x-1.5">
-              <button type="button" onclick="openPeekDialog('${{d.path}}')" class="px-2.5 py-1 rounded-lg ui-surface border text-xs hover:border-emerald-500/50">
+              <button type="button" onclick="openPeekDialog('${{d.path}}')" class="px-2.5 py-1 rounded-lg ui-surface border text-xs hover:opacity-80">
                 Peek
               </button>
-              <button type="button" onclick="openDocInReader('${{d.path}}')" class="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold hover:bg-emerald-500 hover:text-slate-950">
+              <button type="button" onclick="openDocInReader('${{d.path}}')" class="px-2.5 py-1 rounded-lg ui-accent-soft border text-xs font-semibold hover:opacity-90">
                 Study →
               </button>
             </td>
@@ -1351,7 +1481,7 @@ def build_html(default_view: str = "reader") -> str:
       }}).join('');
     }}
 
-    // 9. Quick-Peek Modal Drawer (<dialog>)
+    // 10. Quick-Peek Modal Drawer (<dialog>)
     function openPeekDialog(docPath) {{
       const key = resolveDocKey(docPath);
       const doc = DOCS_DATA[key];
@@ -1367,7 +1497,7 @@ def build_html(default_view: str = "reader") -> str:
       renderMarkdownInto(bodyEl, doc.content, key);
     }}
 
-    // 10. 12-Week Roadmap View + hidden="until-found" support (modern-web-guidance)
+    // 11. 12-Week Roadmap View
     function selectRoadmapPhase(panelId) {{
       document.querySelectorAll('.rm-panel').forEach(panel => {{
         if (panel.id === panelId) {{
@@ -1380,7 +1510,7 @@ def build_html(default_view: str = "reader") -> str:
         const isMatch = btn.getAttribute('aria-controls') === panelId;
         btn.setAttribute('aria-expanded', isMatch ? 'true' : 'false');
         btn.className = isMatch
-          ? 'rm-tab-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 whitespace-nowrap'
+          ? 'rm-tab-btn px-3.5 py-2 rounded-xl text-xs font-semibold ui-accent-soft border whitespace-nowrap'
           : 'rm-tab-btn px-3.5 py-2 rounded-xl text-xs font-semibold ui-card border ui-text-muted whitespace-nowrap';
       }});
     }}
@@ -1402,14 +1532,14 @@ def build_html(default_view: str = "reader") -> str:
           const st = getDocStatus(d.path);
           const isSolved = st === 'solved';
           return `
-            <div class="ui-card border rounded-xl p-3 flex items-center justify-between gap-2 ${{isSolved ? 'border-emerald-500/30' : ''}}">
+            <div class="ui-card border rounded-xl p-3 flex items-center justify-between gap-2">
               <div class="truncate">
-                <button type="button" onclick="openDocInReader('${{d.path}}')" class="text-xs font-semibold hover:text-emerald-400 truncate block text-left">
-                  ${{d.title}}
+                <button type="button" onclick="openDocInReader('${{d.path}}')" class="text-xs font-semibold hover:underline truncate block text-left">
+                  ${{d.lcNumber ? '#' + d.lcNumber + ' ' + d.shortTitle : d.shortTitle}}
                 </button>
-                <span class="text-xs ui-text-muted">${{d.categoryLabel}} • ${{d.difficulty}}</span>
+                <span class="text-xs ui-text-muted">${{d.docType === 'problem' ? '🧩 Problem' : '📘 Concept'}} • ${{d.categoryLabel}}</span>
               </div>
-              <button type="button" onclick="cycleDocStatus('${{d.path}}')" class="shrink-0 text-xs px-2 py-1 rounded border ${{isSolved ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'ui-surface ui-text-muted'}}">
+              <button type="button" onclick="cycleDocStatus('${{d.path}}')" class="shrink-0 text-xs px-2 py-1 rounded border ${{isSolved ? 'ui-accent-soft' : 'ui-surface ui-text-muted'}}">
                 ${{isSolved ? '✓ Done' : '○ Todo'}}
               </button>
             </div>
@@ -1418,7 +1548,7 @@ def build_html(default_view: str = "reader") -> str:
       }});
     }}
 
-    // 11. Command Palette Search (Cmd+K / /)
+    // 12. Command Palette Search (Cmd+K / /)
     const cmdkDialog = document.getElementById('cmdk-dialog');
     const cmdkInput = document.getElementById('cmdk-input');
     const cmdkResults = document.getElementById('cmdk-results');
@@ -1446,7 +1576,7 @@ def build_html(default_view: str = "reader") -> str:
             <div class="text-xs font-semibold">${{d.title}}</div>
             <div class="text-xs ui-text-muted truncate">${{d.categoryLabel}} • ${{d.pattern}}</div>
           </div>
-          <span class="text-xs font-mono px-2 py-0.5 rounded ui-surface border shrink-0">${{d.difficulty}}</span>
+          <span class="text-xs font-mono px-2 py-0.5 rounded ui-surface border shrink-0">${{d.docType === 'problem' ? '🧩 Problem' : (d.docType === 'cheat_sheet' ? '⚡ Sheet' : '📘 Concept')}}</span>
         </button>
       `).join('');
     }}
@@ -1454,7 +1584,6 @@ def build_html(default_view: str = "reader") -> str:
     document.getElementById('open-cmdk-btn').addEventListener('click', openCmdK);
     cmdkInput.addEventListener('input', (e) => renderCmdKResults(e.target.value));
 
-    // Global Keyboard Shortcuts
     window.addEventListener('keydown', (e) => {{
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {{
         e.preventDefault();
@@ -1462,14 +1591,13 @@ def build_html(default_view: str = "reader") -> str:
       }} else if (e.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) {{
         e.preventDefault();
         openCmdK();
-      }} else if (currentView === 'reader' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) {{
+      }} else if ((currentView === 'concepts' || currentView === 'problems') && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) {{
         if (e.key === '[') document.getElementById('prev-doc-btn').click();
         if (e.key === ']') document.getElementById('next-doc-btn').click();
         if (e.key === 'v') setReaderMode(readerMode === 'full' ? 'visual' : 'full');
       }}
     }});
 
-    // Personal Note Auto-Save
     document.getElementById('doc-personal-note').addEventListener('input', (e) => {{
       docNotesMap[currentDocPath] = e.target.value;
       localStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(docNotesMap));
@@ -1478,7 +1606,6 @@ def build_html(default_view: str = "reader") -> str:
       setTimeout(() => {{ ind.textContent = 'Auto-saves locally'; }}, 1200);
     }});
 
-    // Sidebar filter & collapse toggle
     document.getElementById('sidebar-filter-input').addEventListener('input', renderSidebarTree);
     document.getElementById('toggle-all-cats-btn').addEventListener('click', (e) => {{
       const detailsList = document.querySelectorAll('#sidebar-tree details');
@@ -1487,7 +1614,6 @@ def build_html(default_view: str = "reader") -> str:
       e.target.textContent = anyOpen ? 'Expand all' : 'Collapse all';
     }});
 
-    // Mobile sidebar toggle
     document.getElementById('mobile-sidebar-btn').addEventListener('click', () => {{
       const sb = document.getElementById('reader-sidebar');
       sb.classList.toggle('hidden');
@@ -1495,12 +1621,10 @@ def build_html(default_view: str = "reader") -> str:
       sb.classList.toggle('z-40');
     }});
 
-    // Cheat sheets & Tracker filters
     document.getElementById('cs-search-input').addEventListener('input', renderCheatSheetsGrid);
     document.getElementById('tracker-search-input').addEventListener('input', renderTrackerTable);
     document.getElementById('tracker-cat-filter').addEventListener('change', renderTrackerTable);
 
-    // Custom problem modal
     document.getElementById('open-log-dialog-btn').addEventListener('click', () => {{
       document.getElementById('log-dialog').showModal();
     }});
@@ -1522,7 +1646,6 @@ def build_html(default_view: str = "reader") -> str:
       renderTrackerTable();
     }});
 
-    // hidden="until-found" beforematch synchronization & fallback (modern-web-guidance)
     const rmAccordion = document.getElementById('roadmap-accordion');
     if (rmAccordion) {{
       rmAccordion.addEventListener('beforematch', (e) => {{
@@ -1538,19 +1661,17 @@ def build_html(default_view: str = "reader") -> str:
 
     // Boot Application
     initState();
-    const savedTheme = localStorage.getItem(THEME_KEY) || 'charcoal';
+    const savedTheme = localStorage.getItem(THEME_KEY) || 'indigo';
     setTheme(savedTheme);
     updateGlobalProgressPill();
-    renderSidebarTree();
 
     const params = new URLSearchParams(window.location.search);
     const paramDoc = params.get('doc');
     const paramView = params.get('view');
 
     if (paramDoc) {{
-      switchView('reader');
-      renderDoc(paramDoc);
-    }} else if (paramView && ['reader', 'cheatsheets', 'tracker', 'roadmap'].includes(paramView)) {{
+      openDocInReader(paramDoc);
+    }} else if (paramView && ['concepts', 'problems', 'cheatsheets', 'tracker', 'roadmap'].includes(paramView)) {{
       renderDoc(currentDocPath);
       switchView(paramView);
     }} else {{
@@ -1564,7 +1685,7 @@ def build_html(default_view: str = "reader") -> str:
 
 
 for filename, default_view in [
-    ("viewer.html", "reader"),
+    ("viewer.html", "concepts"),
     ("tracker.html", "tracker"),
     ("faang_plan.html", "roadmap"),
 ]:

@@ -1,6 +1,6 @@
-# 53. Maximum Subarray
+# LeetCode 53: Maximum Subarray
 
-> **Difficulty:** Medium | **Pattern:** Kadane's Algorithm (Running Prefix Reset)
+> **Difficulty:** Medium | **Pattern:** Kadane's Algorithm (Running Prefix Reset) | **Link:** [LeetCode 53](https://leetcode.com/problems/maximum-subarray/)
 
 ## The Problem
 Find the contiguous subarray inside `nums` that has the largest sum, and return that sum.
