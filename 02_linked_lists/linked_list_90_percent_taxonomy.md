@@ -169,7 +169,7 @@ Used when pointer manipulation alone requires costly $\mathcal{O}(n^2)$ scans.
 * [ ] [LC 138: Copy List with Random Pointer](https://leetcode.com/problems/copy-list-with-random-pointer/) ⭐ **IMP**
   * **Technique:** Pass 1 creates `{old_node: Node(val)}`. Pass 2 wires `.next` and `.random` using dictionary lookups. (Can also be done in $\mathcal{O}(1)$ space by interweaving).
 * [ ] [LC 1836: Remove Duplicates From an Unsorted Linked List](https://leetcode.com/problems/remove-duplicates-from-an-unsorted-linked-list/)
-  * **Crucial Rule:** Unsorted list $\implies$ **Must use HashMap/Counter!** Pass 1 counts frequencies; Pass 2 deletes nodes where `count[val] > 1`.
+  * **Rule:** Unsorted list $\implies$ Use a frequency hash map. Pass 1 counts frequencies; Pass 2 deletes nodes where `count[val] > 1`.
 
 ---
 

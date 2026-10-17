@@ -21,7 +21,7 @@
 
 ## 🕹️ 2. The Stream Accumulation Pattern (Horner's Rule in Bits)
 
-When reading an incoming stream of bits from left to right (like in a network packet or [LC 1290: Convert Binary in Linked List](./1290_convert_binary_number_in_a_linked_list_to_integer.md)):
+When reading an incoming stream of bits from left to right (like in a network packet or [LC 1290: Convert Binary in Linked List](../02_linked_lists/1290_convert_binary_number_in_a_linked_list_to_integer.md)):
 
 ```text
 Bits arrive:  [ 1 ]  ──►  [ 0 ]  ──►  [ 1 ]   (Binary 101 = Decimal 5)

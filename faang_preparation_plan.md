@@ -25,13 +25,13 @@
 
 #### **Week 1: Two Pointers & In-Place Array Transformations**
 * **Weekday Target (10 problems):**
-  * ✅ [LC 88. Merge Sorted Array (Easy)](./88_merge_sorted_array.md)
-  * ✅ [LC 27. Remove Element (Easy)](./27_remove_element.md)
-  * ✅ [LC 26. Remove Duplicates from Sorted Array (Easy)](./26_remove_duplicates_from_sorted_array.md)
-  * ✅ [LC 80. Remove Duplicates from Sorted Array II (Medium)](./80_remove_duplicates_from_sorted_array_ii.md)
-  * ✅ [LC 169. Majority Element (Easy)](./169_majority_element.md)
-  * ✅ [LC 189. Rotate Array (Medium)](./189_rotate_array.md)
-  * ✅ [LC 121. Best Time to Buy and Sell Stock (Easy)](./121_best_time_to_buy_and_sell_stock.md)
+  * ✅ [LC 88. Merge Sorted Array (Easy)](./01_arrays_and_pointers/88_merge_sorted_array.md)
+  * ✅ [LC 27. Remove Element (Easy)](./01_arrays_and_pointers/27_remove_element.md)
+  * ✅ [LC 26. Remove Duplicates from Sorted Array (Easy)](./01_arrays_and_pointers/26_remove_duplicates_from_sorted_array.md)
+  * ✅ [LC 80. Remove Duplicates from Sorted Array II (Medium)](./01_arrays_and_pointers/80_remove_duplicates_from_sorted_array_ii.md)
+  * ✅ [LC 169. Majority Element (Easy)](./01_arrays_and_pointers/169_majority_element.md)
+  * ✅ [LC 189. Rotate Array (Medium)](./01_arrays_and_pointers/189_rotate_array.md)
+  * ✅ [LC 121. Best Time to Buy and Sell Stock (Easy)](./01_arrays_and_pointers/121_best_time_to_buy_and_sell_stock.md)
   * [ ] LC 122. Best Time to Buy and Sell Stock II (Medium)
   * [ ] LC 55. Jump Game (Medium)
   * [ ] LC 45. Jump Game II (Medium)

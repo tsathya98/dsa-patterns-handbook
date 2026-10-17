@@ -89,7 +89,7 @@ def max_vowels_fixed_window(s: str, k: int) -> int:
     return max_count
 ```
 
-👉 *Walkthroughs:* [LC 643: Maximum Average Subarray I](./643_maximum_average_subarray_i.md) | [LC 1456: Maximum Number of Vowels](./1456_maximum_number_of_vowels_in_a_substring_of_given_length.md)
+👉 *Walkthroughs:* [LC 643: Maximum Average Subarray I](../01_arrays_and_pointers/643_maximum_average_subarray_i.md) | [LC 1456: Maximum Number of Vowels](../01_arrays_and_pointers/1456_maximum_number_of_vowels_in_a_substring_of_given_length.md)
 
 ---
 

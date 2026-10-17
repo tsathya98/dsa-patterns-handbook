@@ -27,7 +27,7 @@ In a Linked List, elements can be scattered anywhere in the computer's memory.
 └────────┴───────┘        └────────┴───────┘        └────────┴───────┘
 ```
 
-> **Crucial Takeaway:**  
+> **Key Takeaway:**  
 > A node does **not** know who came before it. It only holds its own `val` and an arrow `next` pointing to the next node.
 
 ---

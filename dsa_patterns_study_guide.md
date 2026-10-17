@@ -11,19 +11,19 @@ Click any pattern below to open its **deep-dive beginner cheat sheet** with full
 
 | # | Pattern | When to Use | Time Complexity | Deep-Dive Cheat Sheet |
 |---|---|---|---|---|
-| 1 | **Arrays, Strings & HashMaps** | Contiguous memory, $\mathcal{O}(1)$ lookups, frequency count | $\mathcal{O}(1)$ read / lookup | 📖 **[Arrays & HashMaps Guide](./arrays_hashmaps_cheat_sheet.md)** |
-| 2 | **Two Pointers** | Sorted lists, pairs, palindromes, shrinking windows | $\mathcal{O}(n)$ | 📖 **[Two Pointers Master Guide](./two_pointers_cheat_sheet.md)** |
-| 3 | **Sliding Window** | Contiguous subarrays/substrings ("longest/shortest") | $\mathcal{O}(n)$ | 📖 **[Sliding Window Guide](./sliding_window_cheat_sheet.md)** |
-| 4 | **Binary Search** | Sorted search space, monotonic feasibility ("find min speed") | $\mathcal{O}(\log n)$ | 📖 **[Binary Search Guide](./binary_search_cheat_sheet.md)** |
-| 5 | **BFS & DFS** | Shortest path (BFS), maze exploration & tree depth (DFS) | $\mathcal{O}(V + E)$ | 📖 **[BFS vs. DFS Guide](./bfs_dfs_cheat_sheet.md)** |
-| 6 | **Backtracking** | Generate all combinations, subsets, permutations with "undo" | $\mathcal{O}(2^n)$ or $\mathcal{O}(n!)$ | 📖 **[Backtracking Guide](./backtracking_cheat_sheet.md)** |
-| 7 | **Heaps / Priority Queues** | Constantly track min/max, "Top K", live median streams | Push/Pop: $\mathcal{O}(\log k)$ | 📖 **[Heaps & Priority Queues Guide](./heaps_priority_queues_cheat_sheet.md)** |
-| 8 | **Kadane's Algorithm** | Contiguous subarray with negative penalties / max gain | $\mathcal{O}(n)$ | 📖 **[Kadane's Algorithm Guide](./kadanes_algorithm_cheat_sheet.md)** |
-| 9 | **Greedy Subtraction (ATM Pattern)** | Canonical unit decomposition, Roman numerals, currency change | $\mathcal{O}(1)$ / $\mathcal{O}(D)$ | 📖 **[Greedy Subtraction Guide](./greedy_subtraction_atm_cheat_sheet.md)** |
-| 10 | **Prefix Sum (Seesaw Balance Pattern)** | Finding equilibrium/pivot index, comparing left vs right sides | $\mathcal{O}(n)$ | 📖 **[Prefix Sum (Seesaw) Guide](./prefix_sum_seesaw_cheat_sheet.md)** |
-| 11 | **Linked Lists (Pointers & Dummies)** | In-place node stitching, reversing arrows, fast/slow cycles | $\mathcal{O}(n)$ | 📖 **[Linked List Master Guide](./linked_list_master_cheat_sheet.md)**<br>🗺️ **[90% Taxonomy Guide](./linked_list_90_percent_taxonomy.md)** |
+| 1 | **Arrays, Strings & HashMaps** | Contiguous memory, $\mathcal{O}(1)$ lookups, frequency count | $\mathcal{O}(1)$ read / lookup | 📖 **[Arrays & HashMaps Guide](./cheat_sheets/arrays_hashmaps_cheat_sheet.md)** |
+| 2 | **Two Pointers** | Sorted lists, pairs, palindromes, shrinking windows | $\mathcal{O}(n)$ | 📖 **[Two Pointers Master Guide](./cheat_sheets/two_pointers_cheat_sheet.md)** |
+| 3 | **Sliding Window** | Contiguous subarrays/substrings ("longest/shortest") | $\mathcal{O}(n)$ | 📖 **[Sliding Window Guide](./cheat_sheets/sliding_window_cheat_sheet.md)** |
+| 4 | **Binary Search** | Sorted search space, monotonic feasibility ("find min speed") | $\mathcal{O}(\log n)$ | 📖 **[Binary Search Guide](./cheat_sheets/binary_search_cheat_sheet.md)** |
+| 5 | **BFS & DFS** | Shortest path (BFS), maze exploration & tree depth (DFS) | $\mathcal{O}(V + E)$ | 📖 **[BFS vs. DFS Guide](./cheat_sheets/bfs_dfs_cheat_sheet.md)** |
+| 6 | **Backtracking** | Generate all combinations, subsets, permutations with "undo" | $\mathcal{O}(2^n)$ or $\mathcal{O}(n!)$ | 📖 **[Backtracking Guide](./cheat_sheets/backtracking_cheat_sheet.md)** |
+| 7 | **Heaps / Priority Queues** | Constantly track min/max, "Top K", live median streams | Push/Pop: $\mathcal{O}(\log k)$ | 📖 **[Heaps & Priority Queues Guide](./cheat_sheets/heaps_priority_queues_cheat_sheet.md)** |
+| 8 | **Kadane's Algorithm** | Contiguous subarray with negative penalties / max gain | $\mathcal{O}(n)$ | 📖 **[Kadane's Algorithm Guide](./cheat_sheets/kadanes_algorithm_cheat_sheet.md)** |
+| 9 | **Greedy Subtraction (ATM Pattern)** | Canonical unit decomposition, Roman numerals, currency change | $\mathcal{O}(1)$ / $\mathcal{O}(D)$ | 📖 **[Greedy Subtraction Guide](./cheat_sheets/greedy_subtraction_atm_cheat_sheet.md)** |
+| 10 | **Prefix Sum (Seesaw Balance Pattern)** | Finding equilibrium/pivot index, comparing left vs right sides | $\mathcal{O}(n)$ | 📖 **[Prefix Sum (Seesaw) Guide](./cheat_sheets/prefix_sum_seesaw_cheat_sheet.md)** |
+| 11 | **Linked Lists (Pointers & Dummies)** | In-place node stitching, reversing arrows, fast/slow cycles | $\mathcal{O}(n)$ | 📖 **[Linked List Master Guide](./cheat_sheets/linked_list_master_cheat_sheet.md)**<br>🗺️ **[90% Taxonomy Guide](./02_linked_lists/linked_list_90_percent_taxonomy.md)** |
 | 12 | **Tips & Tricks (Telescoping Sums & Loops)** | Bytecode optimization, collapsing intervals into adjacent steps | $\mathcal{O}(n)$ | 💡 **[Jump to Section 12](#12--tips--tricks-bytecode-telescoping-sums--interval-decomposition)** |
-| 13 | **Bit Manipulation** | Direct silicon logic, LSB extraction, power of 2, Horner's stream shift | $\mathcal{O}(1)$ | 📖 **[Bit Manipulation Guide](./bitwise_cheat_sheet.md)** |
+| 13 | **Bit Manipulation** | Direct silicon logic, LSB extraction, power of 2, Horner's stream shift | $\mathcal{O}(1)$ | 📖 **[Bit Manipulation Guide](./cheat_sheets/bitwise_cheat_sheet.md)** |
 
 ---
 
@@ -54,7 +54,7 @@ Click any pattern below to open its **deep-dive beginner cheat sheet** with full
 | **Schoolbook Addition / Carry** | Simulate arithmetic from right to left; roll over 9s to 0s. | **LC 66: Plus One**, **LC 2: Add Two Numbers** |
 | **Majority Element / Frequency** | Mutual cancellation in $\mathcal{O}(1)$ space vs. hash table frequency count. | **LC 169: Majority Element** |
 
-👉 **Deep Dive Guide:** [Arrays, Strings & HashMaps Master Cheat Sheet](./arrays_hashmaps_cheat_sheet.md) | [Majority Element (LC 169)](./169_majority_element.md) | [Plus One (LC 66)](./66_plus_one.md) | [Roman to Integer (LC 13)](./13_roman_to_integer.md) | [Word Pattern (LC 290)](./290_word_pattern.md)
+👉 **Deep Dive Guide:** [Arrays, Strings & HashMaps Master Cheat Sheet](./cheat_sheets/arrays_hashmaps_cheat_sheet.md) | [Majority Element (LC 169)](./01_arrays_and_pointers/169_majority_element.md) | [Plus One (LC 66)](./01_arrays_and_pointers/66_plus_one.md) | [Roman to Integer (LC 13)](./01_arrays_and_pointers/13_roman_to_integer.md) | [Word Pattern (LC 290)](./01_arrays_and_pointers/290_word_pattern.md)
 
 ---
 
@@ -83,7 +83,7 @@ Instead of checking every pair with nested loops ($\mathcal{O}(n^2)$), use two i
 | **Tail-Buffer (Reverse)** | In-place merge using trailing garbage buffer from the back. | **LC 88: Merge Sorted Array** |
 | **Anchor & Scout** | Contiguous chunk grouping / run-length encoding. | **LC 228: Summary Ranges**, **LC 443: String Compression** |
 
-👉 **Deep Dive Guide:** [Two Pointers Master Cheat Sheet](./two_pointers_cheat_sheet.md) | [Rotate Array (LC 189)](./189_rotate_array.md) | [Remove Duplicates II (LC 80)](./80_remove_duplicates_from_sorted_array_ii.md) | [Remove Duplicates (LC 26)](./26_remove_duplicates_from_sorted_array.md) | [Remove Element (LC 27)](./27_remove_element.md) | [Merge Sorted Array (LC 88)](./88_merge_sorted_array.md) | [Summary Ranges (LC 228)](./228_summary_ranges.md) | [Container With Most Water (LC 11)](./11_container_with_most_water.md) | [3Sum (LC 15)](./15_3sum.md) | [Move Zeroes (LC 283)](./283_move_zeroes.md) | [Is Subsequence (LC 392)](./392_is_subsequence.md)
+👉 **Deep Dive Guide:** [Two Pointers Master Cheat Sheet](./cheat_sheets/two_pointers_cheat_sheet.md) | [Rotate Array (LC 189)](./01_arrays_and_pointers/189_rotate_array.md) | [Remove Duplicates II (LC 80)](./01_arrays_and_pointers/80_remove_duplicates_from_sorted_array_ii.md) | [Remove Duplicates (LC 26)](./01_arrays_and_pointers/26_remove_duplicates_from_sorted_array.md) | [Remove Element (LC 27)](./01_arrays_and_pointers/27_remove_element.md) | [Merge Sorted Array (LC 88)](./01_arrays_and_pointers/88_merge_sorted_array.md) | [Summary Ranges (LC 228)](./01_arrays_and_pointers/228_summary_ranges.md) | [Container With Most Water (LC 11)](./01_arrays_and_pointers/11_container_with_most_water.md) | [3Sum (LC 15)](./01_arrays_and_pointers/15_3sum.md) | [Move Zeroes (LC 283)](./01_arrays_and_pointers/283_move_zeroes.md) | [Is Subsequence (LC 392)](./01_arrays_and_pointers/392_is_subsequence.md)
 
 ### ⚖️ Two Pointers (Anchor & Scout) vs. Sliding Window: What's the Difference?
 Many candidates confuse **Anchor & Scout** with **Sliding Window** because both track a range `[start ... end]`.
@@ -137,7 +137,7 @@ Whenever a problem asks for the maximum/minimum/target property of a contiguous 
 | **Dynamic (Shortest)** | Minimum size subarray sum $\ge$ target. | **LC 209: Minimum Size Subarray Sum** |
 | **Dynamic (Exact)** | Subarrays with $K$ different integers (`atMost(K) - atMost(K-1)`). | **LC 992: Subarrays with K Different Integers** |
 
-👉 **Deep Dive Guide:** [Sliding Window Master Cheat Sheet](./sliding_window_cheat_sheet.md) | [Maximum Average Subarray I (LC 643)](./643_maximum_average_subarray_i.md) | [Maximum Number of Vowels (LC 1456)](./1456_maximum_number_of_vowels_in_a_substring_of_given_length.md)
+👉 **Deep Dive Guide:** [Sliding Window Master Cheat Sheet](./cheat_sheets/sliding_window_cheat_sheet.md) | [Maximum Average Subarray I (LC 643)](./01_arrays_and_pointers/643_maximum_average_subarray_i.md) | [Maximum Number of Vowels (LC 1456)](./01_arrays_and_pointers/1456_maximum_number_of_vowels_in_a_substring_of_given_length.md)
 
 ---
 
@@ -157,7 +157,7 @@ When data is sorted, checking the exact middle lets you throw away 50% of the re
 | **Binary Search on Answer** | Find minimum eating speed $K$ to eat all bananas within $H$ hours. | **LC 875: Koko Eating Bananas** |
 | **Binary Search on Answer** | Minimum ship capacity to ship packages within $D$ days. | **LC 1011: Capacity To Ship Packages** |
 
-👉 **Deep Dive Guide:** [Binary Search Master Cheat Sheet](./binary_search_cheat_sheet.md)
+👉 **Deep Dive Guide:** [Binary Search Master Cheat Sheet](./cheat_sheets/binary_search_cheat_sheet.md)
 
 ---
 
@@ -178,7 +178,7 @@ When data is sorted, checking the exact middle lets you throw away 50% of the re
 | **DFS (Recursion)** | Tree height, symmetry, and max path sum. | **LC 104: Max Depth of Binary Tree**, **LC 124: Tree Max Path Sum** |
 | **DFS (Recursion)** | Cycle detection in directed graphs (Topological Sort). | **LC 207: Course Schedule** |
 
-👉 **Deep Dive Guide:** [BFS vs. DFS Master Cheat Sheet](./bfs_dfs_cheat_sheet.md)
+👉 **Deep Dive Guide:** [BFS vs. DFS Master Cheat Sheet](./cheat_sheets/bfs_dfs_cheat_sheet.md)
 
 ---
 
@@ -199,7 +199,7 @@ When you need to generate all possibilities (subsets, combinations, permutations
 | **Constraint Satisfaction** | Fill a board satisfying row, col, subgrid rules with pruning. | **LC 51: N-Queens**, **LC 37: Sudoku Solver** |
 | **Word Search on Board** | Spell a word by moving 4-directionally without reusing cells. | **LC 79: Word Search** |
 
-👉 **Deep Dive Guide:** [Backtracking Master Cheat Sheet](./backtracking_cheat_sheet.md)
+👉 **Deep Dive Guide:** [Backtracking Master Cheat Sheet](./cheat_sheets/backtracking_cheat_sheet.md)
 
 ---
 
@@ -219,7 +219,7 @@ In a hospital Emergency Room, patients aren't seen by arrival time — the perso
 | **K-Way Merge** | Merge $K$ sorted linked lists/arrays simultaneously. | **LC 23: Merge k Sorted Lists** |
 | **Task Scheduling / Greedy** | Pick the most frequent or highest profit available task first. | **LC 621: Task Scheduler** |
 
-👉 **Deep Dive Guide:** [Heaps & Priority Queues Master Cheat Sheet](./heaps_priority_queues_cheat_sheet.md)
+👉 **Deep Dive Guide:** [Heaps & Priority Queues Master Cheat Sheet](./cheat_sheets/heaps_priority_queues_cheat_sheet.md)
 
 ---
 
@@ -240,7 +240,7 @@ When finding the maximum contiguous subarray among negative numbers:
 | **Max Product Subarray** | Track both `cur_max` and `cur_min` (negative flips to positive). | **LC 152: Maximum Product Subarray** |
 | **Maximum Difference / Stock** | Convert price array into daily deltas: Kadane on differences. | **LC 121: Best Time to Buy and Sell Stock** |
 
-👉 **Deep Dive Guide:** [Kadane's Algorithm Master Cheat Sheet](./kadanes_algorithm_cheat_sheet.md)
+👉 **Deep Dive Guide:** [Kadane's Algorithm Master Cheat Sheet](./cheat_sheets/kadanes_algorithm_cheat_sheet.md)
 
 ---
 
@@ -265,7 +265,7 @@ Instead of converting a number into a string and doing complicated digit-by-digi
 2. The unit system is canonical (greedily picking the largest never blocks an optimal answer).
 3. Inner `while` loop runs $\le 3$ times per symbol for Roman numerals, making it strictly $\mathcal{O}(1)$ time with zero division math bugs.
 
-👉 **Deep Dive Guide:** [Greedy Subtraction (ATM Pattern) Master Cheat Sheet](./greedy_subtraction_atm_cheat_sheet.md) | [LeetCode 12: Integer to Roman](./12_integer_to_roman.md)
+👉 **Deep Dive Guide:** [Greedy Subtraction (ATM Pattern) Master Cheat Sheet](./cheat_sheets/greedy_subtraction_atm_cheat_sheet.md) | [LeetCode 12: Integer to Roman](./01_arrays_and_pointers/12_integer_to_roman.md)
 
 ---
 
@@ -295,7 +295,7 @@ The Seesaw Balance pattern applies to **4 major problem archetypes** on LeetCode
 | **4. Multiplicative Balance (No Division)** | **LC 238: Product of Array Except Self** | Find product of all elements except self without using division. | $\text{left\_prod} \times \text{right\_prod}$ (two running passes) |
 | **5. Two-Row Grid Path Balances** | **LC 2017: Grid Game** | Robot 1 picks a column to drop from Row 0 to Row 1; minimize Robot 2's score. | Robot 2 gets $\max(\text{Row 0 Right}, \text{Row 1 Left})$ |
 
-👉 **Deep Dive Guide:** [Prefix Sum (Seesaw) Master Cheat Sheet](./prefix_sum_seesaw_cheat_sheet.md) | [Find Pivot Index (LC 724)](./724_find_pivot_index.md)
+👉 **Deep Dive Guide:** [Prefix Sum (Seesaw) Master Cheat Sheet](./cheat_sheets/prefix_sum_seesaw_cheat_sheet.md) | [Find Pivot Index (LC 724)](./01_arrays_and_pointers/724_find_pivot_index.md)
 
 ---
 
@@ -366,7 +366,7 @@ According to the viral LeetCode master taxonomy, 90%+ of all linked list problem
 10. **Type 9:** Custom Data Structures: DLL + HashMap (`LC 146` LRU Cache, `LC 1472`)
 11. **Type 10:** Divide & Conquer / Tree Hybrids (`LC 148` Sort List, `LC 426`, `LC 430`, `LC 237`)
 
-👉 **Deep Dive Guides:** [90% Linked List Taxonomy Guide](./linked_list_90_percent_taxonomy.md) | [Linked List Master Cheat Sheet](./linked_list_master_cheat_sheet.md) | [Convert Binary in Linked List (LC 1290)](./1290_convert_binary_number_in_a_linked_list_to_integer.md) | [Swapping Nodes in a Linked List (LC 1721)](./1721_swapping_nodes_in_a_linked_list.md) | [Reverse Linked List (LC 206)](./206_reverse_linked_list.md) | [Merge Two Sorted Lists (LC 21)](./21_merge_two_sorted_lists.md) | [Remove Duplicates (LC 83)](./83_remove_duplicates_from_sorted_list.md) | [Palindrome Linked List (LC 234)](./234_palindrome_linked_list.md) | [Linked List Fundamentals](./01_linked_list_fundamentals.md)
+👉 **Deep Dive Guides:** [90% Linked List Taxonomy Guide](./02_linked_lists/linked_list_90_percent_taxonomy.md) | [Linked List Master Cheat Sheet](./cheat_sheets/linked_list_master_cheat_sheet.md) | [Convert Binary in Linked List (LC 1290)](./02_linked_lists/1290_convert_binary_number_in_a_linked_list_to_integer.md) | [Swapping Nodes in a Linked List (LC 1721)](./02_linked_lists/1721_swapping_nodes_in_a_linked_list.md) | [Reverse Linked List (LC 206)](./02_linked_lists/206_reverse_linked_list.md) | [Merge Two Sorted Lists (LC 21)](./02_linked_lists/21_merge_two_sorted_lists.md) | [Remove Duplicates (LC 83)](./02_linked_lists/83_remove_duplicates_from_sorted_list.md) | [Palindrome Linked List (LC 234)](./02_linked_lists/234_palindrome_linked_list.md) | [Linked List Fundamentals](./02_linked_lists/01_linked_list_fundamentals.md)
 
 ---
 
@@ -413,7 +413,7 @@ You don't need obscure hacks to write blazing-fast Python. Remember these 4 core
    `if not stack:` ✅ (evaluates directly in C via `tp_as_sequence->sq_length == 0`)  
    `if len(stack) == 0:` ❌ (involves function call overhead and integer comparison).
 3. **Check mathematical invariants BEFORE starting loops:**  
-   In [LC 20: Valid Parentheses](./20_valid_parentheses.md):  
+   In [LC 20: Valid Parentheses](./03_stacks_and_queues/20_valid_parentheses.md):  
    Every opening bracket requires a closing bracket. A valid string **can never have an odd length**!  
    ```python
    if len(s) % 2 != 0:
@@ -480,7 +480,7 @@ Ask yourself: **"Can I break a multi-day / multi-step action into single 1-step 
    You are strictly limited to **1 transaction total**. If you cash out on Day 2, your quota is spent. You cannot break it into daily steps.  
    👉 *Action:* Forced to track the single lowest day (`min_price`).
 
-*👉 See [`122_best_time_to_buy_and_sell_stock_ii.md`](./122_best_time_to_buy_and_sell_stock_ii.md) for the complete problem walkthrough.*
+*👉 See [`122_best_time_to_buy_and_sell_stock_ii.md`](./01_arrays_and_pointers/122_best_time_to_buy_and_sell_stock_ii.md) for the complete problem walkthrough.*
 
 
 

@@ -2,7 +2,7 @@
 
 > **Target Audience:** Anyone who finds Linked Lists abstract or confusing.  
 > **Philosophy:** A Linked List is NOT an array. It is a **treasure hunt of nested boxes**. Once you see the physical picture, the code writes itself.  
-> 🗺️ **Full LeetCode Taxonomy:** Looking for the comprehensive 11-type classification of 90%+ of all interview questions? See **[The 90% Linked List Master Taxonomy Guide](./linked_list_90_percent_taxonomy.md)**.
+> 🗺️ **Full LeetCode Taxonomy:** Looking for the comprehensive 11-type classification of 90%+ of all interview questions? See **[The 90% Linked List Master Taxonomy Guide](../02_linked_lists/linked_list_90_percent_taxonomy.md)**.
 
 ---
 
@@ -170,7 +170,7 @@ def reverseList(head: ListNode | None) -> ListNode | None:
 * **Why `return prev`?** When `curr` falls into `None`, `prev` is standing on the **very last node** (the new head of the line!).
 * **Why `while curr:` instead of `while curr and curr.next:`?** `while curr.next` stops early on the last node, meaning the last node never turns around!
 
-👉 *See full breakdown and visual comic in [`206_reverse_linked_list.md`](./206_reverse_linked_list.md).*
+👉 *See full breakdown and visual comic in [`206_reverse_linked_list.md`](../02_linked_lists/206_reverse_linked_list.md).*
 
 ---
 
@@ -254,7 +254,7 @@ def isPalindrome(head: Optional[ListNode]) -> bool:
   * As an initial solution: **Yes** (proves you write clean, bug-free code fast).
   * As the final solution: **No** (interviewers will prompt for the $\mathcal{O}(1)$ space in-place Triple Crown).
 
-👉 *See full breakdown and benchmark in [`234_palindrome_linked_list.md`](./234_palindrome_linked_list.md).*
+👉 *See full breakdown and benchmark in [`234_palindrome_linked_list.md`](../02_linked_lists/234_palindrome_linked_list.md).*
 
 ---
 
@@ -300,7 +300,7 @@ def swapNodes(head: Optional[ListNode], k: int) -> Optional[ListNode]:
 * **Swapping Inside Reconstruction Loop (Direction-Dependent Bug):**  
   If you dump to an array and rebuild, never do `if i == k - 1: swap` inside the loop. If $k$ is in the back half (e.g. `[100, 90], k = 2`), index 0 is read before the swap happens, outputting duplicate values `[100, 100]`. Always swap *before* the loop!
 
-👉 *See full breakdown in [`1721_swapping_nodes_in_a_linked_list.md`](./1721_swapping_nodes_in_a_linked_list.md).*
+👉 *See full breakdown in [`1721_swapping_nodes_in_a_linked_list.md`](../02_linked_lists/1721_swapping_nodes_in_a_linked_list.md).*
 
 ---
 
@@ -327,7 +327,7 @@ def getDecimalValue(head: ListNode | None) -> int:
 * **The String Concatenation Trap (`s += ...`):** Building a binary string with `s += str(head.val)` creates a brand new string on every node in Python, secretly degrading memory/time to $\mathcal{O}(n^2)$.
 * **Hardware Shift Register Model:** `(ans << 1) | bit` mirrors how network packets and CPU registers accumulate bits across a serial wire.
 
-👉 *See full breakdown in [`1290_convert_binary_number_in_a_linked_list_to_integer.md`](./1290_convert_binary_number_in_a_linked_list_to_integer.md).*
+👉 *See full breakdown in [`1290_convert_binary_number_in_a_linked_list_to_integer.md`](../02_linked_lists/1290_convert_binary_number_in_a_linked_list_to_integer.md).*
 
 ---
 
@@ -369,9 +369,9 @@ According to the famous LeetCode masterclass ([Post #2434752](https://leetcode.c
 └── # Category VII: To Do (Hard Design Boss Challenges - LC 432, LC 460, LC 2296)
 ```
 
-### 💡 The Crucial Duplicate Removal Rule:
-* **Sorted List:** **NO extra memory needed!** Compare adjacent items: `cur.val == cur.next.val` $\rightarrow \mathcal{O}(1)$ space.
-* **Unsorted List:** **You MUST use a Hash Table / HashSet!** Without sorting, duplicate values can appear anywhere in the list $\rightarrow \mathcal{O}(n)$ space.
+### 💡 Duplicate Removal: Sorted vs. Unsorted Rule
+* **Sorted List:** **No extra memory needed.** Compare adjacent items: `cur.val == cur.next.val` $\rightarrow \mathcal{O}(1)$ space.
+* **Unsorted List:** **Must use a Hash Set.** Duplicate values can appear anywhere $\rightarrow \mathcal{O}(n)$ space.
 
-👉 *For full visual diagrams, templates, and problem checklists, check out **[`linked_list_90_percent_taxonomy.md`](./linked_list_90_percent_taxonomy.md)**.*
+👉 *For full visual diagrams, templates, and problem checklists, check out **[`linked_list_90_percent_taxonomy.md`](../02_linked_lists/linked_list_90_percent_taxonomy.md)**.*
 

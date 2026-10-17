@@ -59,7 +59,7 @@ At every step, the distance between the lines ($\text{width} = r - l$) **shrinks
      Area = 8 * 1 = 8
 ```
 
-### 🔑 The Crucial Question: Which pointer do we move?
+### 🔑 Which Pointer Moves? (The Greedy Choice)
 The water capacity is bottlenecked strictly by the **shorter line**.
 - If we move the **taller line inward**:
   - The width **decreases** $(r - l - 1)$.

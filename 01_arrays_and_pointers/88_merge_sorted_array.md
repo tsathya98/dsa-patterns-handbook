@@ -170,8 +170,7 @@ class Solution:
                 p2 -= 1
             p -= 1
 
-        # ⚠️ CRUCIAL INTERVIEW FOLLOW-UP:
-        # If nums2 still has leftovers, copy them into nums1
+        # Follow-up: If nums2 still has leftovers, copy them into nums1
         while p2 >= 0:
             nums1[p] = nums2[p2]
             p2 -= 1

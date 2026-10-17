@@ -1,8 +1,7 @@
 # 📝 Two Pointers Master Cheat Sheet & Decision Guide
 
 > **Pattern:** Two Pointers Technique  
-> **Target Audience:** Quick reference for physical notebook notes and rapid interview review.  
-> **Philosophy:** Two pointers is not one formula — it is a choreography of two markers across 3 formations.
+> **Core Idea:** Coordinated two-marker traversal across 6 formations to replace $\mathcal{O}(n^2)$ nested loops with $\mathcal{O}(n)$.
 
 ---
 
@@ -10,9 +9,9 @@
 
 Instead of using two nested loops (`for i in ... for j in ...`) which takes **$\mathcal{O}(n^2)$** time, we use **two integer index variables** (`left/right`, `slow/fast`, or `p1/p2`) that move through the data in a coordinated way, reducing time to **$\mathcal{O}(n)$**.
 
-> **The Analogy:**  
-> A nested loop is like testing every single lock with every single key.  
-> Two pointers is like holding your left finger on a word while your right hand turns pages.
+> **Analogy:**  
+> A nested loop tests every key against every lock.  
+> Two pointers keeps one finger on a word while your other hand turns pages.
 
 ---
 
@@ -21,16 +20,16 @@ Instead of using two nested loops (`for i in ... for j in ...`) which takes **$\
 Ask yourself these 3 questions:
 
 1. **Are the relative positions fixed or sorted?**  
-   *(You cannot shuffle or randomly rearrange elements; their original left-to-right order matters).*
+   *(Order matters; you cannot randomly shuffle elements).*
 2. **Can I make decisions without backtracking?**  
-   *(Once a pointer moves forward, it never needs to step backward).*
-3. **Am I searching for pairs, boundaries, or comparing/matching TWO sequences (strings or arrays)?**
+   *(Once a pointer moves, it never needs to step backward).*
+3. **Am I searching for pairs, boundaries, or comparing/matching TWO sequences?**
 
-👉 If all three are **YES**, start writing Two Pointers.
+👉 If all three are **YES**, use Two Pointers.
 
 ---
 
-## 📐 3. The 5 Formations (How to Pick Which One)
+## 📐 3. The 6 Formations (How to Pick Which One)
 
 ```text
 Formation A: THE SQUEEZE         Formation B: SCOUT & WRITER       Formation C: TWO CONVEYOR BELTS
@@ -81,7 +80,7 @@ Formation E: TAIL-BUFFER / REVERSE PLACEMENT
           r -= 1
   ```
 
-👉 *See full breakdown in [`11_container_with_most_water.md`](./11_container_with_most_water.md), [`15_3sum.md`](./15_3sum.md), and [`189_rotate_array.md`](./189_rotate_array.md).*
+👉 *See full breakdown in [`11_container_with_most_water.md`](../01_arrays_and_pointers/11_container_with_most_water.md), [`15_3sum.md`](../01_arrays_and_pointers/15_3sum.md), and [`189_rotate_array.md`](../01_arrays_and_pointers/189_rotate_array.md).*
 
 ---
 
@@ -102,7 +101,7 @@ Formation E: TAIL-BUFFER / REVERSE PLACEMENT
           slow += 1
   ```
 
-👉 *See full breakdown in [`283_move_zeroes.md`](./283_move_zeroes.md), [`27_remove_element.md`](./27_remove_element.md), [`26_remove_duplicates_from_sorted_array.md`](./26_remove_duplicates_from_sorted_array.md), and [`80_remove_duplicates_from_sorted_array_ii.md`](./80_remove_duplicates_from_sorted_array_ii.md).*
+👉 *See full breakdown in [`283_move_zeroes.md`](../01_arrays_and_pointers/283_move_zeroes.md), [`27_remove_element.md`](../01_arrays_and_pointers/27_remove_element.md), [`26_remove_duplicates_from_sorted_array.md`](../01_arrays_and_pointers/26_remove_duplicates_from_sorted_array.md), and [`80_remove_duplicates_from_sorted_array_ii.md`](../01_arrays_and_pointers/80_remove_duplicates_from_sorted_array_ii.md).*
 
 ---
 
@@ -146,7 +145,7 @@ Formation E: TAIL-BUFFER / REVERSE PLACEMENT
       i += 1
   ```
 
-👉 *See full breakdown in [`228_summary_ranges.md`](./228_summary_ranges.md).*
+👉 *See full breakdown in [`228_summary_ranges.md`](../01_arrays_and_pointers/228_summary_ranges.md).*
 
 ---
 
@@ -176,7 +175,7 @@ Formation E: TAIL-BUFFER / REVERSE PLACEMENT
       p -= 1
   ```
 
-👉 *See full breakdown in [`88_merge_sorted_array.md`](./88_merge_sorted_array.md).*
+👉 *See full breakdown in [`88_merge_sorted_array.md`](../01_arrays_and_pointers/88_merge_sorted_array.md).*
 
 ---
 
@@ -282,6 +281,6 @@ Think of your pointers as two knobs controlling your state:
 
 ---
 
-## ⚠️ 6. The Golden Rule
-> **"Pointers only move in one direction. If you ever find yourself moving a pointer backward, you don't need Two Pointers — you need a Stack, a Sliding Window, or Backtracking."**
+## ⚠️ 7. The Golden Rule
+> **"Pointers only move in one direction. If you ever find yourself moving a pointer backward, you don't need Two Pointers: you need a Stack, a Sliding Window, or Backtracking."**
 

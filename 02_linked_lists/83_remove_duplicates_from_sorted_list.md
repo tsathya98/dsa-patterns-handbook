@@ -32,7 +32,7 @@ cur
 
 * If `cur.val == cur.next.val` (duplicate found!):
   * **Snip the duplicate:** Point `cur.next` to skip the neighbor: `cur.next = cur.next.next`.
-  * **CRUCIAL RULE:** **DO NOT move `cur` yet!**  
+  * **Rule:** **Do not advance `cur` yet.**  
     Why? Because the *new* neighbor might ALSO be a duplicate (e.g. `[1, 1, 1]`)!
 * If `cur.val != cur.next.val` (different numbers):
   * Now it is safe to step forward: `cur = cur.next`.

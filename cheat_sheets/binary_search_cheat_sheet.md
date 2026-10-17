@@ -44,7 +44,7 @@ def binary_search(nums: list[int], target: int) -> int:
         # 1. Find the exact middle
         mid = (low + high) // 2
         
-        # 2. Check if we hit the jackpot
+        # 2. Target found
         if nums[mid] == target:
             return mid
         
@@ -78,8 +78,7 @@ Nums:   [ . ,  . ,  . ,  . , 16 , 23 , 38 ]
 
 ---
 
-## 🌟 4. Advanced Flavor: "Binary Search on the Answer"
-*This is the favorite interview question at top tech companies!*
+## 🌟 4. Binary Search on the Answer (Monotonic Predicate)
 
 ### The Problem Style:
 The problem does **not** give you a sorted list to search through. Instead, it asks:

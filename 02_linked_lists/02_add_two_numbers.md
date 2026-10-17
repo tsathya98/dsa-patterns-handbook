@@ -66,7 +66,7 @@ When `l1` runs out of nodes, we treat its missing digits as `0`:
 - $L_2$: `8`
 - $7 + 8 = 15 \\implies$ Digit `5`, Carry `1`.
 - Both `l1` and `l2` become `None` (exhausted).
-- **Crucial check:** Since `carry = 1`, loop condition `while l1 or l2 or carry:` runs one last time, appending final node `[1]`!
+- **Trailing carry check:** Since `carry = 1`, loop condition `while l1 or l2 or carry:` runs one last time, appending final node `[1]`!
 - **Result List:** `5 -> 1` ($15$)
 
 ---
