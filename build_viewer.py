@@ -1194,15 +1194,27 @@ def build_html(default_view: str = "concepts") -> str:
       <div class="flex items-center gap-2 flex-wrap">
         <label for="playground-template-select" class="text-xs ui-text-muted font-medium">Template:</label>
         <select id="playground-template-select" onchange="onPlaygroundTemplateChange(this.value)" class="ui-card border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none">
-          <option value="bubble_sort">🫧 Bubble Sort (Step Trace)</option>
-          <option value="selection_sort">🎯 Selection Sort</option>
-          <option value="sort_colors">🇳🇱 LC 75 Sort Colors (Dutch Flag)</option>
-          <option value="repeated_substring">🔁 LC 459 Repeated Substring Pattern</option>
-          <option value="container_water">💧 LC 11 Container With Most Water</option>
-          <option value="subsets">🌳 LC 78 Subsets (Backtracking)</option>
-          <option value="n_queens">👑 LC 51 N-Queens (4x4 Board)</option>
-          <option value="kth_grammar">🌲 LC 779 K-th Symbol in Grammar</option>
-          <option value="diff_ways">🧮 LC 241 Different Ways to Add Parentheses</option>
+          <optgroup label="Sorting Algorithms">
+            <option value="bubble_sort">🫧 Bubble Sort (Step Trace)</option>
+            <option value="selection_sort">🎯 Selection Sort</option>
+            <option value="merge_sort">🌲 Merge Sort (Divide &amp; Conquer)</option>
+            <option value="quick_sort">⚡ Quick Sort (Lomuto In-Place)</option>
+            <option value="quickselect">🎯 Quickselect (LC 215 - O(N) Kth Largest)</option>
+            <option value="bucket_sort">🪣 Bucket Sort (LC 347 - O(N) Frequency)</option>
+            <option value="cyclic_sort">🔄 Cyclic Sort (LC 41 - O(N) In-Place [1..N])</option>
+            <option value="heap_sort">🏔️ Heap Sort (In-Place Max Heapify)</option>
+            <option value="sort_colors">🇳🇱 LC 75 Sort Colors (Dutch National Flag)</option>
+          </optgroup>
+          <optgroup label="Pointers &amp; Math">
+            <option value="repeated_substring">🔁 LC 459 Repeated Substring Pattern</option>
+            <option value="container_water">💧 LC 11 Container With Most Water</option>
+          </optgroup>
+          <optgroup label="Recursion &amp; Backtracking">
+            <option value="subsets">🌳 LC 78 Subsets (Backtracking)</option>
+            <option value="n_queens">👑 LC 51 N-Queens (4x4 Board)</option>
+            <option value="kth_grammar">🌲 LC 779 K-th Symbol in Grammar</option>
+            <option value="diff_ways">🧮 LC 241 Different Ways to Add Parentheses</option>
+          </optgroup>
           <option value="blank">📝 Blank Scratchpad</option>
         </select>
         <button type="button" onclick="loadCurrentDocIntoPlayground()" class="px-2.5 py-1.5 rounded-lg ui-card border text-xs font-semibold hover:ui-accent-soft transition-colors" title="Load solution code from the current note">
@@ -2041,6 +2053,199 @@ def selection_sort(arr):
 nums = [29, 10, 14, 37, 13]
 print("Final Sorted:", selection_sort(nums))
 `,
+      merge_sort: `# 🌲 Merge Sort with Divide & Conquer Trace
+def merge_sort(arr, depth=0):
+    indent = "  " * depth
+    if len(arr) <= 1:
+        return arr
+
+    mid = len(arr) // 2
+    print(indent + "Split -> Left:", arr[:mid], "| Right:", arr[mid:])
+
+    left = merge_sort(arr[:mid], depth + 1)
+    right = merge_sort(arr[mid:], depth + 1)
+
+    merged = merge(left, right)
+    print(indent + "Merged:", left, "+", right, "->", merged)
+    return merged
+
+def merge(left, right):
+    res = []
+    i = j = 0
+    while i < len(left) and j < len(right):
+        if left[i] <= right[j]:
+            res.append(left[i])
+            i += 1
+        else:
+            res.append(right[j])
+            j += 1
+    res.extend(left[i:])
+    res.extend(right[j:])
+    return res
+
+nums = [38, 27, 43, 3, 9, 82, 10]
+print("Initial array:", nums, "\\n")
+sorted_nums = merge_sort(nums)
+print("\\nFinal Sorted Array:", sorted_nums)
+`,
+      quick_sort: `# ⚡ Quick Sort (Lomuto In-Place Partition Trace)
+def quick_sort(arr, low=0, high=None):
+    if high is None:
+        high = len(arr) - 1
+    if low < high:
+        pi = partition(arr, low, high)
+        quick_sort(arr, low, pi - 1)
+        quick_sort(arr, pi + 1, high)
+    return arr
+
+def partition(arr, low, high):
+    pivot = arr[high]
+    i = low - 1
+    print("Partition range [" + str(low) + ".." + str(high) + "], Pivot:", pivot)
+    for j in range(low, high):
+        if arr[j] <= pivot:
+            i += 1
+            arr[i], arr[j] = arr[j], arr[i]
+            if i != j:
+                print("  Swap arr[" + str(i) + "] with arr[" + str(j) + "] ->", arr)
+    arr[i + 1], arr[high] = arr[high], arr[i + 1]
+    print("  Lock Pivot", pivot, "at index", i + 1, "->", arr, "\\n")
+    return i + 1
+
+nums = [10, 80, 30, 90, 40, 50, 70]
+print("Initial array:", nums, "\\n")
+quick_sort(nums)
+print("Final Sorted Array:", nums)
+`,
+      quickselect: `# 🎯 Quickselect: O(N) Average K-th Largest Element (LC 215 - MAANG Staple)
+def find_kth_largest(nums, k):
+    target_idx = len(nums) - k
+    
+    def quickselect(left, right):
+        pivot = nums[right]
+        i = left
+        for j in range(left, right):
+            if nums[j] <= pivot:
+                nums[i], nums[j] = nums[j], nums[i]
+                i += 1
+        nums[i], nums[right] = nums[right], nums[i]
+        
+        print("Pivot " + str(pivot) + " locked at index " + str(i) + " | Array: " + str(nums))
+        
+        if i == target_idx:
+            return nums[i]
+        elif i < target_idx:
+            print("  Target is to the RIGHT (searching [" + str(i + 1) + ".." + str(right) + "])")
+            return quickselect(i + 1, right)
+        else:
+            print("  Target is to the LEFT (searching [" + str(left) + ".." + str(i - 1) + "])")
+            return quickselect(left, i - 1)
+
+    print("Finding " + str(k) + "-th largest in " + str(nums) + " (Target sorted index: " + str(target_idx) + ")\\n")
+    return quickselect(0, len(nums) - 1)
+
+arr = [3, 2, 1, 5, 6, 4]
+ans = find_kth_largest(arr, k=2)
+print("\\nResult: 2nd Largest Element is:", ans)
+`,
+      bucket_sort: `# 🪣 Bucket Sort: O(N) Linear Time (LC 347 Top K Frequent - Google/Meta Favorite)
+def top_k_frequent(nums, k):
+    # Step 1: Frequency map - O(N)
+    counts = {{}}
+    for x in nums:
+        counts[x] = counts.get(x, 0) + 1
+    print("Frequency counts:", counts)
+
+    # Step 2: Buckets where index = frequency - O(N)
+    # At most, any number can appear len(nums) times
+    buckets = [[] for _ in range(len(nums) + 1)]
+    for num, freq in counts.items():
+        buckets[freq].append(num)
+    
+    print("Frequency Buckets (idx = count):")
+    for freq in range(len(buckets)):
+        if buckets[freq]:
+            print("  Freq " + str(freq) + ": " + str(buckets[freq]))
+
+    # Step 3: Gather top k by scanning buckets backwards - O(N)
+    res = []
+    for freq in range(len(buckets) - 1, 0, -1):
+        for num in buckets[freq]:
+            res.append(num)
+            if len(res) == k:
+                return res
+    return res
+
+nums = [1, 1, 1, 2, 2, 3, 3, 3, 3, 4]
+k = 2
+print("Top " + str(k) + " frequent in:", nums)
+print("Result:", top_k_frequent(nums, k))
+`,
+      cyclic_sort: `# 🔄 Cyclic Sort: O(N) Time, O(1) Space for [1..N] (LC 41 / LC 268 - FAANG Classic)
+def first_missing_positive(nums):
+    # Rule: Value x belongs at index x - 1
+    n = len(nums)
+    print("Initial array:", nums, "\\n")
+    
+    i = 0
+    while i < n:
+        correct_idx = nums[i] - 1
+        # Place nums[i] at correct_idx if in range [1..n] and not duplicate
+        if 1 <= nums[i] <= n and nums[i] != nums[correct_idx]:
+            val = nums[i]
+            nums[i], nums[correct_idx] = nums[correct_idx], nums[i]
+            print("Swapped " + str(val) + " to index " + str(correct_idx) + " ->", nums)
+        else:
+            i += 1
+            
+    print("\\nArray after cyclic placement:", nums)
+    
+    # First index where nums[i] != i + 1 is our missing answer
+    for i in range(n):
+        if nums[i] != i + 1:
+            return i + 1
+    return n + 1
+
+nums = [3, 4, -1, 1]
+ans = first_missing_positive(nums)
+print("First Missing Positive:", ans)
+`,
+      heap_sort: `# 🏔️ In-Place Heap Sort (O(N log N) Time, O(1) Space)
+def heap_sort(arr):
+    n = len(arr)
+    print("Initial array:", arr, "\\n")
+
+    # Step 1: Build max heap (sift down from last parent to root)
+    for i in range(n // 2 - 1, -1, -1):
+        sift_down(arr, n, i)
+    print("Max Heap built:", arr, "\\n")
+
+    # Step 2: Extract elements one by one from end to front
+    for i in range(n - 1, 0, -1):
+        # Swap current max (arr[0]) with arr[i]
+        arr[0], arr[i] = arr[i], arr[0]
+        print("Locked max " + str(arr[i]) + " at index " + str(i) + " ->", arr)
+        # Restore heap on reduced tree
+        sift_down(arr, i, 0)
+    return arr
+
+def sift_down(arr, n, root):
+    largest = root
+    left = 2 * root + 1
+    right = 2 * root + 2
+
+    if left < n and arr[left] > arr[largest]:
+        largest = left
+    if right < n and arr[right] > arr[largest]:
+        largest = right
+
+    if largest != root:
+        arr[root], arr[largest] = arr[largest], arr[root]
+        sift_down(arr, n, largest)
+
+nums = [12, 11, 13, 5, 6, 7]
+print("Sorted Array:", heap_sort(nums))
+`,
       sort_colors: `# 🇳🇱 LeetCode 75: Sort Colors (Dutch National Flag)
 def sort_colors(nums):
     low, mid, high = 0, 0, len(nums) - 1
@@ -2512,6 +2717,10 @@ print("Hello from Python 3 Playground!")
       '04_sorting/03_insertion_sort.md': {{ algorithm: 'insertion_sort', initial: [12, 11, 13, 5, 6] }},
       '04_sorting/04_merge_sort.md': {{ algorithm: 'merge_sort', initial: [38, 27, 43, 3, 9, 82, 10] }},
       '04_sorting/05_quick_sort.md': {{ algorithm: 'quick_sort', initial: [10, 80, 30, 90, 40, 50, 70] }},
+      '04_sorting/06_quickselect.md': {{ algorithm: 'quick_sort', initial: [10, 80, 30, 90, 40, 50, 70] }},
+      '04_sorting/07_counting_and_bucket_sort.md': {{ algorithm: 'selection_sort', initial: [4, 1, 3, 2, 3] }},
+      '04_sorting/08_cyclic_sort.md': {{ algorithm: 'selection_sort', initial: [3, 4, -1, 1] }},
+      '04_sorting/09_heap_sort.md': {{ algorithm: 'bubble_sort', initial: [12, 11, 13, 5, 6, 7] }},
       '05_binary_search/01_binary_search_fundamentals_and_occurrences.md': {{ algorithm: 'binary_search', initial: [2, 5, 8, 12, 16, 23, 38], target: 23 }},
       '05_binary_search/02_local_minima_and_peak_finding.md': {{ algorithm: 'peak_finding', initial: [1, 2, 1, 3, 5, 6, 4] }},
       '01_arrays_and_pointers/75_sort_colors.md': {{ algorithm: 'sort_colors', initial: [2, 0, 2, 1, 1, 0] }},
