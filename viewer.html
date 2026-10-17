@@ -26,45 +26,85 @@
 */.hljs{color:#c9d1d9;background:#0d1117}.hljs-doctag,.hljs-keyword,.hljs-meta .hljs-keyword,.hljs-template-tag,.hljs-template-variable,.hljs-type,.hljs-variable.language_{color:#ff7b72}.hljs-title,.hljs-title.class_,.hljs-title.class_.inherited__,.hljs-title.function_{color:#d2a8ff}.hljs-attr,.hljs-attribute,.hljs-literal,.hljs-meta,.hljs-number,.hljs-operator,.hljs-selector-attr,.hljs-selector-class,.hljs-selector-id,.hljs-variable{color:#79c0ff}.hljs-meta .hljs-string,.hljs-regexp,.hljs-string{color:#a5d6ff}.hljs-built_in,.hljs-symbol{color:#ffa657}.hljs-code,.hljs-comment,.hljs-formula{color:#8b949e}.hljs-name,.hljs-quote,.hljs-selector-pseudo,.hljs-selector-tag{color:#7ee787}.hljs-subst{color:#c9d1d9}.hljs-section{color:#1f6feb;font-weight:700}.hljs-bullet{color:#f2cc60}.hljs-emphasis{color:#c9d1d9;font-style:italic}.hljs-strong{color:#c9d1d9;font-weight:700}.hljs-addition{color:#aff5b4;background-color:#033a16}.hljs-deletion{color:#ffdcd7;background-color:#67060c}
 
     /* DARK MODE (Claude.ai / Gemini Warm Charcoal Dark) */
+    /* DARK MODE (LeetCode Official Dark Mode) */
     body.theme-dark {
-      --bg: #171716;
-      --surface: #1f1f1d;
-      --surface-card: #252523;
-      --surface-hover: #2f2f2c;
-      --border: #373734;
-      --text: #ededeb;
-      --text-muted: #a1a09a;
-      --accent: #d97757;
-      --accent-text: #e88d6f;
-      --accent-fg: #ffffff;
-      --accent-soft: rgba(217, 119, 87, 0.14);
-      --accent-border: rgba(217, 119, 87, 0.36);
-      --code-bg: #111110;
-      --code-inline-bg: #2e2e2b;
-      --code-inline-text: #f2a990;
-      --heading-h1: #f5f5f3;
-      --heading-h2: #e88d6f;
+      --bg: #1a1a1a;
+      --surface: #262626;
+      --surface-card: #282828;
+      --surface-hover: #323232;
+      --border: #383838;
+      --text: #eff2f6;
+      --text-muted: #8c8c8c;
+      --accent: #ffa116;
+      --accent-text: #ffa116;
+      --accent-fg: #1a1a1a;
+      --accent-soft: rgba(255, 161, 22, 0.14);
+      --accent-border: rgba(255, 161, 22, 0.35);
+      --code-bg: #1e1e1e;
+      --code-inline-bg: #2d2d2d;
+      --code-inline-text: #ffa116;
+      --heading-h1: #eff2f6;
+      --heading-h2: #ffa116;
     }
 
-    /* LIGHT MODE (Claude.ai Warm Paper & Crisp Surface Cards) */
+    /* LIGHT MODE (Clean Crisp Contrast) */
     body.theme-light {
-      --bg: #faf9f5;
-      --surface: #f2f0e8;
+      --bg: #f7f8fa;
+      --surface: #ffffff;
       --surface-card: #ffffff;
-      --surface-hover: #e8e5dc;
-      --border: #dfdcd2;
-      --text: #1f1e1d;
-      --text-muted: #66645e;
-      --accent: #c96442;
-      --accent-text: #b85432;
+      --surface-hover: #f0f1f3;
+      --border: #e2e4e8;
+      --text: #262626;
+      --text-muted: #6b7280;
+      --accent: #ffa116;
+      --accent-text: #c07800;
       --accent-fg: #ffffff;
-      --accent-soft: rgba(201, 100, 66, 0.10);
-      --accent-border: rgba(201, 100, 66, 0.28);
-      --code-bg: #191918;
-      --code-inline-bg: #efece4;
-      --code-inline-text: #9e4426;
-      --heading-h1: #141413;
-      --heading-h2: #b85432;
+      --accent-soft: rgba(255, 161, 22, 0.12);
+      --accent-border: rgba(255, 161, 22, 0.35);
+      --code-bg: #f8f9fa;
+      --code-inline-bg: #f1f2f4;
+      --code-inline-text: #b45309;
+      --heading-h1: #1a1a1a;
+      --heading-h2: #b45309;
+    }
+
+    /* LeetCode VS Code Dark+ / Monaco Syntax Highlighting */
+    body.theme-dark .hljs {
+      background: #1e1e1e !important;
+      color: #d4d4d4 !important;
+    }
+    body.theme-dark .hljs-keyword,
+    body.theme-dark .hljs-operator {
+      color: #569cd6 !important;
+    }
+    body.theme-dark .hljs-function,
+    body.theme-dark .hljs-title.function_ {
+      color: #dcdcaa !important;
+    }
+    body.theme-dark .hljs-string {
+      color: #ce9178 !important;
+    }
+    body.theme-dark .hljs-comment {
+      color: #6a9955 !important;
+      font-style: italic;
+    }
+    body.theme-dark .hljs-number {
+      color: #b5cea8 !important;
+    }
+    body.theme-dark .hljs-type,
+    body.theme-dark .hljs-class,
+    body.theme-dark .hljs-title.class_ {
+      color: #4ec9b0 !important;
+    }
+    body.theme-dark .hljs-variable,
+    body.theme-dark .hljs-params {
+      color: #9cdcfe !important;
+    }
+    body.theme-dark .hljs-built_in {
+      color: #4ec9b0 !important;
+    }
+    body.theme-dark .hljs-literal {
+      color: #569cd6 !important;
     }
 
     html, body {
@@ -256,29 +296,29 @@
       user-select: none;
     }
     .pt-cell-active {
-      border-color: #f59e0b !important;
-      background: rgba(245, 158, 11, 0.18) !important;
-      color: #d97706 !important;
-      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.35);
+      border-color: #ffa116 !important;
+      background: rgba(255, 161, 22, 0.16) !important;
+      color: #ffa116 !important;
+      box-shadow: 0 0 0 3px rgba(255, 161, 22, 0.35);
       transform: translateY(-2px);
     }
     body.theme-dark .pt-cell-active {
-      color: #fbbf24 !important;
+      color: #ffa116 !important;
     }
     .pt-cell-swapped {
-      border-color: var(--accent) !important;
-      background: var(--accent-soft) !important;
-      color: var(--accent-text) !important;
-      box-shadow: 0 0 0 3px var(--accent-border);
+      border-color: #ff375f !important;
+      background: rgba(255, 55, 95, 0.16) !important;
+      color: #ff375f !important;
+      box-shadow: 0 0 0 3px rgba(255, 55, 95, 0.32);
       transform: translateY(-3px) scale(1.04);
     }
     .pt-cell-sorted {
-      border-color: #10b981 !important;
-      background: rgba(16, 185, 129, 0.15) !important;
-      color: #059669 !important;
+      border-color: #00b8a3 !important;
+      background: rgba(0, 184, 163, 0.15) !important;
+      color: #00b8a3 !important;
     }
     body.theme-dark .pt-cell-sorted {
-      color: #34d399 !important;
+      color: #00b8a3 !important;
     }
     .pt-cell-dimmed {
       opacity: 0.22;
@@ -290,16 +330,16 @@
       font-weight: 700;
       padding: 0.1rem 0.35rem;
       border-radius: 0.35rem;
-      background: rgba(245, 158, 11, 0.2);
-      color: #d97706;
-      border: 1px solid rgba(245, 158, 11, 0.4);
+      background: rgba(255, 161, 22, 0.18);
+      color: #ffa116;
+      border: 1px solid rgba(255, 161, 22, 0.4);
       display: inline-flex;
       align-items: center;
       gap: 0.15rem;
       white-space: nowrap;
     }
     body.theme-dark .pt-ptr-pill {
-      color: #fbbf24;
+      color: #ffa116;
     }
 
 
@@ -561,19 +601,30 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
       <div class="flex flex-col space-y-1.5">
         <div class="flex items-center justify-between text-xs px-1 ui-text-muted">
-          <span class="font-bold uppercase tracking-wider text-[11px]">Python 3 Editor</span>
-          <span>Tab indents 4 spaces</span>
+          <div class="flex items-center gap-2">
+            <span class="font-bold uppercase tracking-wider text-[11px] flex items-center gap-1.5"><span class="text-[#00b8a3]">&lt;/&gt;</span> Python 3</span>
+            <span id="editor-line-col-pill" class="text-[10px] font-mono px-1.5 py-0.5 rounded ui-surface border">Ln 1, Col 1</span>
+          </div>
+          <span class="text-[11px]">Auto-indent on ↵ • Tab 4 spaces</span>
         </div>
-        <textarea id="playground-code-input" spellcheck="false" class="w-full h-[520px] font-mono text-xs p-4 rounded-2xl ui-card border focus:outline-none focus:border-[var(--accent)] resize-none leading-relaxed tracking-normal" placeholder="# Type Python code here..."></textarea>
+        
+        <!-- LeetCode Monaco Style Editor with Line Numbers Gutter -->
+        <div class="relative w-full h-[520px] rounded-2xl border ui-border overflow-hidden flex bg-[#1e1e1e] shadow-inner font-mono text-xs leading-relaxed focus-within:border-[var(--accent)] transition-colors">
+          <!-- Line Numbers Gutter -->
+          <div id="playground-line-numbers" class="w-11 py-4 px-1.5 text-right select-none font-mono text-xs leading-relaxed shrink-0 border-r border-[#333333] overflow-hidden whitespace-pre text-[#858585] bg-[#1e1e1e]" aria-hidden="true">1
+</div>
+          <!-- Code Textarea -->
+          <textarea id="playground-code-input" spellcheck="false" class="flex-1 h-full py-4 px-3 font-mono text-xs text-[#d4d4d4] bg-[#1e1e1e] border-0 focus:outline-none resize-none leading-relaxed tracking-normal whitespace-pre overflow-y-auto" style="tab-size: 4; -moz-tab-size: 4; caret-color: var(--accent);" placeholder="# Type Python code here..."></textarea>
+        </div>
       </div>
 
       <div class="flex flex-col space-y-1.5">
         <div class="flex items-center justify-between text-xs px-1 ui-text-muted">
-          <span class="font-bold uppercase tracking-wider text-[11px]">Terminal Output (stdout / stderr)</span>
+          <span class="font-bold uppercase tracking-wider text-[11px] flex items-center gap-1.5"><span class="text-sky-400">&gt;_</span> Test Result &amp; Console</span>
           <button type="button" onclick="copyPlaygroundOutput()" class="hover:underline ui-accent-text text-xs">Copy Output</button>
         </div>
-        <div class="h-[520px] rounded-2xl ui-card border flex flex-col overflow-hidden shadow-inner">
-          <pre id="playground-output" class="p-4 text-xs font-mono flex-1 overflow-y-auto whitespace-pre-wrap leading-relaxed select-text" style="color: var(--text);">Click "▶ Run Code" or press ⌘+Enter to execute.</pre>
+        <div class="h-[520px] rounded-2xl border ui-border flex flex-col overflow-hidden shadow-inner bg-[#1e1e1e]">
+          <pre id="playground-output" class="p-4 text-xs font-mono flex-1 overflow-y-auto whitespace-pre-wrap leading-relaxed select-text" style="color: #d4d4d4; background: #1e1e1e;">Click "▶ Run Code" or press ⌘+Enter to execute.</pre>
         </div>
       </div>
     </div>
@@ -1512,25 +1563,203 @@ print("Hello from Python 3 Playground!")
       return Sk.builtinFiles["files"][x];
     }
 
+    function updatePlaygroundLineNumbers() {
+      const input = document.getElementById('playground-code-input');
+      const gutter = document.getElementById('playground-line-numbers');
+      if (!input || !gutter) return;
+      const count = input.value.split('\n').length;
+      let nums = '';
+      for (let i = 1; i <= count; i++) {
+        nums += i + '\n';
+      }
+      gutter.textContent = nums;
+      gutter.scrollTop = input.scrollTop;
+    }
+
+    function updateEditorLineCol() {
+      const input = document.getElementById('playground-code-input');
+      const pill = document.getElementById('editor-line-col-pill');
+      if (!input || !pill) return;
+      const pos = input.selectionStart;
+      const upToPos = input.value.substring(0, pos);
+      const lines = upToPos.split('\n');
+      const ln = lines.length;
+      const col = lines[lines.length - 1].length + 1;
+      pill.textContent = `Ln ${ln}, Col ${col}`;
+    }
+
     let playgroundInitialized = false;
     function initPlayground() {
       const input = document.getElementById('playground-code-input');
+      const gutter = document.getElementById('playground-line-numbers');
       if (!playgroundInitialized) {
         playgroundInitialized = true;
         if (input && !input.value.trim()) {
           input.value = PLAYGROUND_TEMPLATES['bubble_sort'];
         }
         if (input) {
+          updatePlaygroundLineNumbers();
+          updateEditorLineCol();
+
+          input.addEventListener('scroll', () => {
+            if (gutter) gutter.scrollTop = input.scrollTop;
+          });
+
+          input.addEventListener('input', () => {
+            updatePlaygroundLineNumbers();
+            updateEditorLineCol();
+          });
+
+          input.addEventListener('click', updateEditorLineCol);
+          input.addEventListener('keyup', (e) => {
+            if (!['Enter', 'Tab', 'Backspace'].includes(e.key)) {
+              updateEditorLineCol();
+            }
+          });
+
           input.addEventListener('keydown', (e) => {
             if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
               e.preventDefault();
               runPlaygroundCode();
-            } else if (e.key === 'Tab') {
+              return;
+            }
+
+            const start = input.selectionStart;
+            const end = input.selectionEnd;
+            const val = input.value;
+
+            // 1. SMART AUTO-INDENT ON ENTER
+            if (e.key === 'Enter') {
               e.preventDefault();
-              const start = input.selectionStart;
-              const end = input.selectionEnd;
-              input.value = input.value.substring(0, start) + '    ' + input.value.substring(end);
-              input.selectionStart = input.selectionEnd = start + 4;
+              const lastNl = val.lastIndexOf('\n', start - 1);
+              const lineStart = lastNl === -1 ? 0 : lastNl + 1;
+              const curLine = val.substring(lineStart, start);
+
+              // Existing indent on current line
+              const indentMatch = curLine.match(/^[ \t]*/);
+              let indent = indentMatch ? indentMatch[0] : '';
+
+              // Check if line ends with ':' (ignoring comments)
+              const codeNoComment = curLine.split('#')[0].trimEnd();
+              if (codeNoComment.endsWith(':')) {
+                indent += '    ';
+              }
+
+              // Check if cursor is between matching pair like { | }, ( | ), [ | ]
+              const nextChar = val.charAt(start);
+              const isOpen = codeNoComment.endsWith('{') || codeNoComment.endsWith('(') || codeNoComment.endsWith('[');
+              const isMatch = (codeNoComment.endsWith('{') && nextChar === '}') ||
+                              (codeNoComment.endsWith('(') && nextChar === ')') ||
+                              (codeNoComment.endsWith('[') && nextChar === ']');
+
+              if (isOpen && isMatch) {
+                const insert = '\n' + indent + '\n' + (indentMatch ? indentMatch[0] : '');
+                if (document.queryCommandSupported && document.queryCommandSupported('insertText')) {
+                  document.execCommand('insertText', false, insert);
+                } else {
+                  input.value = val.substring(0, start) + insert + val.substring(end);
+                }
+                const newPos = start + 1 + indent.length;
+                input.selectionStart = input.selectionEnd = newPos;
+              } else {
+                const insert = '\n' + indent;
+                if (document.queryCommandSupported && document.queryCommandSupported('insertText')) {
+                  document.execCommand('insertText', false, insert);
+                } else {
+                  input.value = val.substring(0, start) + insert + val.substring(end);
+                  input.selectionStart = input.selectionEnd = start + insert.length;
+                }
+              }
+
+              updatePlaygroundLineNumbers();
+              updateEditorLineCol();
+              return;
+            }
+
+            // 2. SMART TAB / SHIFT+TAB
+            if (e.key === 'Tab') {
+              e.preventDefault();
+              if (start !== end) {
+                // Multi-line block indent / unindent
+                const firstNl = val.lastIndexOf('\n', start - 1);
+                const blockStart = firstNl === -1 ? 0 : firstNl + 1;
+                const blockEnd = end;
+                const blockText = val.substring(blockStart, blockEnd);
+                const lines = blockText.split('\n');
+
+                if (e.shiftKey) {
+                  const newLines = lines.map(line => line.startsWith('    ') ? line.substring(4) : (line.startsWith(' ') ? line.replace(/^ +/, '') : line));
+                  const newBlock = newLines.join('\n');
+                  input.value = val.substring(0, blockStart) + newBlock + val.substring(blockEnd);
+                  input.selectionStart = blockStart;
+                  input.selectionEnd = blockStart + newBlock.length;
+                } else {
+                  const newLines = lines.map(line => '    ' + line);
+                  const newBlock = newLines.join('\n');
+                  input.value = val.substring(0, blockStart) + newBlock + val.substring(blockEnd);
+                  input.selectionStart = blockStart;
+                  input.selectionEnd = blockStart + newBlock.length;
+                }
+              } else {
+                if (e.shiftKey) {
+                  const lastNl = val.lastIndexOf('\n', start - 1);
+                  const lineStart = lastNl === -1 ? 0 : lastNl + 1;
+                  const line = val.substring(lineStart, start);
+                  if (line.startsWith('    ')) {
+                    input.value = val.substring(0, lineStart) + val.substring(lineStart + 4);
+                    input.selectionStart = input.selectionEnd = Math.max(lineStart, start - 4);
+                  }
+                } else {
+                  if (document.queryCommandSupported && document.queryCommandSupported('insertText')) {
+                    document.execCommand('insertText', false, '    ');
+                  } else {
+                    input.value = val.substring(0, start) + '    ' + val.substring(end);
+                    input.selectionStart = input.selectionEnd = start + 4;
+                  }
+                }
+              }
+              updatePlaygroundLineNumbers();
+              updateEditorLineCol();
+              return;
+            }
+
+            // 3. SMART BACKSPACE (Dedent 4 spaces at indentation level)
+            if (e.key === 'Backspace' && start === end) {
+              const lastNl = val.lastIndexOf('\n', start - 1);
+              const lineStart = lastNl === -1 ? 0 : lastNl + 1;
+              const prefix = val.substring(lineStart, start);
+              if (/^ +$/.test(prefix) && prefix.length % 4 === 0 && prefix.length >= 4) {
+                e.preventDefault();
+                input.value = val.substring(0, start - 4) + val.substring(start);
+                input.selectionStart = input.selectionEnd = start - 4;
+                updatePlaygroundLineNumbers();
+                updateEditorLineCol();
+                return;
+              }
+            }
+
+            // 4. AUTO-PAIR BRACKETS & QUOTES
+            const pairs = { '(': ')', '[': ']', '{': '}', '"': '"', "'": "'" };
+            if (pairs[e.key] && start === end) {
+              const nextChar = val.charAt(start);
+              if (Object.values(pairs).includes(e.key) && nextChar === e.key) {
+                e.preventDefault();
+                input.selectionStart = input.selectionEnd = start + 1;
+                updateEditorLineCol();
+                return;
+              }
+              e.preventDefault();
+              const openChar = e.key;
+              const closeChar = pairs[e.key];
+              if (document.queryCommandSupported && document.queryCommandSupported('insertText')) {
+                document.execCommand('insertText', false, openChar + closeChar);
+              } else {
+                input.value = val.substring(0, start) + openChar + closeChar + val.substring(end);
+              }
+              input.selectionStart = input.selectionEnd = start + 1;
+              updatePlaygroundLineNumbers();
+              updateEditorLineCol();
+              return;
             }
           });
         }
@@ -1541,6 +1770,8 @@ print("Hello from Python 3 Playground!")
       const input = document.getElementById('playground-code-input');
       if (input && PLAYGROUND_TEMPLATES[val]) {
         input.value = PLAYGROUND_TEMPLATES[val];
+        updatePlaygroundLineNumbers();
+        updateEditorLineCol();
         clearPlaygroundConsole();
       }
     }
@@ -1583,6 +1814,8 @@ print("Hello from Python 3 Playground!")
       const input = document.getElementById('playground-code-input');
       if (input) {
         input.value = `# Loaded from: ${doc.title}\n\n` + code;
+        updatePlaygroundLineNumbers();
+        updateEditorLineCol();
       }
       const sel = document.getElementById('playground-template-select');
       if (sel) sel.value = 'blank';
