@@ -30,6 +30,7 @@ First principles of algorithmic thinking, counting elementary operations, and Bi
 * [📐 **01. Algorithms, Correctness & Efficiency**](./00_foundations/01_algorithms_correctness_efficiency.md) – What makes an algorithm "good", why wall-clock stopwatches fail, counting elementary operations, and payroll scaling.
 * [⚡ **02. Time & Space Complexity and Big-O Notation**](./00_foundations/02_time_and_space_complexity_big_o.md) – Big-O simplification rules, dominant terms, the 6 core loop archetypes (linear, halving, quadratic, break trap), and auxiliary space vs total space.
 * [🧠 **03. Python Memory Model, Pointers & Core Collections**](./00_foundations/03_python_memory_model_and_collections.md) – Variables as pointers, low-level arrays vs Python lists, why mutating a list inside a tuple works (`t[2].append()`), slice garbage collection, and hashability rules.
+* [🔢 **04. Factors, Primes & Iteration Counting**](./00_foundations/04_factors_primes_and_iteration_counting.md) – Deriving $\mathcal{O}(\sqrt{N})$ from symmetric factor pairs, prime validation, perfect square roots, and exact loop iteration counting.
 * [📊 **Time & Space Complexity Master Cheat Sheet**](./cheat_sheets/time_and_space_complexity_cheat_sheet.md) – 3-second decision table, input size ($N$) constraint limits, and common loop pattern speed ladder.
 * [🐍 **Python Internals, Memory & Collections Cheat Sheet**](./cheat_sheets/python_internals_and_collections_cheat_sheet.md) – Mutability vs hashability matrix, tuple pointer rules, in-place vs copy operations, and classic Python syntax traps.
 
@@ -101,19 +102,37 @@ Learn when and how to avoid nested $\mathcal{O}(n^2)$ loops:
 * [🍞 **238. Product of Array Except Self (LeetCode 238 - Medium)**](./01_arrays_and_pointers/238_product_of_array_except_self.md) – Prefix & Suffix Accumulator (The Sandwich Pattern), eliminating division operations, and reducing auxiliary space from $\mathcal{O}(n)$ to $\mathcal{O}(1)$.
 * [🪟 **3. Longest Substring Without Repeating Characters (LeetCode 3 - Medium)**](./01_arrays_and_pointers/3_longest_substring_without_repeating_characters.md) – Dynamic Sliding Window (The Rubber Band), eliminating $\mathcal{O}(n^3)$ substring rebuilds, and linear pass state maintenance with a hash set.
 * [🔦 **5. Longest Palindromic Substring (LeetCode 5 - Medium)**](./01_arrays_and_pointers/5_longest_palindromic_substring.md) – Two Pointers Formation F (Outward Expand Around Center / The Flashlight Beam), handling odd $(i, i)$ and even $(i, i+1)$ centers, and why `s[l+1:r]` is the exact valid boundary.
+* [🧱 **Array Fundamentals, Max Elements & Leaders**](./01_arrays_and_pointers/00_array_fundamentals_and_max_elements.md) – Python list memory mechanics, counting elements with strictly greater in $\mathcal{O}(N)$, and right-to-left leader scan.
+* [⚖️ **Prefix Sums & Special Index Parity Queries**](./01_arrays_and_pointers/00_prefix_sums_and_special_index_queries.md) – Range sum queries in $\mathcal{O}(1)$, equilibrium pivot indices, and index shifting parity analysis on deletion (LC 1664).
+* [🧩 **Subarray Mechanics & The Contribution Technique**](./01_arrays_and_pointers/00_subarray_mechanics_and_contribution_technique.md) – Total subarrays formula $N(N+1)/2$, Closest Min-Max subarray in $\mathcal{O}(N)$, and the master $(i+1)(N-i)$ contribution formula for total subarray sum.
+* [🧊 **2D Matrices, Diagonals & In-Place Rotations**](./01_arrays_and_pointers/00_matrix_2d_arrays_and_rotations.md) – Diagonal coordinate invariants ($i+j$, $i-j$), in-place transpose, 90° clockwise/anticlockwise rotation, and 4-pointer spiral traversal (LC 48, LC 54).
 
 ---
 
-## 🧭 4. Algorithmic Patterns Master Study Guide & Cheat Sheets
+## 🔍 4. Binary Search Masterclass (CodeKerdos Classes 8–10)
+Master the 7 Universal Binary Search Archetypes across sorted, rotated, paired, and unbounded spaces:
+
+* [🎯 **01. Binary Search Fundamentals & Occurrence Boundaries**](./05_binary_search/01_binary_search_fundamentals_and_occurrences.md) – Search space halving, middle landing, first/last occurrence in duplicate arrays (LC 34), occurrence count, and floor/ceil.
+* [🏔️ **02. Local Minima & Peak Finding in Unsorted Arrays**](./05_binary_search/02_local_minima_and_peak_finding.md) – Slope and gradient navigation without sorting, guaranteed valley convergence, and peak finding (LC 162).
+* [🎯 **03. Single Element in Duplicates (Index Parity Pattern)**](./05_binary_search/03_index_parity_single_element_in_duplicates.md) – Single non-duplicate in sorted paired array (LC 540), detecting parity phase shift `(even, odd)` vs `(odd, even)`, and normalization steps.
+* [🔄 **04. Search in Rotated Sorted Array (Half-Identification)**](./05_binary_search/04_search_in_rotated_sorted_array.md) – Rotated sorted array search (LC 33) and inflection point minimum finding (LC 153) via sorted-half determination.
+* [♾️ **05. Exponential Search in Infinite / Unbounded Arrays**](./05_binary_search/05_exponential_search_infinite_arrays.md) – Search in unbounded streams and unknown length arrays (LC 702) via exponential doubling $[2^k]$ in $\mathcal{O}(\log P)$ time.
+* [🎯 **06. Binary Search on the Answer (Greedy Predicates)**](./05_binary_search/06_binary_search_on_answer_greedy_predicates.md) – Optimization problems with monotonic feasibility predicates: Painter's Partition, Aggressive Cows (LC 1552), Koko Eating Bananas (LC 875), and Split Array (LC 410).
+
+---
+
+## 🧭 5. Algorithmic Patterns Master Study Guide & Cheat Sheets
 For universal templates, mental models, and decision checklists across all major patterns:
 👉 **[Open DSA Patterns Master Study Guide](./dsa_patterns_study_guide.md)**
 
-* ⚡ [**Time & Space Complexity Master Cheat Sheet**](./cheat_sheets/time_and_space_complexity_cheat_sheet.md) – 3-second decision table, $N$-limit rules ($10^8$ operations/sec), and Big-O loop speed ladder.
+* ⚡ [**Time & Space Complexity Master Cheat Sheet**](./cheat_sheets/time_and_space_complexity_cheat_sheet.md) – 3-second decision table, input size ($N$) constraint limits, and common loop pattern speed ladder.
 * 🦅 [**Greedy Algorithms Master Cheat Sheet**](./cheat_sheets/greedy_cheat_sheet.md) – The 4 Archetypes (The Cashier, The Horizon, The Scheduler, The Accumulator), Greedy vs. Two Pointers distinction, and 3-second triggers.
 * 🧱 [**Arrays, Strings & HashMaps Cheat Sheet**](./cheat_sheets/arrays_hashmaps_cheat_sheet.md) – Contiguous memory, avoiding $\mathcal{O}(n^2)$ string concatenation, Two-Sum complement trick.
-* 🎯 [**Two Pointers Master Cheat Sheet**](./cheat_sheets/two_pointers_cheat_sheet.md) – Squeeze, Scout & Writer, Two Conveyor Belts.
+* 🧩 [**Subarrays & Contribution Technique Cheat Sheet**](./cheat_sheets/subarrays_and_contribution_technique_cheat_sheet.md) – Total subarrays formula $N(N+1)/2$, the $(i+1)(N-i)$ contribution formula, and leaders in array.
+* 🧊 [**2D Matrix Manipulation Cheat Sheet**](./cheat_sheets/matrix_2d_manipulation_cheat_sheet.md) – Diagonal coordinate invariants ($i+j$, $i-j$), in-place transpose, 90° clockwise/anticlockwise rotation, and 4-pointer spiral traversal.
+* 🎯 [**Two Pointers Master Cheat Sheet**](./cheat_sheets/two_pointers_cheat_sheet.md) – Squeeze, Scout & Writer, Two Conveyor Belts, Outward Flashlight.
+* 🔍 [**Binary Search Master Cheat Sheet**](./cheat_sheets/binary_search_cheat_sheet.md) – The 7 Universal Archetypes, occurrence boundaries, index parity, slope navigation, and binary search on answer.
 * 🪟 [**Sliding Window Master Cheat Sheet**](./cheat_sheets/sliding_window_cheat_sheet.md) – The rubber-band technique for contiguous subarrays/substrings (Fixed vs. Dynamic).
-* 🔍 [**Binary Search Master Cheat Sheet**](./cheat_sheets/binary_search_cheat_sheet.md) – Phonebook halving, avoiding infinite loops, and binary search on monotonic answers.
 * 🌲 [**BFS vs. DFS Master Cheat Sheet**](./cheat_sheets/bfs_dfs_cheat_sheet.md) – The water ripple (shortest path) vs. the maze runner (tree depth & flood-fill).
 * 🔄 [**Backtracking Master Cheat Sheet**](./cheat_sheets/backtracking_cheat_sheet.md) – Decision trees with an "Undo" button (Subsets, Permutations, Combinations).
 * ⛰️ [**Priority Queues & Heaps Cheat Sheet**](./cheat_sheets/heaps_priority_queues_cheat_sheet.md) – Hospital ER triage, `heapq` in Python, and the Top-K Min-Heap pattern.

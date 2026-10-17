@@ -117,10 +117,26 @@ def minEatingSpeed(piles: list[int], h: int) -> int:
 
 ---
 
-## ⚠️ 5. Student Traps & Tips
+## 🗺️ 5. The 7 Universal Binary Search Archetypes
+
+| # | Archetype | Invariant / Trigger | Directional Steering Rule | Classic Problems |
+|---|---|---|---|---|
+| **1** | **Classical Lookup** | Monotonic sorted array | `nums[mid] < target => lo = mid + 1` | Binary Search (LC 704) |
+| **2** | **Boundary / Occurrence** | Duplicates in sorted array | On match: `hi = mid - 1` (First) or `lo = mid + 1` (Last) | First & Last Occurrence (LC 34), Floor/Ceil |
+| **3** | **Slope / Local Minima** | Unsorted array, distinct neighbors | Downward slope `arr[mid] > arr[mid-1] => hi = mid - 1` | Peak Element (LC 162), Local Minima |
+| **4** | **Rotated Half-ID** | Rotated sorted array | Check `nums[lo] <= nums[mid]` to find sorted half | Search Rotated Array (LC 33, LC 153) |
+| **5** | **Index Parity** | Sorted pairs with 1 unique | Normalize to 1st occurrence: `even => lo = mid + 2`, `odd => hi = mid - 1` | Single Element in Duplicates (LC 540) |
+| **6** | **Exponential Doubling** | Unbounded / infinite stream | Expand `hi = 1 -> 2 -> 4 -> ...` until `arr[hi] >= k` | Search in Infinite Array (LC 702) |
+| **7** | **Search on Answer** | Min-max or capacity bounds | Monotonic `is_feasible(mid)` helper steers $[lo, hi]$ | Painter's Partition, Koko (LC 875), Split Array (LC 410) |
+
+---
+
+## ⚠️ 6. Student Traps & Edge Cases
 
 1. **Integer Overflow in other languages:**  
-   In Java/C++, `(low + high) // 2` can overflow if numbers are huge ($2 \times 10^9$). In Python, integers have arbitrary precision so you're safe, but interviewers love when you write:
+   In Java/C++, `(low + high) // 2` can overflow if numbers are huge ($2 \times 10^9$). In Python, integers have arbitrary precision, but interviewers prefer:  
    `mid = low + (high - low) // 2`
-2. **Never do `low = mid` or `high = mid`:**  
+2. **Never do `low = mid` or `high = mid` without loop guard:**  
    Always include the `+ 1` or `- 1` (`low = mid + 1` or `high = mid - 1`). If you don't, when `low` and `high` are adjacent, your loop will run infinitely!
+3. **Empty / Single Element Arrays:**  
+   Always check $N = 1$ early or ensure `lo <= hi` handles single-element arrays cleanly.

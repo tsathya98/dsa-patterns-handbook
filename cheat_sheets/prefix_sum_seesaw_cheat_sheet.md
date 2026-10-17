@@ -90,7 +90,15 @@ def find_balance_point(nums: list[int]) -> int:
 | **LC 1991**| **Find Middle Index in Array** | Identical problem (alias of LC 724). |
 | **LC 2270**| **Number of Ways to Split Array** | Split between $i$ and $i+1$: `left_sum >= total - left_sum`. |
 | **LC 238** | **Product of Array Except Self** | Multiplicative version: $\text{Prefix Product} \times \text{Suffix Product}$. |
+| **LC 1664**| **Ways to Make a Fair Array** | Deleting index $i$ flips parity of subsequent elements: `even_L + odd_R == odd_L + even_R`. |
 | **LC 2017**| **Grid Game** | Top row right sum vs. bottom row left sum across two parallel seesaws. |
+
+### ⚡ The Deletion Parity Shift Rule (LC 1664)
+When removing index $i$:
+* Elements before $i$ keep their original parity.
+* Elements after $i$ shift left by 1, swapping their parity (even becomes odd, odd becomes even):
+$$\text{new\_even} = \text{even\_sum}[0 \dots i-1] + \text{odd\_sum}[i+1 \dots N-1]$$
+$$\text{new\_odd} = \text{odd\_sum}[0 \dots i-1] + \text{even\_sum}[i+1 \dots N-1]$$
 
 ---
 

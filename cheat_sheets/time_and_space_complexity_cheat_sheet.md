@@ -10,6 +10,7 @@
 |---|---|:---:|---|
 | **Linear Scan** | `for x in arr:` or `while i < n: i += 1` | **$\mathcal{O}(N)$** | Visits each item once. |
 | **Halving / Doubling** | `while i > 0: i //= 2` or `i *= 2` | **$\mathcal{O}(\log N)$** | Number of steps is $\log_2(N)$. |
+| **Square Root Scan** | `while i * i <= N: i += 1` | **$\mathcal{O}(\sqrt{N})$** | Factors, prime checks. Runs $\lfloor\sqrt{N}\rfloor$ times. |
 | **Independent Nested** | `for i in range(N): for j in range(N):` | **$\mathcal{O}(N^2)$** | $N \times N$ matrix scan. |
 | **Shrinking Triangle** | `for i in range(N): for j in range(i, N):` | **$\mathcal{O}(N^2)$** | $\frac{N(N+1)}{2}$ steps. Drop constants. |
 | **Nested + Doubling** | `for i in range(N): while j < N: j *= 2` | **$\mathcal{O}(N \log N)$** | Outer $N \times$ inner $\log N$. |
