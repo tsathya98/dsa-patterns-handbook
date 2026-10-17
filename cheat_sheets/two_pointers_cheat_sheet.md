@@ -180,12 +180,36 @@ Formation E: TAIL-BUFFER / REVERSE PLACEMENT
 
 ---
 
+### 🔹 Formation F: "Outward Expand Around Center (The Flashlight Beam)"
+* **Pointers:** `l = i`, `r = i` (odd-length center) AND `l = i`, `r = i + 1` (even-length center), expanding outward (`l -= 1`, `r += 1`).
+* **Mental Rule:**
+  * *Validating* if a full string is a palindrome (*LC 125*) = **Inward Squeeze** (`l = 0, r = n - 1`).
+  * *Finding* a palindrome hidden inside a string (*LC 5, LC 647*) = **Outward Flashlight Beam** from all $2N$ centers!
+* **Boundary Rule:** When `while l >= 0 and r < len(s) and s[l] == s[r]` stops, `l` and `r` have stepped **1 index too far**. The valid palindrome slice is **`s[l + 1 : r]`**.
+* **Template:**
+  ```python
+  def _expand(l: int, r: int) -> str:
+      while l >= 0 and r < len(s) and s[l] == s[r]:
+          l -= 1
+          r += 1
+      return s[l + 1 : r]
+
+  for i in range(len(s)):
+      odd_pal = _expand(i, i)       # Center on char i ("bab")
+      even_pal = _expand(i, i + 1)  # Center between i and i+1 ("cbbd")
+  ```
+
+👉 *See full breakdown in [`5_longest_palindromic_substring.md`](../01_arrays_and_pointers/5_longest_palindromic_substring.md).*
+
+---
+
 ## 🏆 4. Quick Decision Matrix
 
 | What is the problem asking? | Input Data | Formation | Initial Pointers | Classic Problem |
 |---|---|---|---|---|
 | Search for a pair with target sum | 1 Sorted Array | **The Squeeze** | `l = 0`, `r = len - 1` | Two Sum II (LC 167) |
 | Check symmetry / Palindrome | 1 String / Array | **The Squeeze** | `l = 0`, `r = len - 1` | Valid Palindrome (LC 125) |
+| Find longest/count palindromic substrings | 1 String | **Outward Expand (Flashlight)** | `(i, i)` & `(i, i + 1)` | Longest Palindromic Substring (LC 5), Palindromic Substrings (LC 647) |
 | Find maximum container area | 1 Array | **The Squeeze** | `l = 0`, `r = len - 1` | Container With Most Water (LC 11) |
 | Remove duplicates / Move zeroes / Remove element in-place | 1 Array | **Scout & Writer** | `slow = 0`, `fast = 0` | Move Zeroes (LC 283), Remove Element (LC 27), Remove Duplicates I & II (LC 26, LC 80) |
 | Detect loop in a linked list | 1 Linked List | **Scout & Writer** | `slow = head`, `fast = head` | Linked List Cycle (LC 141) |

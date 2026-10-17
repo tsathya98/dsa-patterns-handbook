@@ -476,10 +476,21 @@
         url: "https://leetcode.com/problems/longest-substring-without-repeating-characters/",
         file: "01_arrays_and_pointers/3_longest_substring_without_repeating_characters.md",
         notes: "Rubber band window [left, right]: expand right into seen set; while duplicate found, shrink left. O(n) time."
+      },
+      {
+        id: "lc-5",
+        number: 5,
+        title: "Longest Palindromic Substring",
+        difficulty: "Medium",
+        pattern: "Two Pointers (Outward Expand / Flashlight)",
+        date: "2026-10-17",
+        url: "https://leetcode.com/problems/longest-palindromic-substring/",
+        file: "01_arrays_and_pointers/5_longest_palindromic_substring.md",
+        notes: "Flashlight beam outward expansion from all 2N centers: _expand(i, i) for odd and _expand(i, i+1) for even. Return s[l+1:r]."
       }
     ];
 
-    const STORAGE_KEY = 'dsa_tracker_adhd_v16';
+    const STORAGE_KEY = 'dsa_tracker_adhd_v17';
     const THEME_KEY = 'dsa_tracker_theme';
     let problems = [];
     let currentFilterDiff = 'ALL';
