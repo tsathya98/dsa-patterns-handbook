@@ -2,6 +2,8 @@
 """
 Generate the unified DSA Study Hub & Tracker web application:
 - Separates Concept/Theory Notes from LeetCode Problem Walkthroughs & Cheat Sheets.
+- Embeds the complete official LeetCode Top Interview 150 (150 problems) and
+  LeetCode 75 (75 problems) catalogs, automatically cross-linked with local .md study guides!
 - Collapsible Left Sidebar (Topics) and Right Sidebar (On This Page) with keyboard shortcuts.
 - Dedicated Pomodoro Focus Tracker Tab + persistent live mini-timer in the top bar +
   soothing Web Audio API harmonic chime when the timer completes.
@@ -26,47 +28,288 @@ CATEGORY_META = {
     "cheat_sheets": {"label": "Cheat Sheets", "order": 8, "icon": "⚡"},
 }
 
-DEFAULT_SOLVED_PATHS = [
-    "01_arrays_and_pointers/88_merge_sorted_array.md",
-    "01_arrays_and_pointers/27_remove_element.md",
-    "01_arrays_and_pointers/26_remove_duplicates_from_sorted_array.md",
-    "01_arrays_and_pointers/80_remove_duplicates_from_sorted_array_ii.md",
-    "01_arrays_and_pointers/169_majority_element.md",
-    "01_arrays_and_pointers/189_rotate_array.md",
-    "01_arrays_and_pointers/121_best_time_to_buy_and_sell_stock.md",
-    "01_arrays_and_pointers/122_best_time_to_buy_and_sell_stock_ii.md",
-    "01_arrays_and_pointers/55_jump_game.md",
-    "01_arrays_and_pointers/274_h_index.md",
-    "03_stacks_and_queues/678_valid_parenthesis_string.md",
-    "03_stacks_and_queues/20_valid_parentheses.md",
-    "01_arrays_and_pointers/125_valid_palindrome.md",
-    "01_arrays_and_pointers/392_is_subsequence.md",
-    "01_arrays_and_pointers/167_two_sum_ii_input_array_is_sorted.md",
-    "01_arrays_and_pointers/11_container_with_most_water.md",
-    "01_arrays_and_pointers/15_3sum.md",
-    "01_arrays_and_pointers/238_product_of_array_except_self.md",
-    "01_arrays_and_pointers/3_longest_substring_without_repeating_characters.md",
-    "01_arrays_and_pointers/5_longest_palindromic_substring.md",
-    "01_arrays_and_pointers/283_move_zeroes.md",
-    "01_arrays_and_pointers/66_plus_one.md",
-    "01_arrays_and_pointers/724_find_pivot_index.md",
-    "01_arrays_and_pointers/643_maximum_average_subarray_i.md",
-    "01_arrays_and_pointers/1456_maximum_number_of_vowels_in_a_substring_of_given_length.md",
-    "01_arrays_and_pointers/228_summary_ranges.md",
-    "01_arrays_and_pointers/290_word_pattern.md",
-    "01_arrays_and_pointers/12_integer_to_roman.md",
-    "01_arrays_and_pointers/13_roman_to_integer.md",
-    "01_arrays_and_pointers/53_maximum_subarray.md",
-    "02_linked_lists/206_reverse_linked_list.md",
-    "02_linked_lists/21_merge_two_sorted_lists.md",
-    "02_linked_lists/2_add_two_numbers.md",
-    "02_linked_lists/19_remove_nth_node_from_end.md",
-    "02_linked_lists/83_remove_duplicates_from_sorted_list.md",
-    "02_linked_lists/141_linked_list_cycle.md",
-    "02_linked_lists/143_reorder_list.md",
-    "02_linked_lists/234_palindrome_linked_list.md",
-    "02_linked_lists/1290_convert_binary_number_in_a_linked_list_to_integer.md",
-    "02_linked_lists/1721_swapping_nodes_in_a_linked_list.md",
+DEFAULT_SOLVED_NUMBERS = {
+    2, 3, 5, 11, 12, 13, 15, 19, 20, 21, 26, 27, 48, 53, 54, 55, 66,
+    80, 83, 88, 121, 122, 125, 141, 142, 143, 167, 169, 189, 206, 228,
+    234, 238, 274, 283, 290, 392, 643, 678, 704, 724, 1290, 1456, 1721
+}
+
+# Official LeetCode Top Interview 150 (Exact 150 problems across 23 categories)
+TOP_150_RAW = [
+    # 1. Array / String (24)
+    (88, "Merge Sorted Array", "Easy", "Array / String", "merge-sorted-array"),
+    (27, "Remove Element", "Easy", "Array / String", "remove-element"),
+    (26, "Remove Duplicates from Sorted Array", "Easy", "Array / String", "remove-duplicates-from-sorted-array"),
+    (80, "Remove Duplicates from Sorted Array II", "Medium", "Array / String", "remove-duplicates-from-sorted-array-ii"),
+    (169, "Majority Element", "Easy", "Array / String", "majority-element"),
+    (189, "Rotate Array", "Medium", "Array / String", "rotate-array"),
+    (121, "Best Time to Buy and Sell Stock", "Easy", "Array / String", "best-time-to-buy-and-sell-stock"),
+    (122, "Best Time to Buy and Sell Stock II", "Medium", "Array / String", "best-time-to-buy-and-sell-stock-ii"),
+    (55, "Jump Game", "Medium", "Array / String", "jump-game"),
+    (45, "Jump Game II", "Medium", "Array / String", "jump-game-ii"),
+    (274, "H-Index", "Medium", "Array / String", "h-index"),
+    (380, "Insert Delete GetRandom O(1)", "Medium", "Array / String", "insert-delete-getrandom-o1"),
+    (238, "Product of Array Except Self", "Medium", "Array / String", "product-of-array-except-self"),
+    (134, "Gas Station", "Medium", "Array / String", "gas-station"),
+    (135, "Candy", "Hard", "Array / String", "candy"),
+    (42, "Trapping Rain Water", "Hard", "Array / String", "trapping-rain-water"),
+    (13, "Roman to Integer", "Easy", "Array / String", "roman-to-integer"),
+    (12, "Integer to Roman", "Medium", "Array / String", "integer-to-roman"),
+    (58, "Length of Last Word", "Easy", "Array / String", "length-of-last-word"),
+    (14, "Longest Common Prefix", "Easy", "Array / String", "longest-common-prefix"),
+    (151, "Reverse Words in a String", "Medium", "Array / String", "reverse-words-in-a-string"),
+    (6, "Zigzag Conversion", "Medium", "Array / String", "zigzag-conversion"),
+    (28, "Find the Index of the First Occurrence in a String", "Easy", "Array / String", "find-the-index-of-the-first-occurrence-in-a-string"),
+    (68, "Text Justification", "Hard", "Array / String", "text-justification"),
+    # 2. Two Pointers (5)
+    (125, "Valid Palindrome", "Easy", "Two Pointers", "valid-palindrome"),
+    (392, "Is Subsequence", "Easy", "Two Pointers", "is-subsequence"),
+    (167, "Two Sum II - Input Array Is Sorted", "Medium", "Two Pointers", "two-sum-ii-input-array-is-sorted"),
+    (11, "Container With Most Water", "Medium", "Two Pointers", "container-with-most-water"),
+    (15, "3Sum", "Medium", "Two Pointers", "3sum"),
+    # 3. Sliding Window (4)
+    (209, "Minimum Size Subarray Sum", "Medium", "Sliding Window", "minimum-size-subarray-sum"),
+    (3, "Longest Substring Without Repeating Characters", "Medium", "Sliding Window", "longest-substring-without-repeating-characters"),
+    (30, "Substring with Concatenation of All Words", "Hard", "Sliding Window", "substring-with-concatenation-of-all-words"),
+    (76, "Minimum Window Substring", "Hard", "Sliding Window", "minimum-window-substring"),
+    # 4. Matrix (5)
+    (36, "Valid Sudoku", "Medium", "Matrix", "valid-sudoku"),
+    (54, "Spiral Matrix", "Medium", "Matrix", "spiral-matrix"),
+    (48, "Rotate Image", "Medium", "Matrix", "rotate-image"),
+    (73, "Set Matrix Zeroes", "Medium", "Matrix", "set-matrix-zeroes"),
+    (289, "Game of Life", "Medium", "Matrix", "game-of-life"),
+    # 5. Hashmap (9)
+    (383, "Ransom Note", "Easy", "Hashmap", "ransom-note"),
+    (205, "Isomorphic Strings", "Easy", "Hashmap", "isomorphic-strings"),
+    (290, "Word Pattern", "Easy", "Hashmap", "word-pattern"),
+    (242, "Valid Anagram", "Easy", "Hashmap", "valid-anagram"),
+    (49, "Group Anagrams", "Medium", "Hashmap", "group-anagrams"),
+    (1, "Two Sum", "Easy", "Hashmap", "two-sum"),
+    (202, "Happy Number", "Easy", "Hashmap", "happy-number"),
+    (219, "Contains Duplicate II", "Easy", "Hashmap", "contains-duplicate-ii"),
+    (128, "Longest Consecutive Sequence", "Medium", "Hashmap", "longest-consecutive-sequence"),
+    # 6. Intervals (4)
+    (228, "Summary Ranges", "Easy", "Intervals", "summary-ranges"),
+    (56, "Merge Intervals", "Medium", "Intervals", "merge-intervals"),
+    (57, "Insert Interval", "Medium", "Intervals", "insert-interval"),
+    (452, "Minimum Number of Arrows to Burst Balloons", "Medium", "Intervals", "minimum-number-of-arrows-to-burst-balloons"),
+    # 7. Stack (5)
+    (20, "Valid Parentheses", "Easy", "Stack", "valid-parentheses"),
+    (71, "Simplify Path", "Medium", "Stack", "simplify-path"),
+    (155, "Min Stack", "Medium", "Stack", "min-stack"),
+    (150, "Evaluate Reverse Polish Notation", "Medium", "Stack", "evaluate-reverse-polish-notation"),
+    (224, "Basic Calculator", "Hard", "Stack", "basic-calculator"),
+    # 8. Linked List (11)
+    (141, "Linked List Cycle", "Easy", "Linked List", "linked-list-cycle"),
+    (2, "Add Two Numbers", "Medium", "Linked List", "add-two-numbers"),
+    (21, "Merge Two Sorted Lists", "Easy", "Linked List", "merge-two-sorted-lists"),
+    (138, "Copy List with Random Pointer", "Medium", "Linked List", "copy-list-with-random-pointer"),
+    (92, "Reverse Linked List II", "Medium", "Linked List", "reverse-linked-list-ii"),
+    (25, "Reverse Nodes in k-Group", "Hard", "Linked List", "reverse-nodes-in-k-group"),
+    (19, "Remove Nth Node From End of List", "Medium", "Linked List", "remove-nth-node-from-end-of-list"),
+    (82, "Remove Duplicates from Sorted List II", "Medium", "Linked List", "remove-duplicates-from-sorted-list-ii"),
+    (61, "Rotate List", "Medium", "Linked List", "rotate-list"),
+    (86, "Partition List", "Medium", "Linked List", "partition-list"),
+    (146, "LRU Cache", "Medium", "Linked List", "lru-cache"),
+    # 9. Binary Tree General (14)
+    (104, "Maximum Depth of Binary Tree", "Easy", "Binary Tree General", "maximum-depth-of-binary-tree"),
+    (100, "Same Tree", "Easy", "Binary Tree General", "same-tree"),
+    (226, "Invert Binary Tree", "Easy", "Binary Tree General", "invert-binary-tree"),
+    (101, "Symmetric Tree", "Easy", "Binary Tree General", "symmetric-tree"),
+    (105, "Construct Binary Tree from Preorder and Inorder Traversal", "Medium", "Binary Tree General", "construct-binary-tree-from-preorder-and-inorder-traversal"),
+    (106, "Construct Binary Tree from Inorder and Postorder Traversal", "Medium", "Binary Tree General", "construct-binary-tree-from-inorder-and-postorder-traversal"),
+    (117, "Populating Next Right Pointers in Each Node II", "Medium", "Binary Tree General", "populating-next-right-pointers-in-each-node-ii"),
+    (114, "Flatten Binary Tree to Linked List", "Medium", "Binary Tree General", "flatten-binary-tree-to-linked-list"),
+    (112, "Path Sum", "Easy", "Binary Tree General", "path-sum"),
+    (129, "Sum Root to Leaf Numbers", "Medium", "Binary Tree General", "sum-root-to-leaf-numbers"),
+    (124, "Binary Tree Maximum Path Sum", "Hard", "Binary Tree General", "binary-tree-maximum-path-sum"),
+    (173, "Binary Search Tree Iterator", "Medium", "Binary Tree General", "binary-search-tree-iterator"),
+    (222, "Count Complete Tree Nodes", "Easy", "Binary Tree General", "count-complete-tree-nodes"),
+    (236, "Lowest Common Ancestor of a Binary Tree", "Medium", "Binary Tree General", "lowest-common-ancestor-of-a-binary-tree"),
+    # 10. Binary Tree BFS (4)
+    (199, "Binary Tree Right Side View", "Medium", "Binary Tree BFS", "binary-tree-right-side-view"),
+    (637, "Average of Levels in Binary Tree", "Easy", "Binary Tree BFS", "average-of-levels-in-binary-tree"),
+    (102, "Binary Tree Level Order Traversal", "Medium", "Binary Tree BFS", "binary-tree-level-order-traversal"),
+    (103, "Binary Tree Zigzag Level Order Traversal", "Medium", "Binary Tree BFS", "binary-tree-zigzag-level-order-traversal"),
+    # 11. Binary Search Tree (3)
+    (530, "Minimum Absolute Difference in BST", "Easy", "Binary Search Tree", "minimum-absolute-difference-in-bst"),
+    (230, "Kth Smallest Element in a BST", "Medium", "Binary Search Tree", "kth-smallest-element-in-a-bst"),
+    (98, "Validate Binary Search Tree", "Medium", "Binary Search Tree", "validate-binary-search-tree"),
+    # 12. Graph General (6)
+    (200, "Number of Islands", "Medium", "Graph General", "number-of-islands"),
+    (130, "Surrounded Regions", "Medium", "Graph General", "surrounded-regions"),
+    (133, "Clone Graph", "Medium", "Graph General", "clone-graph"),
+    (399, "Evaluate Division", "Medium", "Graph General", "evaluate-division"),
+    (207, "Course Schedule", "Medium", "Graph General", "course-schedule"),
+    (210, "Course Schedule II", "Medium", "Graph General", "course-schedule-ii"),
+    # 13. Graph BFS (3)
+    (909, "Snakes and Ladders", "Medium", "Graph BFS", "snakes-and-ladders"),
+    (433, "Minimum Genetic Mutation", "Medium", "Graph BFS", "minimum-genetic-mutation"),
+    (127, "Word Ladder", "Hard", "Graph BFS", "word-ladder"),
+    # 14. Trie (3)
+    (208, "Implement Trie (Prefix Tree)", "Medium", "Trie", "implement-trie-prefix-tree"),
+    (211, "Design Add and Search Words Data Structure", "Medium", "Trie", "design-add-and-search-words-data-structure"),
+    (212, "Word Search II", "Hard", "Trie", "word-search-ii"),
+    # 15. Backtracking (7)
+    (17, "Letter Combinations of a Phone Number", "Medium", "Backtracking", "letter-combinations-of-a-phone-number"),
+    (77, "Combinations", "Medium", "Backtracking", "combinations"),
+    (46, "Permutations", "Medium", "Backtracking", "permutations"),
+    (39, "Combination Sum", "Medium", "Backtracking", "combination-sum"),
+    (52, "N-Queens II", "Hard", "Backtracking", "n-queens-ii"),
+    (22, "Generate Parentheses", "Medium", "Backtracking", "generate-parentheses"),
+    (79, "Word Search", "Medium", "Backtracking", "word-search"),
+    # 16. Divide & Conquer (4)
+    (108, "Convert Sorted Array to Binary Search Tree", "Easy", "Divide & Conquer", "convert-sorted-array-to-binary-search-tree"),
+    (148, "Sort List", "Medium", "Divide & Conquer", "sort-list"),
+    (427, "Construct Quad Tree", "Medium", "Divide & Conquer", "construct-quad-tree"),
+    (23, "Merge k Sorted Lists", "Hard", "Divide & Conquer", "merge-k-sorted-lists"),
+    # 17. Kadane's Algorithm (2)
+    (53, "Maximum Subarray", "Medium", "Kadane's Algorithm", "maximum-subarray"),
+    (918, "Maximum Sum Circular Subarray", "Medium", "Kadane's Algorithm", "maximum-sum-circular-subarray"),
+    # 18. Binary Search (7)
+    (35, "Search Insert Position", "Easy", "Binary Search", "search-insert-position"),
+    (74, "Search a 2D Matrix", "Medium", "Binary Search", "search-a-2d-matrix"),
+    (162, "Find Peak Element", "Medium", "Binary Search", "find-peak-element"),
+    (33, "Search in Rotated Sorted Array", "Medium", "Binary Search", "search-in-rotated-sorted-array"),
+    (34, "Find First and Last Position of Element in Sorted Array", "Medium", "Binary Search", "find-first-and-last-position-of-element-in-sorted-array"),
+    (153, "Find Minimum in Rotated Sorted Array", "Medium", "Binary Search", "find-minimum-in-rotated-sorted-array"),
+    (4, "Median of Two Sorted Arrays", "Hard", "Binary Search", "median-of-two-sorted-arrays"),
+    # 19. Heap (4)
+    (215, "Kth Largest Element in an Array", "Medium", "Heap / Priority Queue", "kth-largest-element-in-an-array"),
+    (502, "IPO", "Hard", "Heap / Priority Queue", "ipo"),
+    (373, "Find K Pairs with Smallest Sums", "Medium", "Heap / Priority Queue", "find-k-pairs-with-smallest-sums"),
+    (295, "Find Median from Data Stream", "Hard", "Heap / Priority Queue", "find-median-from-data-stream"),
+    # 20. Bit Manipulation (6)
+    (67, "Add Binary", "Easy", "Bit Manipulation", "add-binary"),
+    (190, "Reverse Bits", "Easy", "Bit Manipulation", "reverse-bits"),
+    (191, "Number of 1 Bits", "Easy", "Bit Manipulation", "number-of-1-bits"),
+    (136, "Single Number", "Easy", "Bit Manipulation", "single-number"),
+    (137, "Single Number II", "Medium", "Bit Manipulation", "single-number-ii"),
+    (201, "Bitwise AND of Numbers Range", "Medium", "Bit Manipulation", "bitwise-and-of-numbers-range"),
+    # 21. Math (6)
+    (9, "Palindrome Number", "Easy", "Math", "palindrome-number"),
+    (66, "Plus One", "Easy", "Math", "plus-one"),
+    (172, "Factorial Trailing Zeroes", "Medium", "Math", "factorial-trailing-zeroes"),
+    (69, "Sqrt(x)", "Easy", "Math", "sqrtx"),
+    (50, "Pow(x, n)", "Medium", "Math", "powx-n"),
+    (149, "Max Points on a Line", "Hard", "Math", "max-points-on-a-line"),
+    # 22. 1D DP (5)
+    (70, "Climbing Stairs", "Easy", "1D DP", "climbing-stairs"),
+    (198, "House Robber", "Medium", "1D DP", "house-robber"),
+    (139, "Word Break", "Medium", "1D DP", "word-break"),
+    (322, "Coin Change", "Medium", "1D DP", "coin-change"),
+    (300, "Longest Increasing Subsequence", "Medium", "1D DP", "longest-increasing-subsequence"),
+    # 23. Multidimensional DP (9)
+    (120, "Triangle", "Medium", "Multidimensional DP", "triangle"),
+    (64, "Minimum Path Sum", "Medium", "Multidimensional DP", "minimum-path-sum"),
+    (63, "Unique Paths II", "Medium", "Multidimensional DP", "unique-paths-ii"),
+    (5, "Longest Palindromic Substring", "Medium", "Multidimensional DP", "longest-palindromic-substring"),
+    (97, "Interleaving String", "Medium", "Multidimensional DP", "interleaving-string"),
+    (72, "Edit Distance", "Medium", "Multidimensional DP", "edit-distance"),
+    (123, "Best Time to Buy and Sell Stock III", "Hard", "Multidimensional DP", "best-time-to-buy-and-sell-stock-iii"),
+    (188, "Best Time to Buy and Sell Stock IV", "Hard", "Multidimensional DP", "best-time-to-buy-and-sell-stock-iv"),
+    (221, "Maximal Square", "Medium", "Multidimensional DP", "maximal-square"),
+]
+
+# Official LeetCode 75 (Exact 75 problems across 22 categories)
+LC_75_RAW = [
+    # 1. Array / String (9)
+    (1768, "Merge Strings Alternately", "Easy", "Array / String", "merge-strings-alternately"),
+    (1071, "Greatest Common Divisor of Strings", "Easy", "Array / String", "greatest-common-divisor-of-strings"),
+    (1431, "Kids With the Greatest Number of Candies", "Easy", "Array / String", "kids-with-the-greatest-number-of-candies"),
+    (605, "Can Place Flowers", "Easy", "Array / String", "can-place-flowers"),
+    (345, "Reverse Vowels of a String", "Easy", "Array / String", "reverse-vowels-of-a-string"),
+    (151, "Reverse Words in a String", "Medium", "Array / String", "reverse-words-in-a-string"),
+    (238, "Product of Array Except Self", "Medium", "Array / String", "product-of-array-except-self"),
+    (334, "Increasing Triplet Subsequence", "Medium", "Array / String", "increasing-triplet-subsequence"),
+    (443, "String Compression", "Medium", "Array / String", "string-compression"),
+    # 2. Two Pointers (4)
+    (283, "Move Zeroes", "Easy", "Two Pointers", "move-zeroes"),
+    (392, "Is Subsequence", "Easy", "Two Pointers", "is-subsequence"),
+    (11, "Container With Most Water", "Medium", "Two Pointers", "container-with-most-water"),
+    (1679, "Max Number of K-Sum Pairs", "Medium", "Two Pointers", "max-number-of-k-sum-pairs"),
+    # 3. Sliding Window (4)
+    (643, "Maximum Average Subarray I", "Easy", "Sliding Window", "maximum-average-subarray-i"),
+    (1456, "Maximum Number of Vowels in a Substring of Given Length", "Medium", "Sliding Window", "maximum-number-of-vowels-in-a-substring-of-given-length"),
+    (1004, "Max Consecutive Ones III", "Medium", "Sliding Window", "max-consecutive-ones-iii"),
+    (1493, "Longest Subarray of 1's After Deleting One Element", "Medium", "Sliding Window", "longest-subarray-of-1s-after-deleting-one-element"),
+    # 4. Prefix Sum (2)
+    (1732, "Find the Highest Altitude", "Easy", "Prefix Sum", "find-the-highest-altitude"),
+    (724, "Find Pivot Index", "Easy", "Prefix Sum", "find-pivot-index"),
+    # 5. Hash Map / Set (4)
+    (2215, "Find the Difference of Two Arrays", "Easy", "Hashmap / Set", "find-the-difference-of-two-arrays"),
+    (1207, "Unique Number of Occurrences", "Easy", "Hashmap / Set", "unique-number-of-occurrences"),
+    (1657, "Determine if Two Strings Are Close", "Medium", "Hashmap / Set", "determine-if-two-strings-are-close"),
+    (2352, "Equal Row and Column Pairs", "Medium", "Hashmap / Set", "equal-row-and-column-pairs"),
+    # 6. Stack (3)
+    (2390, "Removing Stars From a String", "Medium", "Stack", "removing-stars-from-a-string"),
+    (735, "Asteroid Collision", "Medium", "Stack", "asteroid-collision"),
+    (394, "Decode String", "Medium", "Stack", "decode-string"),
+    # 7. Queue (2)
+    (933, "Number of Recent Calls", "Easy", "Queue", "number-of-recent-calls"),
+    (649, "Dota2 Senate", "Medium", "Queue", "dota2-senate"),
+    # 8. Linked List (4)
+    (2095, "Delete the Middle Node of a Linked List", "Medium", "Linked List", "delete-the-middle-node-of-a-linked-list"),
+    (328, "Odd Even Linked List", "Medium", "Linked List", "odd-even-linked-list"),
+    (206, "Reverse Linked List", "Easy", "Linked List", "reverse-linked-list"),
+    (2130, "Maximum Twin Sum of a Linked List", "Medium", "Linked List", "maximum-twin-sum-of-a-linked-list"),
+    # 9. Binary Tree - DFS (6)
+    (104, "Maximum Depth of Binary Tree", "Easy", "Binary Tree DFS", "maximum-depth-of-binary-tree"),
+    (872, "Leaf-Similar Trees", "Easy", "Binary Tree DFS", "leaf-similar-trees"),
+    (1448, "Count Good Nodes in Binary Tree", "Medium", "Binary Tree DFS", "count-good-nodes-in-binary-tree"),
+    (437, "Path Sum III", "Medium", "Binary Tree DFS", "path-sum-iii"),
+    (1372, "Longest ZigZag Path in a Binary Tree", "Medium", "Binary Tree DFS", "longest-zigzag-path-in-a-binary-tree"),
+    (236, "Lowest Common Ancestor of a Binary Tree", "Medium", "Binary Tree DFS", "lowest-common-ancestor-of-a-binary-tree"),
+    # 10. Binary Tree - BFS (2)
+    (199, "Binary Tree Right Side View", "Medium", "Binary Tree BFS", "binary-tree-right-side-view"),
+    (1161, "Maximum Level Sum of a Binary Tree", "Medium", "Binary Tree BFS", "maximum-level-sum-of-a-binary-tree"),
+    # 11. Binary Search Tree (2)
+    (700, "Search in a Binary Search Tree", "Easy", "Binary Search Tree", "search-in-a-binary-search-tree"),
+    (450, "Delete Node in a BST", "Medium", "Binary Search Tree", "delete-node-in-a-bst"),
+    # 12. Graphs - DFS (4)
+    (841, "Keys and Rooms", "Medium", "Graph DFS", "keys-and-rooms"),
+    (547, "Number of Provinces", "Medium", "Graph DFS", "number-of-provinces"),
+    (1466, "Reorder Routes to Make All Paths Lead to the City Zero", "Medium", "Graph DFS", "reorder-routes-to-make-all-paths-lead-to-the-city-zero"),
+    (399, "Evaluate Division", "Medium", "Graph DFS", "evaluate-division"),
+    # 13. Graphs - BFS (2)
+    (1926, "Nearest Exit from Entrance in Maze", "Medium", "Graph BFS", "nearest-exit-from-entrance-in-maze"),
+    (994, "Rotting Oranges", "Medium", "Graph BFS", "rotting-oranges"),
+    # 14. Heap / Priority Queue (4)
+    (215, "Kth Largest Element in an Array", "Medium", "Heap / Priority Queue", "kth-largest-element-in-an-array"),
+    (2336, "Smallest Number in Infinite Set", "Medium", "Heap / Priority Queue", "smallest-number-in-infinite-set"),
+    (2542, "Maximum Subsequence Score", "Medium", "Heap / Priority Queue", "maximum-subsequence-score"),
+    (2462, "Total Cost to Hire K Workers", "Medium", "Heap / Priority Queue", "total-cost-to-hire-k-workers"),
+    # 15. Binary Search (4)
+    (374, "Guess Number Higher or Lower", "Easy", "Binary Search", "guess-number-higher-or-lower"),
+    (2300, "Successful Pairs of Spells and Potions", "Medium", "Binary Search", "successful-pairs-of-spells-and-potions"),
+    (162, "Find Peak Element", "Medium", "Binary Search", "find-peak-element"),
+    (875, "Koko Eating Bananas", "Medium", "Binary Search", "koko-eating-bananas"),
+    # 16. Backtracking (2)
+    (17, "Letter Combinations of a Phone Number", "Medium", "Backtracking", "letter-combinations-of-a-phone-number"),
+    (216, "Combination Sum III", "Medium", "Backtracking", "combination-sum-iii"),
+    # 17. DP - 1D (4)
+    (1137, "N-th Tribonacci Number", "Easy", "1D DP", "n-th-tribonacci-number"),
+    (746, "Min Cost Climbing Stairs", "Easy", "1D DP", "min-cost-climbing-stairs"),
+    (198, "House Robber", "Medium", "1D DP", "house-robber"),
+    (790, "Domino and Tromino Tiling", "Medium", "1D DP", "domino-and-tromino-tiling"),
+    # 18. DP - Multidimensional (4)
+    (62, "Unique Paths", "Medium", "Multidimensional DP", "unique-paths"),
+    (1143, "Longest Common Subsequence", "Medium", "Multidimensional DP", "longest-common-subsequence"),
+    (714, "Best Time to Buy and Sell Stock with Transaction Fee", "Medium", "Multidimensional DP", "best-time-to-buy-and-sell-stock-with-transaction-fee"),
+    (72, "Edit Distance", "Medium", "Multidimensional DP", "edit-distance"),
+    # 19. Bit Manipulation (3)
+    (338, "Counting Bits", "Easy", "Bit Manipulation", "counting-bits"),
+    (136, "Single Number", "Easy", "Bit Manipulation", "single-number"),
+    (1318, "Minimum Flips to Make a OR b Equal to c", "Medium", "Bit Manipulation", "minimum-flips-to-make-a-or-b-equal-to-c"),
+    # 20. Trie (2)
+    (208, "Implement Trie (Prefix Tree)", "Medium", "Trie", "implement-trie-prefix-tree"),
+    (1268, "Search Suggestions System", "Medium", "Trie", "search-suggestions-system"),
+    # 21. Intervals (2)
+    (435, "Non-overlapping Intervals", "Medium", "Intervals", "non-overlapping-intervals"),
+    (452, "Minimum Number of Arrows to Burst Balloons", "Medium", "Intervals", "minimum-number-of-arrows-to-burst-balloons"),
+    # 22. Monotonic Stack (2)
+    (739, "Daily Temperatures", "Medium", "Monotonic Stack", "daily-temperatures"),
+    (901, "Online Stock Span", "Medium", "Monotonic Stack", "online-stock-span"),
 ]
 
 
@@ -140,7 +383,7 @@ def parse_doc_metadata(rel_path: str, filename: str, content: str) -> dict:
         "summary": summary,
         "docType": doc_type,
         "hasMermaid": "```mermaid" in content,
-        "defaultSolved": rel_path in DEFAULT_SOLVED_PATHS,
+        "defaultSolved": lc_number in DEFAULT_SOLVED_NUMBERS,
         "sortOrder": sort_key,
         "content": content,
     }
@@ -161,17 +404,96 @@ for root, dirs, files in os.walk(ROOT_DIR):
 raw_docs.sort(key=lambda d: (d["categoryOrder"], d["sortOrder"][0], d["sortOrder"][1], d["sortOrder"][2]))
 
 docs = {}
+lc_to_doc_path = {}
 for idx, d in enumerate(raw_docs):
     d["index"] = idx
     del d["sortOrder"]
     docs[d["path"]] = d
+    if d["lcNumber"] is not None:
+        lc_to_doc_path[d["lcNumber"]] = d["path"]
 
-print(f"Bundled {len(docs)} markdown documents.")
+# Also map concepts that cover specific LeetCode problems (e.g. LC 48, LC 54 in 00_matrix, LC 704/34 in 01_binary_search)
+EXTRA_CONCEPT_DOC_MAP = {
+    48: "01_arrays_and_pointers/00_matrix_2d_arrays_and_rotations.md",
+    54: "01_arrays_and_pointers/00_matrix_2d_arrays_and_rotations.md",
+    34: "05_binary_search/01_binary_search_fundamentals_and_occurrences.md",
+    162: "05_binary_search/02_local_minima_and_peak_finding.md",
+    33: "05_binary_search/04_search_in_rotated_sorted_array.md",
+    153: "05_binary_search/04_search_in_rotated_sorted_array.md",
+    875: "05_binary_search/06_binary_search_on_answer_greedy_predicates.md",
+}
+for lc_num, c_path in EXTRA_CONCEPT_DOC_MAP.items():
+    if lc_num not in lc_to_doc_path and c_path in docs:
+        lc_to_doc_path[lc_num] = c_path
+
+# Build the Unified Problem Catalog (Top Interview 150 + LeetCode 75 + Repo Problems)
+catalog_by_num = {}
+
+for num, title, diff, topic, slug in TOP_150_RAW:
+    doc_path = lc_to_doc_path.get(num, "")
+    doc_obj = docs.get(doc_path)
+    catalog_by_num[num] = {
+        "number": num,
+        "title": title,
+        "difficulty": diff,
+        "topic": topic,
+        "pattern": doc_obj["pattern"] if doc_obj else topic,
+        "url": f"https://leetcode.com/problems/{slug}/",
+        "docPath": doc_path,
+        "summary": doc_obj["summary"] if doc_obj else "",
+        "in150": True,
+        "in75": False,
+        "defaultSolved": num in DEFAULT_SOLVED_NUMBERS,
+    }
+
+for num, title, diff, topic, slug in LC_75_RAW:
+    if num in catalog_by_num:
+        catalog_by_num[num]["in75"] = True
+    else:
+        doc_path = lc_to_doc_path.get(num, "")
+        doc_obj = docs.get(doc_path)
+        catalog_by_num[num] = {
+            "number": num,
+            "title": title,
+            "difficulty": diff,
+            "topic": topic,
+            "pattern": doc_obj["pattern"] if doc_obj else topic,
+            "url": f"https://leetcode.com/problems/{slug}/",
+            "docPath": doc_path,
+            "summary": doc_obj["summary"] if doc_obj else "",
+            "in150": False,
+            "in75": True,
+            "defaultSolved": num in DEFAULT_SOLVED_NUMBERS,
+        }
+
+# Add any remaining Repo LeetCode problems not in Top 150 or LC 75 (e.g., LC 83, 678, 1290, 1721)
+for path, d in docs.items():
+    num = d["lcNumber"]
+    if num is not None and num not in catalog_by_num:
+        catalog_by_num[num] = {
+            "number": num,
+            "title": d["shortTitle"],
+            "difficulty": d["difficulty"],
+            "topic": d["categoryLabel"],
+            "pattern": d["pattern"],
+            "url": d["lcUrl"] or f"https://leetcode.com/problemset/?search={num}",
+            "docPath": path,
+            "summary": d["summary"],
+            "in150": False,
+            "in75": False,
+            "defaultSolved": num in DEFAULT_SOLVED_NUMBERS,
+        }
+
+curated_problems = [catalog_by_num[k] for k in sorted(catalog_by_num.keys())]
+c150 = sum(1 for p in curated_problems if p["in150"])
+c75 = sum(1 for p in curated_problems if p["in75"])
+print(f"Bundled {len(docs)} markdown documents and {len(curated_problems)} unique LeetCode problems (Top 150: {c150}, LC 75: {c75}).")
 
 hl_css_path = os.path.join(ROOT_DIR, "static/vendor/highlight-github-dark.min.css")
 hl_css = open(hl_css_path, "r", encoding="utf-8").read() if os.path.exists(hl_css_path) else ""
 
 docs_json_str = json.dumps(docs)
+problems_json_str = json.dumps(curated_problems)
 
 
 def build_html(default_view: str = "concepts") -> str:
@@ -340,13 +662,8 @@ def build_html(default_view: str = "concepts") -> str:
       margin-bottom: 0.45rem;
       scroll-margin-top: 5rem;
     }}
-    .md-body p {{
-      margin-bottom: 0.9rem;
-    }}
-    .md-body ul, .md-body ol {{
-      margin-bottom: 1rem;
-      padding-left: 1.4rem;
-    }}
+    .md-body p {{ margin-bottom: 0.9rem; }}
+    .md-body ul, .md-body ol {{ margin-bottom: 1rem; padding-left: 1.4rem; }}
     .md-body ul {{ list-style-type: disc; }}
     .md-body ol {{ list-style-type: decimal; }}
     .md-body li {{ margin-bottom: 0.35rem; }}
@@ -446,20 +763,19 @@ def build_html(default_view: str = "concepts") -> str:
   <!-- 1. UNIFIED TOP NAVIGATION BAR -->
   <header class="sticky top-0 z-30 ui-surface border-b px-3 sm:px-5 py-2.5 flex items-center justify-between gap-2">
     <div class="flex items-center gap-2">
-      <!-- Left Sidebar Collapse Button (Always visible when in Reader) -->
       <button type="button" id="toggle-left-sidebar-btn" onclick="toggleLeftSidebar()" class="p-1.5 rounded-lg ui-card border ui-text-muted hover:text-[var(--text)] transition-colors" title="Toggle Left Topic Sidebar (Shortcut: b)">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h10M4 18h16"/></svg>
       </button>
 
       <div class="flex items-center gap-2">
         <span class="text-base font-extrabold tracking-tight ui-accent-text whitespace-nowrap">DSA Hub</span>
-        <span id="global-progress-pill" class="hidden xl:inline-flex items-center gap-1 text-xs font-mono px-2.5 py-0.5 rounded-full ui-card border ui-text-muted" title="LeetCode Problems Solved">
-          0 Solved
-        </span>
+        <button type="button" onclick="switchView('tracker')" id="global-progress-pill" class="hidden xl:inline-flex items-center gap-2 text-xs font-mono px-2.5 py-0.5 rounded-full ui-card border ui-text-muted hover:text-[var(--text)] transition-colors" title="Click to open Top 150 & LeetCode 75 Tracker">
+          🔥 150: 0/150 • ⚡ 75: 0/75
+        </button>
       </div>
     </div>
 
-    <!-- 6 Primary Views: Concepts | LeetCode Guides | Cheat Sheets | Tracker | Pomodoro | 12-Wk Plan -->
+    <!-- 6 Primary Views -->
     <nav class="flex items-center gap-1 ui-card p-1 rounded-xl border overflow-x-auto" aria-label="Primary sections">
       <button type="button" onclick="switchView('concepts')" id="nav-btn-concepts" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
         <span aria-hidden="true">📘</span> Concepts
@@ -471,7 +787,7 @@ def build_html(default_view: str = "concepts") -> str:
         <span aria-hidden="true">⚡</span> Cheat Sheets
       </button>
       <button type="button" onclick="switchView('tracker')" id="nav-btn-tracker" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
-        <span aria-hidden="true">✅</span> Tracker
+        <span aria-hidden="true">✅</span> 150 & 75 Tracker
       </button>
       <button type="button" onclick="switchView('pomodoro')" id="nav-btn-pomodoro" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
         <span aria-hidden="true">⏱️</span> <span id="nav-pomo-label">Pomodoro</span>
@@ -481,14 +797,13 @@ def build_html(default_view: str = "concepts") -> str:
       </button>
     </nav>
 
-    <!-- Right Controls: Search (Cmd+K), Palette Switcher & Right Sidebar Collapse Button -->
+    <!-- Right Controls -->
     <div class="flex items-center gap-1.5">
       <button type="button" id="open-cmdk-btn" class="px-2.5 py-1.5 rounded-lg ui-card border text-xs ui-text-muted hover:opacity-90 flex items-center gap-1.5 transition-colors" aria-label="Search all notes and problems">
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
         <kbd class="px-1.5 py-0.5 text-xs font-mono ui-surface rounded border">⌘K</kbd>
       </button>
 
-      <!-- Palette Switcher: Indigo | Tokyo Night | Catppuccin Mocha | Daylight -->
       <div class="hidden md:flex items-center ui-card rounded-lg p-0.5 border text-xs" role="group" aria-label="Color palette">
         <button type="button" onclick="setTheme('indigo')" id="btn-theme-indigo" class="px-2 py-1 rounded font-medium transition-all" title="Linear Indigo">⚡ Indigo</button>
         <button type="button" onclick="setTheme('tokyo')" id="btn-theme-tokyo" class="px-2 py-1 rounded font-medium transition-all" title="Tokyo Night">🌃 Tokyo</button>
@@ -496,7 +811,6 @@ def build_html(default_view: str = "concepts") -> str:
         <button type="button" onclick="setTheme('daylight')" id="btn-theme-daylight" class="px-2 py-1 rounded font-medium transition-all" title="Daylight Clean">☀️ Light</button>
       </div>
 
-      <!-- Right Sidebar Collapse Button -->
       <button type="button" id="toggle-right-sidebar-btn" onclick="toggleRightSidebar()" class="p-1.5 rounded-lg ui-card border ui-text-muted hover:text-[var(--text)] transition-colors" title="Toggle Right 'On This Page' Column (Shortcut: o)">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7"/></svg>
       </button>
@@ -508,7 +822,6 @@ def build_html(default_view: str = "concepts") -> str:
   <!-- ===================================================================== -->
   <main id="view-reader" class="flex-1 flex overflow-hidden">
     
-    <!-- Left Collapsible Sidebar -->
     <aside id="reader-sidebar" class="w-76 shrink-0 ui-surface border-r flex flex-col h-[calc(100vh-53px)] sticky top-[53px]">
       <div class="p-3 border-b ui-border space-y-2.5">
         <div class="flex items-center justify-between gap-2">
@@ -536,11 +849,9 @@ def build_html(default_view: str = "concepts") -> str:
       </div>
     </aside>
 
-    <!-- Center Markdown & Visual Flowchart Canvas -->
     <div id="reader-scroll-container" class="flex-1 overflow-y-auto h-[calc(100vh-53px)] px-4 sm:px-8 py-6">
       <div id="reader-inner-wrap" class="max-w-3xl mx-auto space-y-5 pb-16 transition-all">
 
-        <!-- Document Control Bar -->
         <div class="ui-card border rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-3 shadow-sm">
           <div class="flex items-center gap-2 flex-wrap">
             <span id="doc-type-badge" class="text-xs font-semibold px-2.5 py-0.5 rounded-full border ui-accent-soft">Type</span>
@@ -573,11 +884,9 @@ def build_html(default_view: str = "concepts") -> str:
           </div>
         </div>
 
-        <!-- Rendered Document Content -->
         <article id="rendered-content" class="md-body ui-card border rounded-2xl p-5 sm:p-8 shadow-sm">
         </article>
 
-        <!-- Personal Takeaway Note -->
         <section class="ui-card border rounded-xl p-4 space-y-2" aria-label="Personal notes">
           <div class="flex items-center justify-between">
             <label for="doc-personal-note" class="text-xs font-bold uppercase tracking-wider ui-accent-text">📌 Personal Takeaway / Mistake to Remember</label>
@@ -586,7 +895,6 @@ def build_html(default_view: str = "concepts") -> str:
           <textarea id="doc-personal-note" rows="2" placeholder="Write your 1-sentence mental trigger or edge case for this topic..." class="w-full ui-surface border rounded-lg p-2.5 text-xs focus:outline-none"></textarea>
         </section>
 
-        <!-- Prev / Next Navigation Footer -->
         <nav class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2" aria-label="Document pagination">
           <button type="button" id="prev-doc-btn" class="ui-card border rounded-xl p-3.5 text-left hover:opacity-90 transition-all group">
             <div class="text-xs ui-text-muted">← Previous in List</div>
@@ -601,7 +909,6 @@ def build_html(default_view: str = "concepts") -> str:
       </div>
     </div>
 
-    <!-- Right Collapsible Table of Contents Rail -->
     <aside id="reader-toc-sidebar" class="w-64 shrink-0 ui-surface border-l p-4 h-[calc(100vh-53px)] sticky top-[53px] flex flex-col justify-between overflow-y-auto">
       <div class="space-y-3">
         <div class="flex items-center justify-between">
@@ -643,82 +950,123 @@ def build_html(default_view: str = "concepts") -> str:
   </section>
 
   <!-- ===================================================================== -->
-  <!-- VIEW 3: PROBLEM TRACKER (Strictly separates LeetCode Problems)        -->
+  <!-- VIEW 3: TOP INTERVIEW 150 & LEETCODE 75 PROBLEM TRACKER               -->
   <!-- ===================================================================== -->
   <section id="view-tracker" class="hidden flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 space-y-5">
     
-    <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
-      <div class="ui-card border rounded-xl p-3.5">
-        <div class="text-xs ui-text-muted">Problems Solved</div>
-        <div class="text-2xl font-black ui-accent-text mt-0.5" id="stat-solved">0</div>
-        <div class="text-xs ui-text-muted mt-0.5" id="stat-total-label">of 40 repo problems</div>
+    <!-- Top Study Plan Progress Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+      <!-- Card 1: Top Interview 150 -->
+      <div class="ui-card border rounded-2xl p-4 space-y-2">
+        <div class="flex items-center justify-between text-xs">
+          <span class="font-bold uppercase tracking-wider ui-accent-text">🔥 Top Interview 150</span>
+          <span id="stat-150-pct" class="font-mono ui-text-muted">0%</span>
+        </div>
+        <div class="text-2xl font-black" id="stat-150-count">0 / 150</div>
+        <div class="w-full ui-surface rounded-full h-2 overflow-hidden border">
+          <div id="stat-150-bar" class="h-full transition-all duration-500" style="width: 0%; background-color: var(--accent);"></div>
+        </div>
       </div>
-      <div class="ui-card border rounded-xl p-3.5">
-        <div class="text-xs ui-text-muted">Needs Review</div>
-        <div class="text-2xl font-black text-amber-400 mt-0.5" id="stat-review">0</div>
-        <div class="text-xs ui-text-muted mt-0.5">Spaced repetition queue</div>
+
+      <!-- Card 2: LeetCode 75 -->
+      <div class="ui-card border rounded-2xl p-4 space-y-2">
+        <div class="flex items-center justify-between text-xs">
+          <span class="font-bold uppercase tracking-wider text-sky-400">⚡ LeetCode 75</span>
+          <span id="stat-75-pct" class="font-mono ui-text-muted">0%</span>
+        </div>
+        <div class="text-2xl font-black" id="stat-75-count">0 / 75</div>
+        <div class="w-full ui-surface rounded-full h-2 overflow-hidden border">
+          <div id="stat-75-bar" class="bg-sky-400 h-full transition-all duration-500" style="width: 0%;"></div>
+        </div>
       </div>
-      <div class="ui-card border rounded-xl p-3.5">
-        <div class="text-xs ui-text-muted">Easy Solved</div>
-        <div class="text-2xl font-black text-sky-400 mt-0.5" id="stat-easy">0</div>
-        <div class="text-xs ui-text-muted mt-0.5">Speed & accuracy</div>
+
+      <!-- Card 3: Difficulty Breakdown -->
+      <div class="ui-card border rounded-2xl p-4 flex flex-col justify-between">
+        <div class="text-xs font-bold uppercase tracking-wider ui-text-muted">Total Solved Breakdown</div>
+        <div class="flex items-baseline justify-between mt-1">
+          <div class="text-2xl font-black ui-accent-text" id="stat-total-solved">0</div>
+          <div class="flex items-center gap-2.5 text-xs font-mono">
+            <span class="text-sky-400" id="stat-easy">0 E</span>
+            <span class="text-amber-400" id="stat-medium">0 M</span>
+            <span class="text-rose-400" id="stat-hard">0 H</span>
+          </div>
+        </div>
+        <div class="text-xs ui-text-muted mt-1" id="stat-review-label">0 in review queue</div>
       </div>
-      <div class="ui-card border rounded-xl p-3.5">
-        <div class="text-xs ui-text-muted">Medium / Hard</div>
-        <div class="text-2xl font-black text-purple-400 mt-0.5" id="stat-medium">0</div>
-        <div class="text-xs ui-text-muted mt-0.5">Interview core</div>
-      </div>
-      <div class="ui-card border rounded-xl p-3.5 col-span-2 sm:col-span-1 flex flex-col justify-between">
-        <div class="text-xs ui-text-muted">Log New Problem</div>
-        <button type="button" id="open-log-dialog-btn" class="mt-2 w-full py-1.5 px-3 rounded-lg ui-accent-btn font-semibold text-xs transition-all hover:opacity-90">
-          + Log Problem
+
+      <!-- Card 4: Quick Actions -->
+      <div class="ui-card border rounded-2xl p-4 flex flex-col justify-between">
+        <div>
+          <div class="text-xs font-bold uppercase tracking-wider ui-text-muted">Custom Problem Log</div>
+          <p class="text-xs ui-text-muted mt-1">Solved an extra company-tagged problem?</p>
+        </div>
+        <button type="button" id="open-log-dialog-btn" class="mt-2 w-full py-2 px-3 rounded-xl ui-accent-btn font-semibold text-xs transition-all hover:opacity-90">
+          + Log Custom Problem
         </button>
       </div>
     </div>
 
-    <div class="ui-card border rounded-xl p-3 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-      <div class="flex items-center gap-2 flex-1">
-        <div class="flex items-center ui-surface rounded-lg p-0.5 border text-xs shrink-0" role="group" aria-label="Tracker item type">
-          <button type="button" onclick="setTrackerTypeFilter('problem')" id="trk-type-problem" class="px-2.5 py-1 rounded font-semibold ui-accent-soft border">🧩 Problems Only</button>
-          <button type="button" onclick="setTrackerTypeFilter('concept')" id="trk-type-concept" class="px-2.5 py-1 rounded font-medium ui-text-muted">📘 Concepts</button>
+    <!-- Study Plan Tabs + Search + Category & Status Filters -->
+    <div class="ui-card border rounded-2xl p-3.5 space-y-3">
+      <!-- Row 1: Study Plan Selector Pills -->
+      <div class="flex flex-wrap items-center justify-between gap-2 border-b ui-border pb-3">
+        <div class="flex flex-wrap items-center gap-1.5 text-xs" role="group" aria-label="Study plan filter">
+          <button type="button" onclick="setTrackerPlanFilter('ALL')" data-plan="ALL" class="trk-plan-btn px-3 py-1.5 rounded-xl font-semibold ui-accent-btn">
+            All Curated (212)
+          </button>
+          <button type="button" onclick="setTrackerPlanFilter('150')" data-plan="150" class="trk-plan-btn px-3 py-1.5 rounded-xl font-medium ui-surface border ui-text-muted hover:text-[var(--text)]">
+            🔥 Top Interview 150 (150)
+          </button>
+          <button type="button" onclick="setTrackerPlanFilter('75')" data-plan="75" class="trk-plan-btn px-3 py-1.5 rounded-xl font-medium ui-surface border ui-text-muted hover:text-[var(--text)]">
+            ⚡ LeetCode 75 (75)
+          </button>
+          <button type="button" onclick="setTrackerPlanFilter('WITH_DOC')" data-plan="WITH_DOC" class="trk-plan-btn px-3 py-1.5 rounded-xl font-medium ui-surface border ui-text-muted hover:text-[var(--text)]">
+            📖 Has Repo Study Guide
+          </button>
         </div>
 
-        <search class="flex-1">
-          <input id="tracker-search-input" type="search" placeholder="Search by LC #, title, pattern, or takeaway..." aria-label="Search tracker items" class="w-full ui-surface border rounded-lg px-3 py-1.5 text-xs focus:outline-none">
-        </search>
+        <span id="tracker-showing-count" class="text-xs font-mono ui-text-muted">Showing 212 problems</span>
       </div>
 
-      <div class="flex flex-wrap items-center gap-2">
-        <select id="tracker-cat-filter" aria-label="Filter by module" class="ui-surface border rounded-lg px-2.5 py-1.5 text-xs focus:outline-none">
-          <option value="ALL">All Topic Folders</option>
-          <option value="01_arrays_and_pointers">01. Arrays & Pointers</option>
-          <option value="02_linked_lists">02. Linked Lists</option>
-          <option value="03_stacks_and_queues">03. Stacks & Queues</option>
-          <option value="04_sorting">04. Sorting</option>
-          <option value="05_binary_search">05. Binary Search</option>
-          <option value="00_foundations">00. Foundations</option>
-          <option value="system_design">System Design</option>
-        </select>
+      <!-- Row 2: Search Input + Topic Dropdown + Status Filter -->
+      <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5">
+        <search class="flex-1">
+          <input id="tracker-search-input" type="search" placeholder="Search by LC #, title, topic (e.g. Two Pointers, Graph, DP), or takeaway..." aria-label="Search tracker items" class="w-full ui-surface border rounded-xl px-3.5 py-1.5 text-xs focus:outline-none">
+        </search>
 
-        <div class="flex items-center ui-surface rounded-lg p-0.5 border text-xs" role="group" aria-label="Filter by status">
-          <button type="button" onclick="setTrackerStatusFilter('ALL')" data-status="ALL" class="tracker-status-btn px-2.5 py-1 rounded font-semibold ui-accent-soft border">All</button>
-          <button type="button" onclick="setTrackerStatusFilter('solved')" data-status="solved" class="tracker-status-btn px-2.5 py-1 rounded font-medium ui-text-muted">✓ Solved</button>
-          <button type="button" onclick="setTrackerStatusFilter('review')" data-status="review" class="tracker-status-btn px-2.5 py-1 rounded font-medium ui-text-muted">🔁 Review</button>
-          <button type="button" onclick="setTrackerStatusFilter('todo')" data-status="todo" class="tracker-status-btn px-2.5 py-1 rounded font-medium ui-text-muted">○ Todo</button>
+        <div class="flex flex-wrap items-center gap-2">
+          <select id="tracker-topic-filter" aria-label="Filter by topic" class="ui-surface border rounded-xl px-3 py-1.5 text-xs focus:outline-none">
+            <option value="ALL">All 23 Topics</option>
+          </select>
+
+          <select id="tracker-diff-filter" aria-label="Filter by difficulty" class="ui-surface border rounded-xl px-2.5 py-1.5 text-xs focus:outline-none">
+            <option value="ALL">All Difficulties</option>
+            <option value="Easy">Easy</option>
+            <option value="Medium">Medium</option>
+            <option value="Hard">Hard</option>
+          </select>
+
+          <div class="flex items-center ui-surface rounded-xl p-0.5 border text-xs" role="group" aria-label="Filter by status">
+            <button type="button" onclick="setTrackerStatusFilter('ALL')" data-status="ALL" class="tracker-status-btn px-2.5 py-1 rounded-lg font-semibold ui-accent-soft border">All</button>
+            <button type="button" onclick="setTrackerStatusFilter('solved')" data-status="solved" class="tracker-status-btn px-2.5 py-1 rounded-lg font-medium ui-text-muted">✓ Solved</button>
+            <button type="button" onclick="setTrackerStatusFilter('review')" data-status="review" class="tracker-status-btn px-2.5 py-1 rounded-lg font-medium ui-text-muted">🔁 Review</button>
+            <button type="button" onclick="setTrackerStatusFilter('todo')" data-status="todo" class="tracker-status-btn px-2.5 py-1 rounded-lg font-medium ui-text-muted">○ Todo</button>
+          </div>
         </div>
       </div>
     </div>
 
+    <!-- Problem Table -->
     <div class="ui-card border rounded-2xl overflow-hidden shadow-sm">
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse text-xs">
           <thead>
             <tr class="ui-surface border-b ui-border ui-text-muted uppercase tracking-wider">
               <th class="py-3 px-3 w-28">Status</th>
-              <th class="py-3 px-3">Problem / Topic</th>
-              <th class="py-3 px-3 hidden sm:table-cell">Pattern</th>
-              <th class="py-3 px-3 hidden lg:table-cell">Core Trick / Takeaway</th>
-              <th class="py-3 px-3 text-right w-40">Actions</th>
+              <th class="py-3 px-3">Problem</th>
+              <th class="py-3 px-3 hidden sm:table-cell">Topic & Study Plans</th>
+              <th class="py-3 px-3 hidden lg:table-cell">Your Takeaway / Core Trick</th>
+              <th class="py-3 px-3 text-right w-44">Links</th>
             </tr>
           </thead>
           <tbody id="tracker-tbody" class="divide-y ui-border">
@@ -750,11 +1098,7 @@ def build_html(default_view: str = "concepts") -> str:
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
-      
-      <!-- Left 3 Cols: Timer Ring & Controls -->
       <div class="md:col-span-3 ui-card border rounded-2xl p-6 flex flex-col items-center justify-between space-y-6 shadow-sm">
-        
-        <!-- Mode Presets -->
         <div class="flex flex-wrap items-center justify-center gap-1.5 ui-surface p-1.5 rounded-xl border text-xs w-full">
           <button type="button" onclick="setPomodoroPreset(25, 'Pomodoro Focus')" id="pomo-preset-25" class="pomo-preset-btn px-3 py-1.5 rounded-lg font-semibold ui-accent-btn">
             🍅 25m Focus
@@ -770,7 +1114,6 @@ def build_html(default_view: str = "concepts") -> str:
           </button>
         </div>
 
-        <!-- SVG Circular Countdown Ring -->
         <div class="relative w-56 h-56 flex items-center justify-center">
           <svg class="w-full h-full -rotate-90" viewBox="0 0 120 120" aria-hidden="true">
             <circle cx="60" cy="60" r="52" fill="none" stroke="var(--border)" stroke-width="6"></circle>
@@ -783,13 +1126,11 @@ def build_html(default_view: str = "concepts") -> str:
           </div>
         </div>
 
-        <!-- Focus Target Selector -->
         <div class="w-full space-y-1">
           <label for="pomo-task-input" class="text-xs ui-text-muted block">Focusing on topic / problem:</label>
           <input id="pomo-task-input" type="text" placeholder="e.g. 2D Matrices & Spiral Traversal (LC 54)" class="w-full ui-surface border rounded-xl px-3.5 py-2 text-xs focus:outline-none">
         </div>
 
-        <!-- Start / Pause / Reset + Custom Duration -->
         <div class="flex items-center justify-between gap-3 w-full pt-2 border-t ui-border">
           <div class="flex items-center gap-2">
             <button type="button" onclick="togglePomodoroStart()" id="pomo-start-btn" class="px-5 py-2 rounded-xl ui-accent-btn font-bold text-xs shadow-sm hover:opacity-90 transition-all">
@@ -806,10 +1147,8 @@ def build_html(default_view: str = "concepts") -> str:
             <button type="button" onclick="applyCustomPomodoro()" class="px-2.5 py-1 rounded-lg ui-card border font-medium hover:opacity-90">Set</button>
           </div>
         </div>
-
       </div>
 
-      <!-- Right 2 Cols: Daily Focus Stats & Session History -->
       <div class="md:col-span-2 flex flex-col justify-between space-y-4">
         <div class="grid grid-cols-2 gap-3">
           <div class="ui-card border rounded-2xl p-4">
@@ -833,7 +1172,6 @@ def build_html(default_view: str = "concepts") -> str:
           </div>
         </div>
       </div>
-
     </div>
   </section>
 
@@ -882,9 +1220,7 @@ def build_html(default_view: str = "concepts") -> str:
     </div>
   </section>
 
-  <!-- ===================================================================== -->
-  <!-- NATIVE DIALOG 1: COMMAND PALETTE SEARCH (Cmd+K)                       -->
-  <!-- ===================================================================== -->
+  <!-- NATIVE DIALOGS -->
   <dialog id="cmdk-dialog" closedby="any" class="ui-card border rounded-2xl w-full max-w-xl p-0 text-[var(--text)] shadow-2xl">
     <div class="p-3.5 border-b ui-border flex items-center gap-2.5">
       <svg class="w-4 h-4 ui-text-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
@@ -899,9 +1235,6 @@ def build_html(default_view: str = "concepts") -> str:
     </div>
   </dialog>
 
-  <!-- ===================================================================== -->
-  <!-- NATIVE DIALOG 2: QUICK-PEEK STUDY DRAWER                              -->
-  <!-- ===================================================================== -->
   <dialog id="peek-dialog" closedby="any" class="ui-card border rounded-2xl w-full max-w-3xl p-0 text-[var(--text)] shadow-2xl max-h-[88vh]">
     <div class="sticky top-0 z-10 ui-surface border-b px-5 py-3 flex items-center justify-between gap-3">
       <div class="flex items-center gap-2 truncate">
@@ -920,9 +1253,6 @@ def build_html(default_view: str = "concepts") -> str:
     </div>
   </dialog>
 
-  <!-- ===================================================================== -->
-  <!-- NATIVE DIALOG 3: LOG CUSTOM EXTERNAL PROBLEM                          -->
-  <!-- ===================================================================== -->
   <dialog id="log-dialog" closedby="any" class="ui-card border rounded-2xl w-full max-w-md p-5 text-[var(--text)] shadow-2xl">
     <div class="flex items-center justify-between border-b ui-border pb-3 mb-4">
       <h2 class="text-base font-bold">Log Solved Problem</h2>
@@ -951,7 +1281,7 @@ def build_html(default_view: str = "concepts") -> str:
           </select>
         </div>
         <div>
-          <label for="cp-pattern" class="block ui-text-muted mb-1">Pattern</label>
+          <label for="cp-pattern" class="block ui-text-muted mb-1">Topic / Pattern</label>
           <input id="cp-pattern" type="text" required placeholder="Two Pointers" class="w-full ui-surface border rounded-lg px-2.5 py-1.5">
         </div>
       </div>
@@ -969,9 +1299,11 @@ def build_html(default_view: str = "concepts") -> str:
   <script>
     const DOCS_DATA = {docs_json_str};
     const DOC_KEYS = Object.keys(DOCS_DATA);
+    const CURATED_CATALOG = {problems_json_str};
     const DEFAULT_INITIAL_VIEW = "{default_view}";
 
-    const STATUS_STORAGE_KEY = 'dsa_hub_status_v2';
+    const PROB_STATUS_KEY = 'dsa_hub_prob_status_v3';
+    const DOC_STATUS_KEY = 'dsa_hub_status_v2';
     const NOTES_STORAGE_KEY = 'dsa_hub_notes_v2';
     const CUSTOM_PROBS_KEY = 'dsa_hub_custom_probs_v2';
     const THEME_KEY = 'dsa_hub_palette_v3';
@@ -979,7 +1311,8 @@ def build_html(default_view: str = "concepts") -> str:
     const RIGHT_SB_KEY = 'dsa_hub_right_sb_open';
     const POMO_LOG_KEY = 'dsa_hub_pomo_log_v1';
 
-    let docStatusMap = {{}};
+    let probStatusMap = {{}}; // keyed by "lc-<number>"
+    let docStatusMap = {{}};  // keyed by doc path
     let docNotesMap = {{}};
     let customProblems = [];
     let pomoHistory = [];
@@ -988,22 +1321,34 @@ def build_html(default_view: str = "concepts") -> str:
     let currentDocPath = "00_foundations/01_algorithms_correctness_efficiency.md";
     let readerMode = 'full';
     let showFlowcharts = true;
+    let trackerPlanFilter = 'ALL'; // 'ALL' | '150' | '75' | 'WITH_DOC'
     let trackerStatusFilter = 'ALL';
-    let trackerTypeFilter = 'problem';
     let isLeftSidebarOpen = true;
     let isRightSidebarOpen = true;
 
     // 1. Initialize Storage
     function initState() {{
       try {{
-        const savedStatus = localStorage.getItem(STATUS_STORAGE_KEY);
-        if (savedStatus) {{
-          docStatusMap = JSON.parse(savedStatus);
+        const savedDocStatus = localStorage.getItem(DOC_STATUS_KEY);
+        if (savedDocStatus) {{
+          docStatusMap = JSON.parse(savedDocStatus);
         }} else {{
           DOC_KEYS.forEach(k => {{
             if (DOCS_DATA[k].defaultSolved) docStatusMap[k] = 'solved';
           }});
-          localStorage.setItem(STATUS_STORAGE_KEY, JSON.stringify(docStatusMap));
+          localStorage.setItem(DOC_STATUS_KEY, JSON.stringify(docStatusMap));
+        }}
+
+        const savedProbStatus = localStorage.getItem(PROB_STATUS_KEY);
+        if (savedProbStatus) {{
+          probStatusMap = JSON.parse(savedProbStatus);
+        }} else {{
+          CURATED_CATALOG.forEach(p => {{
+            if (p.defaultSolved || (p.docPath && docStatusMap[p.docPath] === 'solved')) {{
+              probStatusMap['lc-' + p.number] = 'solved';
+            }}
+          }});
+          localStorage.setItem(PROB_STATUS_KEY, JSON.stringify(probStatusMap));
         }}
 
         const savedNotes = localStorage.getItem(NOTES_STORAGE_KEY);
@@ -1023,6 +1368,65 @@ def build_html(default_view: str = "concepts") -> str:
       }} catch (e) {{
         console.warn(e);
       }}
+
+      // Populate Topic filter dropdown in Tracker
+      const topicSelect = document.getElementById('tracker-topic-filter');
+      if (topicSelect) {{
+        const topics = Array.from(new Set(CURATED_CATALOG.map(p => p.topic))).sort();
+        topics.forEach(t => {{
+          const opt = document.createElement('option');
+          opt.value = t;
+          opt.textContent = t;
+          topicSelect.appendChild(opt);
+        }});
+      }}
+    }}
+
+    function getProbStatus(num) {{
+      return probStatusMap['lc-' + num] || 'todo';
+    }}
+
+    function setProbStatus(num, status) {{
+      probStatusMap['lc-' + num] = status;
+      localStorage.setItem(PROB_STATUS_KEY, JSON.stringify(probStatusMap));
+      // Sync with docStatusMap if problem has a local study doc
+      const item = CURATED_CATALOG.find(p => p.number === num);
+      if (item && item.docPath) {{
+        docStatusMap[item.docPath] = status;
+        localStorage.setItem(DOC_STATUS_KEY, JSON.stringify(docStatusMap));
+      }}
+      updateGlobalProgressPill();
+      renderSidebarTree();
+      if (currentView === 'tracker') renderTrackerTable();
+      if (currentView === 'roadmap') renderRoadmapGrids();
+      if (DOCS_DATA[currentDocPath]?.lcNumber === num) updateReaderStatusButtons();
+    }}
+
+    function getDocStatus(path) {{
+      const d = DOCS_DATA[path];
+      if (d && d.lcNumber) return getProbStatus(d.lcNumber);
+      return docStatusMap[path] || 'todo';
+    }}
+
+    function setDocStatus(path, status) {{
+      const d = DOCS_DATA[path];
+      if (d && d.lcNumber) {{
+        setProbStatus(d.lcNumber, status);
+        return;
+      }}
+      docStatusMap[path] = status;
+      localStorage.setItem(DOC_STATUS_KEY, JSON.stringify(docStatusMap));
+      updateGlobalProgressPill();
+      renderSidebarTree();
+      if (currentDocPath === path) updateReaderStatusButtons();
+      if (currentView === 'roadmap') renderRoadmapGrids();
+    }}
+
+    function updateGlobalProgressPill() {{
+      const solved150 = CURATED_CATALOG.filter(p => p.in150 && getProbStatus(p.number) === 'solved').length;
+      const solved75 = CURATED_CATALOG.filter(p => p.in75 && getProbStatus(p.number) === 'solved').length;
+      const pill = document.getElementById('global-progress-pill');
+      if (pill) pill.textContent = `🔥 Top 150: ${{solved150}}/150 • ⚡ LC 75: ${{solved75}}/75`;
     }}
 
     // 2. Collapsible Left & Right Sidebars
@@ -1053,7 +1457,6 @@ def build_html(default_view: str = "concepts") -> str:
         }}
       }}
 
-      // Expand center reading width slightly when both sidebars are collapsed
       if (innerWrap) {{
         if (!isLeftSidebarOpen && !isRightSidebarOpen) {{
           innerWrap.className = 'max-w-4xl mx-auto space-y-5 pb-16 transition-all';
@@ -1093,7 +1496,6 @@ def build_html(default_view: str = "concepts") -> str:
         const style = document.getElementById('pomo-sound-select')?.value || 'chime';
         const now = audioCtx.currentTime;
 
-        // Harmonic frequencies (Hz) for C major 9th / Singing Bowl intervals
         const presets = {{
           chime:   {{ freqs: [523.25, 659.25, 783.99, 987.77, 1046.50], wave: 'sine',     gap: 0.22, dur: 2.4 }},
           marimba: {{ freqs: [440.00, 554.37, 659.25, 880.00],          wave: 'triangle', gap: 0.14, dur: 1.4 }},
@@ -1113,7 +1515,6 @@ def build_html(default_view: str = "concepts") -> str:
           overtone.type = 'sine';
           overtone.frequency.setValueAtTime(freq * 2, start);
 
-          // Smooth bell envelope: soft attack (0.04s) + long warm exponential decay
           gain.gain.setValueAtTime(0.0001, start);
           gain.gain.linearRampToValueAtTime(0.16, start + 0.04);
           gain.gain.exponentialRampToValueAtTime(0.0001, start + cfg.dur);
@@ -1146,14 +1547,12 @@ def build_html(default_view: str = "concepts") -> str:
       const modeLbl = document.getElementById('pomo-mode-label');
       if (modeLbl) modeLbl.textContent = pomoModeTitle;
 
-      // Update circular SVG progress ring (circumference = 2 * pi * 52 = 326.7)
       const ring = document.getElementById('pomo-ring-circle');
       if (ring && pomoTotalSeconds > 0) {{
         const fraction = 1 - (pomoRemainingSeconds / pomoTotalSeconds);
         ring.style.strokeDashoffset = String(326.7 * fraction);
       }}
 
-      // Update top navbar live badge so user can see countdown while reading notes!
       const navLbl = document.getElementById('nav-pomo-label');
       if (navLbl) {{
         if (pomoInterval) {{
@@ -1200,7 +1599,6 @@ def build_html(default_view: str = "concepts") -> str:
       const startBtn = document.getElementById('pomo-start-btn');
       const sub = document.getElementById('pomo-status-sub');
 
-      // Warm up AudioContext on user click so browser allows chime when timer ends
       if (!audioCtx) {{
         try {{
           const AudioContextClass = window.AudioContext || window.webkitAudioContext;
@@ -1235,7 +1633,6 @@ def build_html(default_view: str = "concepts") -> str:
           sub.textContent = '🎉 Session Complete!';
           playSmoothAlarm();
 
-          // Log session
           const minsCompleted = Math.round(pomoTotalSeconds / 60);
           const taskField = document.getElementById('pomo-task-input');
           const taskName = (taskField && taskField.value.trim()) || DOCS_DATA[currentDocPath]?.shortTitle || pomoModeTitle;
@@ -1299,28 +1696,7 @@ def build_html(default_view: str = "concepts") -> str:
       renderPomodoroHistory();
     }}
 
-    // 4. Status & Theme Helpers
-    function getDocStatus(path) {{
-      return docStatusMap[path] || 'todo';
-    }}
-
-    function setDocStatus(path, status) {{
-      docStatusMap[path] = status;
-      localStorage.setItem(STATUS_STORAGE_KEY, JSON.stringify(docStatusMap));
-      updateGlobalProgressPill();
-      renderSidebarTree();
-      if (currentDocPath === path) updateReaderStatusButtons();
-      if (currentView === 'tracker') renderTrackerTable();
-      if (currentView === 'roadmap') renderRoadmapGrids();
-    }}
-
-    function updateGlobalProgressPill() {{
-      const problemKeys = DOC_KEYS.filter(k => DOCS_DATA[k].docType === 'problem');
-      const solvedProbs = problemKeys.filter(k => getDocStatus(k) === 'solved').length + customProblems.length;
-      const pill = document.getElementById('global-progress-pill');
-      if (pill) pill.textContent = `🧩 ${{solvedProbs}} / ${{problemKeys.length + customProblems.length}} Problems Solved`;
-    }}
-
+    // 4. Palette & Sidebar Scope
     function setTheme(theme) {{
       const valid = ['indigo', 'tokyo', 'mocha', 'daylight'];
       if (!valid.includes(theme)) theme = 'indigo';
@@ -1681,7 +2057,7 @@ def build_html(default_view: str = "concepts") -> str:
         return d.title.toLowerCase().includes(q) || d.pattern.toLowerCase().includes(q) || d.path.toLowerCase().includes(q);
       }});
 
-      const scopeLabel = sidebarScope === 'concept' ? 'Concept Guides' : (sidebarScope === 'problem' ? 'LeetCode Problems' : 'Total Docs');
+      const scopeLabel = sidebarScope === 'concept' ? 'Concept Guides' : (sidebarScope === 'problem' ? 'Repo Problem Guides' : 'Total Docs');
       document.getElementById('sidebar-count-label').textContent = `${{scopedDocs.length}} ${{scopeLabel}}`;
 
       const groups = {{}};
@@ -1767,17 +2143,16 @@ def build_html(default_view: str = "concepts") -> str:
       `).join('');
     }}
 
-    function setTrackerTypeFilter(t) {{
-      trackerTypeFilter = t;
-      const btnProb = document.getElementById('trk-type-problem');
-      const btnConc = document.getElementById('trk-type-concept');
-      if (t === 'problem') {{
-        btnProb.className = 'px-2.5 py-1 rounded font-semibold ui-accent-soft border';
-        btnConc.className = 'px-2.5 py-1 rounded font-medium ui-text-muted';
-      }} else {{
-        btnConc.className = 'px-2.5 py-1 rounded font-semibold ui-accent-soft border';
-        btnProb.className = 'px-2.5 py-1 rounded font-medium ui-text-muted';
-      }}
+    // 8. Top Interview 150 & LeetCode 75 Tracker Logic
+    function setTrackerPlanFilter(plan) {{
+      trackerPlanFilter = plan;
+      document.querySelectorAll('.trk-plan-btn').forEach(btn => {{
+        if (btn.dataset.plan === plan) {{
+          btn.className = 'trk-plan-btn px-3 py-1.5 rounded-xl font-semibold ui-accent-btn';
+        }} else {{
+          btn.className = 'trk-plan-btn px-3 py-1.5 rounded-xl font-medium ui-surface border ui-text-muted hover:text-[var(--text)]';
+        }}
+      }});
       renderTrackerTable();
     }}
 
@@ -1785,93 +2160,129 @@ def build_html(default_view: str = "concepts") -> str:
       trackerStatusFilter = st;
       document.querySelectorAll('.tracker-status-btn').forEach(btn => {{
         if (btn.dataset.status === st) {{
-          btn.className = 'tracker-status-btn px-2.5 py-1 rounded font-semibold ui-accent-soft border';
+          btn.className = 'tracker-status-btn px-2.5 py-1 rounded-lg font-semibold ui-accent-soft border';
         }} else {{
-          btn.className = 'tracker-status-btn px-2.5 py-1 rounded font-medium ui-text-muted';
+          btn.className = 'tracker-status-btn px-2.5 py-1 rounded-lg font-medium ui-text-muted';
         }}
       }});
       renderTrackerTable();
     }}
 
-    function cycleDocStatus(path) {{
-      const cur = getDocStatus(path);
+    function cycleProbStatus(num) {{
+      const cur = getProbStatus(num);
       const next = cur === 'todo' ? 'solved' : (cur === 'solved' ? 'review' : 'todo');
-      setDocStatus(path, next);
+      setProbStatus(num, next);
     }}
 
     function renderTrackerTable() {{
       const tbody = document.getElementById('tracker-tbody');
       const q = (document.getElementById('tracker-search-input')?.value || '').toLowerCase().trim();
-      const catFilter = document.getElementById('tracker-cat-filter')?.value || 'ALL';
+      const topicFilter = document.getElementById('tracker-topic-filter')?.value || 'ALL';
+      const diffFilter = document.getElementById('tracker-diff-filter')?.value || 'ALL';
 
-      const allProblems = DOC_KEYS.map(k => DOCS_DATA[k]).filter(d => d.docType === 'problem');
-      const solvedProblems = allProblems.filter(d => getDocStatus(d.path) === 'solved');
-      const reviewProblems = allProblems.filter(d => getDocStatus(d.path) === 'review');
-      const easySolved = solvedProblems.filter(d => d.difficulty === 'Easy').length;
-      const medHardSolved = solvedProblems.filter(d => d.difficulty === 'Medium' || d.difficulty === 'Hard').length;
+      // Top Progress Cards (Top 150 & LC 75)
+      const list150 = CURATED_CATALOG.filter(p => p.in150);
+      const solved150 = list150.filter(p => getProbStatus(p.number) === 'solved').length;
+      const pct150 = Math.round((solved150 / list150.length) * 100);
+      document.getElementById('stat-150-count').textContent = `${{solved150}} / ${{list150.length}}`;
+      document.getElementById('stat-150-pct').textContent = `${{pct150}}%`;
+      document.getElementById('stat-150-bar').style.width = `${{pct150}}%`;
 
-      document.getElementById('stat-solved').textContent = solvedProblems.length + customProblems.length;
-      document.getElementById('stat-total-label').textContent = `of ${{allProblems.length + customProblems.length}} LeetCode problems`;
-      document.getElementById('stat-review').textContent = reviewProblems.length;
-      document.getElementById('stat-easy').textContent = easySolved;
-      document.getElementById('stat-medium').textContent = medHardSolved;
+      const list75 = CURATED_CATALOG.filter(p => p.in75);
+      const solved75 = list75.filter(p => getProbStatus(p.number) === 'solved').length;
+      const pct75 = Math.round((solved75 / list75.length) * 100);
+      document.getElementById('stat-75-count').textContent = `${{solved75}} / ${{list75.length}}`;
+      document.getElementById('stat-75-pct').textContent = `${{pct75}}%`;
+      document.getElementById('stat-75-bar').style.width = `${{pct75}}%`;
 
-      const baseItems = DOC_KEYS.map(k => DOCS_DATA[k]).filter(d => d.docType === trackerTypeFilter);
+      const allSolved = CURATED_CATALOG.filter(p => getProbStatus(p.number) === 'solved');
+      const allReview = CURATED_CATALOG.filter(p => getProbStatus(p.number) === 'review');
+      const easySolved = allSolved.filter(p => p.difficulty === 'Easy').length;
+      const medSolved = allSolved.filter(p => p.difficulty === 'Medium').length;
+      const hardSolved = allSolved.filter(p => p.difficulty === 'Hard').length;
 
-      const rows = baseItems.filter(d => {{
-        if (catFilter !== 'ALL' && d.category !== catFilter) return false;
-        const st = getDocStatus(d.path);
+      document.getElementById('stat-total-solved').textContent = `${{allSolved.length}} / ${{CURATED_CATALOG.length}}`;
+      document.getElementById('stat-easy').textContent = `${{easySolved}} E`;
+      document.getElementById('stat-medium').textContent = `${{medSolved}} M`;
+      document.getElementById('stat-hard').textContent = `${{hardSolved}} H`;
+      document.getElementById('stat-review-label').textContent = `${{allReview.length}} problems in review queue`;
+
+      // Filter rows
+      const rows = CURATED_CATALOG.filter(p => {{
+        if (trackerPlanFilter === '150' && !p.in150) return false;
+        if (trackerPlanFilter === '75' && !p.in75) return false;
+        if (trackerPlanFilter === 'WITH_DOC' && !p.docPath) return false;
+        if (topicFilter !== 'ALL' && p.topic !== topicFilter) return false;
+        if (diffFilter !== 'ALL' && p.difficulty !== diffFilter) return false;
+        const st = getProbStatus(p.number);
         if (trackerStatusFilter !== 'ALL' && st !== trackerStatusFilter) return false;
         if (q) {{
-          const note = (docNotesMap[d.path] || d.summary || '').toLowerCase();
-          return d.title.toLowerCase().includes(q) ||
-                 d.pattern.toLowerCase().includes(q) ||
-                 (d.lcNumber && d.lcNumber.toString().includes(q)) ||
-                 note.includes(q);
+          const note = (p.docPath && docNotesMap[p.docPath]) || docNotesMap['lc-' + p.number] || p.summary || '';
+          return p.title.toLowerCase().includes(q) ||
+                 p.topic.toLowerCase().includes(q) ||
+                 p.pattern.toLowerCase().includes(q) ||
+                 p.number.toString().includes(q) ||
+                 note.toLowerCase().includes(q);
         }}
         return true;
       }});
 
-      tbody.innerHTML = rows.map(d => {{
-        const st = getDocStatus(d.path);
+      document.getElementById('tracker-showing-count').textContent = `Showing ${{rows.length}} problems`;
+
+      tbody.innerHTML = rows.map(p => {{
+        const st = getProbStatus(p.number);
         const stBadge = st === 'solved'
           ? '<span class="px-2.5 py-1 rounded-lg font-semibold ui-accent-soft border">✓ Solved</span>'
           : (st === 'review'
             ? '<span class="px-2.5 py-1 rounded-lg font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/30">🔁 Review</span>'
             : '<span class="px-2.5 py-1 rounded-lg font-medium ui-surface border ui-text-muted">○ Todo</span>');
 
-        const diffColor = d.difficulty === 'Easy' ? 'text-sky-400' : (d.difficulty === 'Medium' ? 'text-amber-400' : (d.difficulty === 'Hard' ? 'text-rose-400' : 'ui-text-muted'));
-        const noteText = docNotesMap[d.path] || d.summary || '-';
+        const diffColor = p.difficulty === 'Easy' ? 'text-sky-400' : (p.difficulty === 'Medium' ? 'text-amber-400' : 'text-rose-400');
+        const noteText = (p.docPath && docNotesMap[p.docPath]) || docNotesMap['lc-' + p.number] || p.summary || 'Click Study or LeetCode ↗ to solve';
+
+        const planBadges = [
+          p.in150 ? '<span class="px-1.5 py-0.5 rounded text-xs ui-accent-soft border">🔥 150</span>' : '',
+          p.in75 ? '<span class="px-1.5 py-0.5 rounded text-xs bg-sky-500/15 text-sky-400 border border-sky-500/30">⚡ 75</span>' : '',
+        ].filter(Boolean).join(' ');
 
         return `
           <tr class="hover:bg-[var(--surface-hover)] transition-colors">
             <td class="py-3 px-3 whitespace-nowrap">
-              <button type="button" onclick="cycleDocStatus('${{d.path}}')" title="Click to cycle Todo -> Solved -> Review">
+              <button type="button" onclick="cycleProbStatus(${{p.number}})" title="Click to cycle Todo -> Solved -> Review">
                 ${{stBadge}}
               </button>
             </td>
             <td class="py-3 px-3">
               <div class="font-semibold text-sm flex items-center gap-2">
-                ${{d.lcNumber ? `<span class="font-mono text-xs px-1.5 py-0.5 rounded ui-surface border ui-accent-text">#${{d.lcNumber}}</span>` : ''}}
-                <button type="button" onclick="openPeekDialog('${{d.path}}')" class="text-left hover:underline transition-colors">
-                  ${{d.shortTitle}}
-                </button>
+                <span class="font-mono text-xs px-1.5 py-0.5 rounded ui-surface border ui-accent-text">#${{p.number}}</span>
+                ${{p.docPath
+                  ? `<button type="button" onclick="openPeekDialog('${{p.docPath}}')" class="text-left hover:underline transition-colors">${{p.title}}</button>`
+                  : `<a href="${{p.url}}" target="_blank" rel="noopener noreferrer" class="hover:underline transition-colors">${{p.title}}</a>`
+                }}
               </div>
-              <div class="text-xs ${{diffColor}} mt-0.5">${{d.difficulty}} • ${{d.categoryLabel}}</div>
+              <div class="text-xs ${{diffColor}} mt-0.5">${{p.difficulty}} ${{p.docPath ? '• 📖 Has Visual Study Note' : ''}}</div>
             </td>
             <td class="py-3 px-3 hidden sm:table-cell">
-              <span class="px-2 py-0.5 rounded ui-surface border text-xs">${{d.pattern}}</span>
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="px-2 py-0.5 rounded ui-surface border text-xs">${{p.topic}}</span>
+                ${{planBadges}}
+              </div>
             </td>
             <td class="py-3 px-3 hidden lg:table-cell max-w-md">
               <p class="text-xs ui-text-muted line-clamp-2">${{noteText}}</p>
             </td>
             <td class="py-3 px-3 text-right whitespace-nowrap space-x-1.5">
-              <button type="button" onclick="openPeekDialog('${{d.path}}')" class="px-2.5 py-1 rounded-lg ui-surface border text-xs hover:opacity-80">
-                Peek
-              </button>
-              <button type="button" onclick="openDocInReader('${{d.path}}')" class="px-2.5 py-1 rounded-lg ui-accent-soft border text-xs font-semibold hover:opacity-90">
-                Study →
-              </button>
+              <a href="${{p.url}}" target="_blank" rel="noopener noreferrer" class="inline-block px-2.5 py-1 rounded-lg ui-surface border text-xs ui-text-muted hover:text-[var(--text)]">
+                LC ↗
+              </a>
+              ${{p.docPath ? `
+                <button type="button" onclick="openPeekDialog('${{p.docPath}}')" class="px-2 py-1 rounded-lg ui-surface border text-xs hover:opacity-80">
+                  Peek
+                </button>
+                <button type="button" onclick="openDocInReader('${{p.docPath}}')" class="px-2.5 py-1 rounded-lg ui-accent-soft border text-xs font-semibold hover:opacity-90">
+                  Note →
+                </button>
+              ` : ''}}
             </td>
           </tr>
         `;
@@ -1934,7 +2345,7 @@ def build_html(default_view: str = "concepts") -> str:
                 </button>
                 <span class="text-xs ui-text-muted">${{d.docType === 'problem' ? '🧩 Problem' : '📘 Concept'}} • ${{d.categoryLabel}}</span>
               </div>
-              <button type="button" onclick="cycleDocStatus('${{d.path}}')" class="shrink-0 text-xs px-2 py-1 rounded border ${{isSolved ? 'ui-accent-soft' : 'ui-surface ui-text-muted'}}">
+              <button type="button" onclick="setDocStatus('${{d.path}}', '${{isSolved ? 'todo' : 'solved'}}')" class="shrink-0 text-xs px-2 py-1 rounded border ${{isSolved ? 'ui-accent-soft' : 'ui-surface ui-text-muted'}}">
                 ${{isSolved ? '✓ Done' : '○ Todo'}}
               </button>
             </div>
@@ -2012,26 +2423,43 @@ def build_html(default_view: str = "concepts") -> str:
 
     document.getElementById('cs-search-input').addEventListener('input', renderCheatSheetsGrid);
     document.getElementById('tracker-search-input').addEventListener('input', renderTrackerTable);
-    document.getElementById('tracker-cat-filter').addEventListener('change', renderTrackerTable);
+    document.getElementById('tracker-topic-filter').addEventListener('change', renderTrackerTable);
+    document.getElementById('tracker-diff-filter').addEventListener('change', renderTrackerTable);
 
     document.getElementById('open-log-dialog-btn').addEventListener('click', () => {{
       document.getElementById('log-dialog').showModal();
     }});
     document.getElementById('custom-problem-form').addEventListener('submit', (e) => {{
       e.preventDefault();
-      customProblems.unshift({{
-        id: 'cp-' + Date.now(),
-        number: parseInt(document.getElementById('cp-num').value, 10),
-        title: document.getElementById('cp-title').value.trim(),
-        difficulty: document.getElementById('cp-diff').value,
-        pattern: document.getElementById('cp-pattern').value.trim(),
-        notes: document.getElementById('cp-note').value.trim(),
-        status: 'solved'
-      }});
-      localStorage.setItem(CUSTOM_PROBS_KEY, JSON.stringify(customProblems));
+      const num = parseInt(document.getElementById('cp-num').value, 10);
+      const title = document.getElementById('cp-title').value.trim();
+      const diff = document.getElementById('cp-diff').value;
+      const pattern = document.getElementById('cp-pattern').value.trim();
+      const notes = document.getElementById('cp-note').value.trim();
+
+      let existing = CURATED_CATALOG.find(p => p.number === num);
+      if (!existing) {{
+        CURATED_CATALOG.unshift({{
+          number: num,
+          title: title,
+          difficulty: diff,
+          topic: pattern,
+          pattern: pattern,
+          url: `https://leetcode.com/problemset/?search=${{num}}`,
+          docPath: '',
+          summary: notes,
+          in150: false,
+          in75: false,
+          defaultSolved: true
+        }});
+      }}
+      if (notes) {{
+        docNotesMap['lc-' + num] = notes;
+        localStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(docNotesMap));
+      }}
+      setProbStatus(num, 'solved');
       document.getElementById('custom-problem-form').reset();
       document.getElementById('log-dialog').close();
-      updateGlobalProgressPill();
       renderTrackerTable();
     }});
 
