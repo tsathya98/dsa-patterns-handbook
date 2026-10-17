@@ -26,6 +26,15 @@ anchor                           p1 ◄──      p (write) ◄──        �
   └─────┘ (scout)
 ```
 
+```mermaid
+flowchart TD
+    Goal{"Two Pointers Goal?"} -- "Sorted pair sum / container / whole palindrome" --> A["A. Squeeze: l = 0, r = n - 1 (move inward)"]
+    Goal -- "Remove duplicates or filter in-place" --> B["B. Scout & Writer: slow = 0, fast = 0"]
+    Goal -- "Compare or merge 2 separate sequences" --> C["C. Two Conveyor Belts: p1 = 0, p2 = 0"]
+    Goal -- "Merge into trailing 0-buffer in-place" --> E["E. Tail-Buffer: p1 = m-1, p2 = n-1, p = m+n-1"]
+    Goal -- "Find palindromic substrings" --> F["F. Flashlight Beam: expand outward from (i, i) and (i, i+1)"]
+```
+
 ### Formation A: The Squeeze (`l = 0, r = n - 1`)
 Pointers start at opposite ends and walk inward until `l < r` fails.
 - **Use for:** Palindrome checks ([LC 125](../01_arrays_and_pointers/125_valid_palindrome.md)), sorted pair sums ([LC 167](../01_arrays_and_pointers/167_two_sum_ii_input_array_is_sorted.md), [LC 15](../01_arrays_and_pointers/15_3sum.md)), container bounds ([LC 11](../01_arrays_and_pointers/11_container_with_most_water.md)), array reversal ([LC 189](../01_arrays_and_pointers/189_rotate_array.md)).

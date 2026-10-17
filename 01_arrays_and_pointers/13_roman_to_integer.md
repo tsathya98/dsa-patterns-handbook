@@ -23,6 +23,15 @@ Values:  1000   100   1000    10     100     1      5
 Sign:   +1000  -100  +1000   -10    +100    -1     +5  = 1994
 ```
 
+```mermaid
+flowchart TD
+    Start["For i in 0..n-1"] --> Check{"i < n - 1 and<br/>dct[s[i]] < dct[s[i + 1]]?"}
+    Check -- "Yes (subtractive pair)" --> Sub["total -= dct[s[i]]"]
+    Check -- "No (normal or last char)" --> Add["total += dct[s[i]]"]
+    Sub --> Next["Next i"]
+    Add --> Next
+```
+
 ## Step-by-step trace
 
 Input: `s = "MCMXCIV"`

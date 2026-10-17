@@ -22,6 +22,13 @@ Original:                  [ 1, 2, 3, 4 | 5, 6, 7 ]   (k = 3)
 3. Reverse remaining n-k:  [ 5, 6, 7 | 1, 2, 3, 4 ]
 ```
 
+```mermaid
+flowchart LR
+    Norm["k = k % n"] --> RevAll["1. Reverse all<br/>(0 .. n-1)"]
+    RevAll --> RevFirst["2. Reverse first k<br/>(0 .. k-1)"]
+    RevFirst --> RevRest["3. Reverse rest<br/>(k .. n-1)"]
+```
+
 ## Step-by-step trace
 
 Input: `nums = [1, 2, 3, 4, 5, 6, 7]`, `k = 3` (`n = 7`, `k %= 7 -> 3`)

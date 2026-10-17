@@ -44,3 +44,11 @@ When unlimited trades are allowed, harvesting every upward daily step (`prices[i
 | Horizon | `max_reach` | `max_reach = max(max_reach, i + nums[i])` | LC 55, LC 45 |
 | Scheduler | `prev_end` | Sort by end time; pick earliest finish | LC 435, LC 452 |
 | Accumulator | `profit` | Add every positive delta `nums[i] - nums[i-1]` | LC 122, LC 134 |
+
+```mermaid
+flowchart TD
+    Problem{"Which Greedy Archetype?"} -- "Convert number into canonical units" --> ATM["Cashier / ATM: Subtract largest unit that fits"]
+    Problem -- "Can you reach the end by jumping?" --> Horizon["Horizon: Track max_reach = max(max_reach, i + jump)"]
+    Problem -- "Max non-overlapping intervals" --> Sched["Scheduler: Sort by end time, pick earliest finish"]
+    Problem -- "Unlimited buy/sell stock trades" --> Micro["Accumulator: Sum every positive step prices[i] - prices[i - 1]"]
+```

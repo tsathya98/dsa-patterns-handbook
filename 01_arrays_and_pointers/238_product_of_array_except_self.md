@@ -35,6 +35,13 @@ Suffix (right of i): [ 24,  12,   4,   1 ]
 res (Left * Right):  [ 24,  12,   8,   6 ]
 ```
 
+```mermaid
+flowchart LR
+    Init["res = [1] * n"] --> Fwd["Forward pass (i = 0..n-1):<br/>res[i] = prefix<br/>prefix *= nums[i]"]
+    Fwd --> Bwd["Backward pass (i = n-1..0):<br/>res[i] *= suffix<br/>suffix *= nums[i]"]
+    Bwd --> Ret["Return res"]
+```
+
 ## Cutting space from $\mathcal{O}(n)$ to $\mathcal{O}(1)$
 
 Allocating separate `prefix` and `suffix` arrays works in $\mathcal{O}(n)$ space, but you can do both passes directly inside the output array `res`:

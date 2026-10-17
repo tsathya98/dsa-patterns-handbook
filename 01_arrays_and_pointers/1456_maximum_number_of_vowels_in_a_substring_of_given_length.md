@@ -23,6 +23,14 @@ s = "a  b  c  i  i  i  d  e  f",  k = 3
      -  [b  c  i]                 'a' leaves (-1), 'i' enters (+1) -> count = 1
 ```
 
+```mermaid
+flowchart TD
+    Init["Count vowels in s[0:k]<br/>max_count = count"] --> Slide["Slide right edge i from k to n-1"]
+    Slide --> Enter["If s[i] in vowels: count += 1"]
+    Enter --> Leave["If s[i - k] in vowels: count -= 1"]
+    Leave --> Update["max_count = max(max_count, count)<br/>(Return k early if max_count == k)"]
+```
+
 ## Step-by-step trace
 
 Input: `s = "abciiidef"`, `k = 3` (initial window `"abc"` has `count = 1`, `max_count = 1`)

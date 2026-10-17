@@ -27,6 +27,18 @@ Prices:  [ 7,   1,   5,   3,   6,   4 ]
 
 If you convert `prices` into daily price changes `diff[i] = prices[i] - prices[i - 1]`, finding the maximum single-transaction profit is equivalent to Kadane's Maximum Subarray (LeetCode 53) on `diff`.
 
+```mermaid
+flowchart TD
+    Start["min_price = inf, max_profit = 0"] --> Loop["For each price in prices"]
+    Loop --> CheckMin{"price < min_price?"}
+    CheckMin -- "Yes (new low)" --> SetMin["min_price = price"]
+    CheckMin -- "No (try selling)" --> CheckProf{"price - min_price > max_profit?"}
+    CheckProf -- "Yes" --> SetProf["max_profit = price - min_price"]
+    CheckProf -- "No" --> Next["Next day"]
+    SetMin --> Next
+    SetProf --> Next
+```
+
 ## Step-by-step trace
 
 Input: `prices = [7, 1, 5, 3, 6, 4]`

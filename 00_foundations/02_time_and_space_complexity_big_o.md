@@ -33,6 +33,13 @@ When $N = 1,000,000$, $N^2 = 1,000,000,000,000$. The lower-order terms barely re
 * $N^2 + N \implies \mathcal{O}(N^2)$
 * $N^3 + 500N^2 + 10 \implies \mathcal{O}(N^3)$
 
+```mermaid
+flowchart LR
+    A["Raw Step Count<br/>e.g. 3N² + 50N + 10"] --> B["1. Drop Lower Terms<br/>Keep 3N²"]
+    B --> C["2. Drop Constants & Divisors<br/>Keep N²"]
+    C --> D["3. Final Big O Class<br/>O(N²)"]
+```
+
 ## 3. How to calculate time complexity from loops
 
 Count how many times the innermost line of code executes as a function of $N$.

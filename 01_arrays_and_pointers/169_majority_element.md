@@ -31,6 +31,15 @@ nums = [ 1,  2,  1,  2,   3,  3,  3 ]
 
 Whenever `count` drops to `0`, the prefix inspected so far contains at most 50% of any single value, so discarding that prefix leaves the true majority element still holding $> 50\%$ of the remaining suffix.
 
+```mermaid
+flowchart TD
+    Loop["For each num in nums"] --> CheckZero{"count == 0?"}
+    CheckZero -- "Yes" --> Reset["candidate = num<br/>count = 1"]
+    CheckZero -- "No" --> CheckMatch{"num == candidate?"}
+    CheckMatch -- "Yes" --> Inc["count += 1"]
+    CheckMatch -- "No (cancel out)" --> Dec["count -= 1"]
+```
+
 ## Step-by-step trace
 
 Input: `nums = [2, 2, 1, 1, 1, 2, 2]`

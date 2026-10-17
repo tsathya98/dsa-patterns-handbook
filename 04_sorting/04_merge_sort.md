@@ -26,6 +26,16 @@ Merge sort uses divide and conquer:
                   [3, 9, 10, 27, 38, 43, 82]
 ```
 
+```mermaid
+flowchart TD
+    Start["merge_sort(arr)"] --> Base{"len(arr) <= 1?"}
+    Base -- "Yes" --> Ret["Return arr (already sorted)"]
+    Base -- "No" --> Split["Split at mid into left_half and right_half"]
+    Split --> Recurse["Recursively sort left_half and right_half"]
+    Recurse --> Merge["Two-pointer merge: pick smaller of left[i] and right[j]"]
+    Merge --> Done["Return combined sorted array"]
+```
+
 ## 2. Python 3 implementation
 
 ```python

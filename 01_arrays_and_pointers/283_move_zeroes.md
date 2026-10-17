@@ -28,6 +28,15 @@ At every step, the array is partitioned into three regions:
 
 Whenever `nums[fast] != 0`, swap `nums[slow]` and `nums[fast]`, then advance `slow += 1`.
 
+```mermaid
+flowchart TD
+    Start["slow = 0, fast = 0..n-1"] --> Check{"nums[fast] != 0?"}
+    Check -- "Yes (non-zero)" --> Swap["Swap nums[slow] and nums[fast]<br/>slow += 1"]
+    Check -- "No (zero)" --> Skip["Leave slow waiting on zero"]
+    Swap --> Next["fast += 1"]
+    Skip --> Next
+```
+
 ### Why `slow += 1` always lands on a zero
 
 Every element between `slow` and `fast - 1` is guaranteed to be `0`. When you swap `nums[slow]` with `nums[fast]`, the non-zero value goes to `slow`, the `0` gets kicked to `fast`, and `slow + 1` is already the next `0` in the wall. If `slow == fast` (no zeros seen yet), the element swaps with itself and both pointers step forward together.

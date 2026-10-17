@@ -16,6 +16,12 @@
 | **Count connected components / islands** | **DFS** (or BFS) | Recursive flood-fill is shorter to write. |
 | **Detect cycles or topological sort** | **DFS** (or Kahn's BFS) | Tracks recursion stack ancestors easily. |
 
+```mermaid
+flowchart TD
+    Start{"What does the problem ask for?"} -- "Shortest path / min steps / level order" --> BFS["Pick BFS: Queue (deque.popleft)<br/>Mark visited BEFORE pushing"]
+    Start -- "Max depth / path sum / flood-fill / cycles" --> DFS["Pick DFS: Recursion / Call Stack<br/>Mark visited on entry"]
+```
+
 ---
 
 ## 3. Core Templates

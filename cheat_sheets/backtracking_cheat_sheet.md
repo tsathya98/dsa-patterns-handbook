@@ -20,6 +20,15 @@ Every backtracking problem follows the same loop:
 2. **Explore:** `backtrack(next_state)`
 3. **Un-choose (Undo):** `path.pop()`
 
+```mermaid
+flowchart TD
+    Enter["Enter backtrack(state)"] --> Goal{"Reached valid solution?"}
+    Goal -- "Yes" --> Save["Record copy: result.append(path[:])"]
+    Goal -- "No" --> Choose["1. Choose: path.append(choice)"]
+    Choose --> Explore["2. Explore: backtrack(next_state)"]
+    Explore --> Undo["3. Undo: path.pop() and try next choice"]
+```
+
 ```python
 def backtrack(state):
     if is_solution(state):

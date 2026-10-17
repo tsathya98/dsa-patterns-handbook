@@ -2,6 +2,23 @@
 
 A single-page map of the 13 core DSA patterns, when to reach for each one, and the traps that cause bugs or Time Limit Exceeded (TLE).
 
+## How to pick a pattern in 10 seconds
+
+```mermaid
+flowchart TD
+    Start["Read Problem Clues"] --> Q1{"Sorted array or<br/>monotonic min/max?"}
+    Q1 -- "Yes (O(log n) target)" --> BS["Binary Search<br/>(Exact / Boundary / Answer)"]
+    Q1 -- "Yes (Pairs / Triplets / Palindrome)" --> TP["Two Pointers<br/>(Squeeze / Scout & Writer)"]
+    Q1 -- "No" --> Q2{"Contiguous subarray<br/>or substring?"}
+    Q2 -- "Max sum with negatives" --> Kadane["Kadane's Algorithm<br/>cur = max(x, cur + x)"]
+    Q2 -- "Range sum [L..R] or Pivot" --> Pref["Prefix Sum / Seesaw"]
+    Q2 -- "Longest / Shortest / Size K" --> SW["Sliding Window<br/>(Fixed K or Dynamic l..r)"]
+    Q2 -- "No" --> Q3{"Pointers, Nodes,<br/>or Nesting?"}
+    Q3 -- "Linked List nodes" --> LL["Dummy Head / Fast & Slow /<br/>4-Step Reversal"]
+    Q3 -- "Matching brackets / Undo" --> Stack["Stack / Monotonic Stack"]
+    Q3 -- "Fast O(1) lookup / Counts" --> Hash["HashMap / HashSet"]
+```
+
 ## Pattern Index
 
 | # | Pattern | Trigger Clue | Target Complexity | Cheat Sheet |

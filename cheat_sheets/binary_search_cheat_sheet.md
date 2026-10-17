@@ -8,6 +8,15 @@ Binary search works whenever your search space has a **two-sided split** where o
 2. **Partially ordered or structural arrays** (rotated sorted arrays, adjacent slope comparisons for peaks/valleys, even/odd index parity).
 3. **Binary search on the answer** (any min/max question where feasibility flips monotonically from `False` to `True`).
 
+```mermaid
+flowchart TD
+    Root{"What are you searching?"} -- "Sorted or rotated array" --> Arr{"Duplicates or rotated?"}
+    Arr -- "Exact / First / Last" --> Bound["Standard lo <= hi<br/>Record ans = mid, steer left/right"]
+    Arr -- "Rotated array" --> Rot["Check if left half sorted (nums[lo] <= nums[mid])"]
+    Root -- "Unsorted peak / valley" --> Slope["Compare mid with mid + 1<br/>Follow rising or falling slope"]
+    Root -- "Min-Max or Max-Min value" --> Ans["Binary Search on Answer [lo, hi]<br/>Test greedy can_finish(mid)"]
+```
+
 ---
 
 ## 2. The 7 Binary Search Archetypes

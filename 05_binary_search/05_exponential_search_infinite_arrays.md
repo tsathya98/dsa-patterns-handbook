@@ -37,6 +37,15 @@ Step 3: lo = 4, hi = 8   -> arr[8] = 17 >= 13 -> stop
 ### Phase 2: Binary search inside $[lo, hi]$ ($\mathcal{O}(\log P)$)
 Once `arr[lo] < k <= arr[hi]`, run standard binary search on `[lo, hi]`.
 
+```mermaid
+flowchart TD
+    Start["Phase 1: Set lo = 0, hi = 1"] --> Cond{"reader.get(hi) < target?"}
+    Cond -- "Yes" --> Double["Double window: lo = hi, hi = hi * 2"]
+    Double --> Cond
+    Cond -- "No (Target bracketed)" --> Phase2["Phase 2: Standard binary search in [lo, hi]"]
+    Phase2 --> Done["Return target index (or -1)"]
+```
+
 ## 3. Implementation (LeetCode 702)
 
 ```python

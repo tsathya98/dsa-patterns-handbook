@@ -46,6 +46,14 @@ def twoSum(nums: list[int], target: int) -> list[int]:
     return []
 ```
 
+```mermaid
+flowchart TD
+    Step["Visit (i, num) in nums"] --> Comp["Compute complement: comp = target - num"]
+    Comp --> Check{"comp in seen?"}
+    Check -- "Yes" --> Found["Return [seen[comp], i]"]
+    Check -- "No" --> Store["Store seen[num] = i and move to next element"]
+```
+
 ### Pattern 2: Canonical Signature Grouping (LC 49: Group Anagrams)
 Group items that share an underlying property by converting each item into a canonical immutable key (a sorted string or a 26-element character count `tuple`):
 ```python

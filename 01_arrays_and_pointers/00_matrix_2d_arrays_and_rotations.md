@@ -72,6 +72,15 @@ Maintain four boundaries: `top = 0`, `bottom = m - 1`, `left = 0`, `right = n - 
 
 The `top <= bottom` and `left <= right` checks before steps 3 and 4 prevent double-counting when a non-square matrix reduces to a single remaining row or column.
 
+```mermaid
+flowchart TD
+    Loop{"top <= bottom and<br/>left <= right?"} -- "Yes" --> Top["Sweep top row (left..right)<br/>top += 1"]
+    Top --> Right["Sweep right col (top..bottom)<br/>right -= 1"]
+    Right --> Bottom["If top <= bottom:<br/>Sweep bottom row (right..left), bottom -= 1"]
+    Bottom --> Left["If left <= right:<br/>Sweep left col (bottom..top), left += 1"]
+    Left --> Loop
+```
+
 <details>
 <summary>Spoiler: Solution Code</summary>
 

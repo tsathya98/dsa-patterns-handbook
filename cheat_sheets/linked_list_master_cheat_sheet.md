@@ -68,6 +68,16 @@ None ◄── [ 1 ]      [ 2 ] ──► [ 3 ] ──► None
           prev       cur       nxt
 ```
 
+```mermaid
+flowchart TD
+    Start["prev = None, cur = head"] --> Cond{"cur is not None?"}
+    Cond -- "No" --> Ret["Return prev (new head)"]
+    Cond -- "Yes" --> Step1["1. Bookmark: nxt = cur.next"]
+    Step1 --> Step2["2. Flip arrow: cur.next = prev"]
+    Step2 --> Step3["3. Shift pointers: prev = cur, cur = nxt"]
+    Step3 --> Cond
+```
+
 ```python
 def reverseList(head):
     prev, cur = None, head

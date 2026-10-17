@@ -44,6 +44,17 @@ When $N = 36$ and $i = 6$, both $i$ and $N/i$ equal $6$. Count that factor once 
 * If `i * i == n`, add $1$ to the count.
 * Otherwise, add $2$ (for both $i$ and $n // i$).
 
+```mermaid
+flowchart TD
+    A["Loop while i * i <= n"] --> B{"n % i == 0?"}
+    B -- "No" --> E["i += 1"]
+    B -- "Yes" --> C{"i * i == n?<br/>(Perfect Square)"}
+    C -- "Yes" --> D1["count += 1<br/>(Count i once)"]
+    C -- "No" --> D2["count += 2<br/>(Count i and n // i)"]
+    D1 --> E
+    D2 --> E
+```
+
 ```python
 def count_factors(n: int) -> int:
     count = 0

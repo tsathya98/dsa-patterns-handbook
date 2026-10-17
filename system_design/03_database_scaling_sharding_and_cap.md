@@ -76,6 +76,15 @@ In a distributed system across multiple machines or availability zones, network 
                   (AP)                (CP)
 ```
 
+```mermaid
+flowchart TD
+    NET{"Network Partition<br/>Detected? (P)"}
+    NET -- "Yes (Partitioned)" --> P_CHOICE{"Choose C or A"}
+    P_CHOICE -- "CP (etcd / Spanner)" --> CP["Reject Minority Writes<br/>(Preserve Consistency)"]
+    P_CHOICE -- "AP (Cassandra / DynamoDB)" --> AP["Accept Local Reads & Writes<br/>(Reconcile Later)"]
+    NET -- "No (Healthy Network - E)" --> E_CHOICE{"Choose Latency (EL) or<br/>Consistency (EC)"}
+```
+
 Because **Partition Tolerance (P)** is required whenever nodes communicate over a network, a partitioned system has to choose how to behave when nodes cannot reach each other:
 
 * **CP (Consistency + Partition Tolerance):**

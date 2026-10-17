@@ -25,6 +25,16 @@ Instead of treating every linked list question as a new puzzle, map it to one of
    └────────────────────────┘
 ```
 
+```mermaid
+flowchart TD
+    ROOT["Linked List Problem"] --> ONE["1 Linked List"]
+    ROOT --> TWO["2+ Linked Lists<br/>(Zipper Merge / Carry / Intersection)"]
+    ROOT --> DES["Design & Hybrid<br/>(HashMap + DLL / Merge Sort / Trees)"]
+    ONE --> P1["Reversal & Reorder<br/>(3-Pointer Flip / Split & Merge)"]
+    ONE --> P2["Delete / Fixed Gap<br/>(Dummy Head + Leader/Follower)"]
+    ONE --> P3["Fast & Slow Pointers<br/>(Cycle Detection / Midpoint)"]
+```
+
 ## 0. Linked list fundamentals
 
 - [Guide: Linked List Fundamentals](./01_linked_list_fundamentals.md)

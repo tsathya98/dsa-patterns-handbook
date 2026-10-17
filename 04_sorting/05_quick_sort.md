@@ -14,6 +14,16 @@ Quick sort is an in-place divide-and-conquer sorting algorithm:
    * The pivot lands at its final sorted index `pi`.
 3. **Recurse:** Run quick sort on the left subarray `low...pi-1` and the right subarray `pi+1...high`.
 
+```mermaid
+flowchart TD
+    Start["quick_sort(arr, low, high)"] --> Check{"low < high?"}
+    Check -- "No" --> Done["Base case: 0 or 1 element (return)"]
+    Check -- "Yes" --> Pivot["Pick pivot and partition subarray"]
+    Pivot --> Place["Elements <= pivot go left, > pivot go right, pivot lands at pi"]
+    Place --> Left["Recurse left: quick_sort(arr, low, pi - 1)"]
+    Place --> Right["Recurse right: quick_sort(arr, pi + 1, high)"]
+```
+
 ## 2. Lomuto partition trace
 
 Array: `[10, 80, 30, 90, 40, 50, 70]`, pivot = `70` (last element)

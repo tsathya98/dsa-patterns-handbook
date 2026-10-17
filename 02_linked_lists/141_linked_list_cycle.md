@@ -25,6 +25,16 @@ Suppose the straight path before the cycle has length $L$, the cycle has circumf
 
 This equation means the distance from `head` to the cycle entrance ($L$) equals the remaining distance from the collision point forward to the cycle entrance ($C - K$, plus any full laps). If you leave `slow` at the collision spot, start a second pointer `slow2 = head`, and walk both 1 step at a time, they are guaranteed to meet at the cycle entrance.
 
+```mermaid
+flowchart TD
+    A["Start: slow = head, fast = head"] --> B{"fast and fast.next<br/>exist?"}
+    B -- "No" --> C["Return False / None<br/>(No Cycle)"]
+    B -- "Yes" --> D["Step: slow += 1, fast += 2"]
+    D --> E{"slow == fast?<br/>(Collision)"}
+    E -- "No" --> B
+    E -- "Yes" --> F["Cycle Found (LC 141)<br/>Walk slow & head 1 step each until equal (LC 142)"]
+```
+
 ## Traps to watch for
 
 - **Loop condition order:** Always write `while fast and fast.next:`. Checking `fast.next` before verifying `fast` is non-null crashes with an `AttributeError` when `fast` steps onto `None` on an even-length list.

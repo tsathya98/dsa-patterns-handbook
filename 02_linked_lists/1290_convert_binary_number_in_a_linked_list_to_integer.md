@@ -32,6 +32,15 @@ For base 2, do the exact same thing, except multiply by `2` instead of `10`:
 - `ans = ans * 2 + head.val`
 - Or using bitwise operators: shift all existing bits left by 1 (`ans << 1`) and drop the new bit into the ones place (`| head.val`).
 
+```mermaid
+flowchart LR
+    A["Start: ans = 0"] --> B{"head is not None?"}
+    B -- "Yes" --> C["Shift & Append Bit<br/>ans = (ans << 1) | head.val"]
+    C --> D["Advance Pointer<br/>head = head.next"]
+    D --> B
+    B -- "No" --> E["Return ans"]
+```
+
 ## Step-by-step trace
 
 Trace on `head = [1, 0, 1]`:

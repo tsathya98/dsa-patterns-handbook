@@ -12,6 +12,14 @@ Personal notes, pattern cheat sheets, and problem walkthroughs for Data Structur
 | **[dsa_patterns_study_guide.md](./dsa_patterns_study_guide.md)** | All 13 core DSA patterns in one single-page summary. |
 | **[`cheat_sheets/`](./cheat_sheets/)** | 21 quick-reference pattern and system design cheat sheets. |
 
+```mermaid
+flowchart LR
+    F["00. Foundations<br/>(Big-O, Memory, Primes)"] --> A["01. Arrays & Pointers<br/>(Two Pointers, Windows, Prefix)"]
+    A --> L["02. Linked Lists<br/>(Dummy, Fast/Slow, Flip)"]
+    L --> S["03–05. Stacks, Sorting<br/>& Binary Search"]
+    S --> SD["System Design<br/>(Caching, Sharding, Queues)"]
+```
+
 ---
 
 ## 0. Foundations, Complexity & Python Internals (`00_foundations/`)

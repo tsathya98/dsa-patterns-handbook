@@ -33,6 +33,13 @@ You can find both target nodes in a single pass with $\mathcal{O}(1)$ space usin
 3. Advance both `fast` and `second` together until `fast` lands on the final node (`while fast.next:`).
 4. Because `fast` is at the end (1st node from the back) and `second` trails by `k - 1` steps, `second` is now sitting on the $k$-th node from the end. Swap `first.val` and `second.val`.
 
+```mermaid
+flowchart LR
+    A["1. Walk first k - 1 steps<br/>(Parks on k-th from start)"] --> B["2. Set fast = first,<br/>second = head"]
+    B --> C["3. Slide fast & second<br/>while fast.next exists"]
+    C --> D["4. Swap Values<br/>first.val, second.val"]
+```
+
 ## Step-by-step trace
 
 Trace on `head = [1, 2, 3, 4, 5]`, `k = 2`:

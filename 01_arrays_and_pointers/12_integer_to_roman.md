@@ -22,6 +22,14 @@ Symbol:   "M"  "CM"   "D"  "CD"   "C"  "XC"   "L"  "XL"   "X"  "IX"   "V"  "IV" 
 
 Iterate through the table from largest to smallest. For each `(val, sym)`, subtract `val` and append `sym` for as long as `num >= val` (or compute `count = num // val` and `num %= val`).
 
+```mermaid
+flowchart TD
+    Start["For each (val, sym) from 1000 down to 1"] --> Check{"num >= val?"}
+    Check -- "Yes" --> Take["Append sym to res<br/>num -= val"]
+    Take --> Check
+    Check -- "No" --> Next["Move to next smaller (val, sym)"]
+```
+
 ## Step-by-step trace
 
 Input: `num = 3749`

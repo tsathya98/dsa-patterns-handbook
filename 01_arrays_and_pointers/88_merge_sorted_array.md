@@ -38,6 +38,16 @@ nums1 = [ 2 , 5 , 6 , 0 , 0 , 0 ]     nums2 = [ 1 , 3 , 4 ]
 
 At each step, compare `nums1[p1]` and `nums2[p2]`, place the larger value at `nums1[p]`, and decrement the corresponding pointers.
 
+```mermaid
+flowchart TD
+    Loop{"p1 >= 0 and p2 >= 0?"} -- "Yes" --> Cmp{"nums1[p1] > nums2[p2]?"}
+    Cmp -- "Yes" --> Take1["nums1[p] = nums1[p1]<br/>p1 -= 1, p -= 1"]
+    Cmp -- "No" --> Take2["nums1[p] = nums2[p2]<br/>p2 -= 1, p -= 1"]
+    Take1 --> Loop
+    Take2 --> Loop
+    Loop -- "No (copy leftover nums2)" --> Tail["While p2 >= 0:<br/>nums1[p] = nums2[p2], p2 -= 1, p -= 1"]
+```
+
 ## Step-by-step trace
 
 Tracing `nums1 = [2, 5, 6, 0, 0, 0]` (`m = 3`) and `nums2 = [1, 3, 4]` (`n = 3`):

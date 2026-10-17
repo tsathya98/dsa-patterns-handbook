@@ -51,6 +51,15 @@ Case C: arr[mid] < arr[mid - 1] and arr[mid] < arr[mid + 1]
        -> Return mid.
 ```
 
+```mermaid
+flowchart TD
+    Start["Check ends arr[0] and arr[n - 1], then set lo = 1, hi = n - 2"] --> Mid["mid = lo + (hi - lo) // 2"]
+    Mid --> Check{"Compare arr[mid] with neighbors"}
+    Check -- "Smaller than both" --> Valley["Local minimum found! Return mid"]
+    Check -- "arr[mid] > arr[mid - 1]" --> Left["Downward slope left: hi = mid - 1"]
+    Check -- "arr[mid] > arr[mid + 1]" --> Right["Downward slope right: lo = mid + 1"]
+```
+
 ## 4. Implementation
 
 ```python

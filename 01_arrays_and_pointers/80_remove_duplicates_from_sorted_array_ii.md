@@ -30,6 +30,15 @@ This single pattern generalizes to any maximum duplicate limit $M$:
 - Allow at most 2 copies (LC 80): `if k < 2 or x != nums[k - 2]:`
 - Allow at most $M$ copies: `if k < M or x != nums[k - M]:`
 
+```mermaid
+flowchart TD
+    Start["k = 0, for each x in nums"] --> Check{"k < 2 or x != nums[k - 2]?"}
+    Check -- "Yes (fewer than 2 copies)" --> Write["nums[k] = x<br/>k += 1"]
+    Check -- "No (already 2 copies)" --> Skip["Skip x (k stays put)"]
+    Write --> Next["Next x"]
+    Skip --> Next
+```
+
 ## Step-by-step trace (Lookback-2)
 
 Tracing `nums = [1, 1, 1, 2, 2, 3]`:

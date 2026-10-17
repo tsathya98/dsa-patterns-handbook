@@ -12,6 +12,15 @@ Insertion sort builds a sorted prefix one element at a time, similar to sorting 
 3. Scan backward through the sorted prefix `arr[0...i-1]`, shifting any element larger than `key` one position to the right.
 4. Drop `key` into the open slot.
 
+```mermaid
+flowchart TD
+    Start["Pick next element: key = arr[i], j = i - 1"] --> Loop{"j >= 0 and arr[j] > key?"}
+    Loop -- "Yes" --> Shift["Shift right: arr[j + 1] = arr[j], j -= 1"]
+    Shift --> Loop
+    Loop -- "No" --> Insert["Drop key into slot: arr[j + 1] = key"]
+    Insert --> Next["Advance i to next unsorted card"]
+```
+
 ## 2. Walkthrough
 
 Array: `[12, 11, 13, 5, 6]`

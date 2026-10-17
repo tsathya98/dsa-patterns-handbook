@@ -32,6 +32,16 @@
 - [ ] Add a **message queue (SQS / Kafka)** triggered when a new object lands in S3.
 - [ ] Add **image processing workers** that pull jobs from the queue, generate thumbnails, write them back to S3, and update metadata in Postgres.
 
+```mermaid
+flowchart LR
+    C["Client"] --> EDGE["DNS + CDN + API Gateway"]
+    EDGE --> APP["L7 LB + Stateless App Tier"]
+    APP --> DATA["Redis Cache + Postgres<br/>(Primary & Read Replicas)"]
+    C -- "Pre-Signed Upload" --> S3["AWS S3 Object Storage"]
+    S3 -- "Upload Event" --> MQ["SQS / Kafka Queue"]
+    MQ --> W["Thumbnail Workers<br/>(Write Variants to S3 & DB)"]
+```
+
 ## 3. Self-critique questions
 
 1. **What happens if App Server 2 crashes mid-request?**

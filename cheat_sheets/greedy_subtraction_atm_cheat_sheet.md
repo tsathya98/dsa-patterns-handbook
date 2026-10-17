@@ -9,6 +9,17 @@ When decomposing a number into standard fixed units (Roman numerals, cash bills,
 2. The unit system is **canonical** (taking the largest piece first never blocks the optimal answer).
 3. You can list all denominations in descending order upfront.
 
+```mermaid
+flowchart TD
+    Start["Sort denominations largest to smallest"] --> NextUnit["Pick next (val, symbol)"]
+    NextUnit --> Fit{"num >= val?"}
+    Fit -- "Yes" --> Peel["Append symbol, subtract num -= val"]
+    Peel --> Fit
+    Fit -- "No" --> More{"More denominations and num > 0?"}
+    More -- "Yes" --> NextUnit
+    More -- "No" --> Done["Return joined result"]
+```
+
 ---
 
 ## 2. Two Templates

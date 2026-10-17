@@ -14,6 +14,14 @@ A working algorithm needs four things:
 3. Terminates in a finite number of steps without getting stuck in an infinite loop.
 4. Scales cleanly when input size $N$ grows large.
 
+```mermaid
+flowchart LR
+    A["Valid Input (N)"] --> B{"Finite Steps?<br/>(Terminates)"}
+    B -- "Yes" --> C{"Right Answer?<br/>(Correctness)"}
+    C -- "Yes" --> D{"Fast as N Grows?<br/>(Efficiency / Big O)"}
+    D -- "Yes" --> E["Production-Ready Algorithm"]
+```
+
 ## 2. Correctness vs. efficiency
 
 * **Correctness:** Does it return the right answer?

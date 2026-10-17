@@ -22,6 +22,13 @@ To flip arrows safely in-place, use three pointers and a 4-step loop:
 2. `cur`: starts at `head` (the node currently flipping its arrow).
 3. `nxt`: a temporary bookmark saved at the start of each iteration (`nxt = cur.next`) so you do not lose the rest of the list when you overwrite `cur.next`.
 
+```mermaid
+flowchart LR
+    A["1. nxt = cur.next<br/>(Bookmark rest of list)"] --> B["2. cur.next = prev<br/>(Flip arrow backward)"]
+    B --> C["3. prev = cur<br/>(Slide prev forward)"]
+    C --> D["4. cur = nxt<br/>(Slide cur forward)"]
+```
+
 ## Step-by-step trace
 
 ```text

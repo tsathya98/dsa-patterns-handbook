@@ -23,6 +23,17 @@ Array:  [ 2 ,  5 ,  8 , 12 , 16 , 23 , 38 ]   Target = 23
 1. arr[mid] = 12 < 23 -> Target must be to the right -> lo = mid + 1
 ```
 
+```mermaid
+flowchart TD
+    Start["lo = 0, hi = n - 1"] --> Loop{"lo <= hi?"}
+    Loop -- "No" --> End["Return -1 (or recorded boundary ans)"]
+    Loop -- "Yes" --> Mid["mid = lo + (hi - lo) // 2"]
+    Mid --> Check{"Compare arr[mid] with target k"}
+    Check -- "arr[mid] == k" --> Found["Exact match: return mid<br/>(First/Last: ans = mid, steer left/right)"]
+    Check -- "arr[mid] < k" --> Right["lo = mid + 1 (Search Right)"]
+    Check -- "arr[mid] > k" --> Left["hi = mid - 1 (Search Left)"]
+```
+
 ```python
 def binary_search(arr: list[int], k: int) -> int:
     lo, hi = 0, len(arr) - 1

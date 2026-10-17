@@ -39,6 +39,17 @@ After scanning the string, some `'('` may still sit in `open_stack`. Pop from bo
 
 Any extra stars left after `open_stack` empties simply become `""`.
 
+```mermaid
+flowchart TD
+    A["Pass 1: Hit ')'"] --> B{"open_stack<br/>non-empty?"}
+    B -- "Yes" --> C["Pop open_stack<br/>(Save '*' for later)"]
+    B -- "No" --> D{"star_stack<br/>non-empty?"}
+    D -- "Yes" --> E["Pop star_stack<br/>(Use '*' as '(')"]
+    D -- "No" --> F["Return False"]
+    C --> G["Pass 2: Match leftover '(' with '*' at higher index<br/>(open_stack[-1] < star_stack[-1])"]
+    E --> G
+```
+
 ## Step-by-step trace
 
 Trace on `s = "(*))"`:

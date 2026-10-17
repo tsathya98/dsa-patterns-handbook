@@ -24,6 +24,15 @@ A clean way to avoid dictionary lookups on closing brackets is the push-expected
 - Whenever you see a closing bracket, check that the stack is non-empty and that `stack.pop()` equals the current character. If the stack is empty or the popped closer does not match, return `False` immediately.
 - Also check `if len(s) % 2 != 0: return False` right at the start, since any odd-length string cannot pair up evenly.
 
+```mermaid
+flowchart TD
+    A["Read character ch"] --> B{"Is ch an opener?<br/>('(', '[', '{')"}
+    B -- "Yes" --> C["Push expected closer<br/>onto stack"]
+    B -- "No (Closer)" --> D{"Stack non-empty AND<br/>stack.pop() == ch?"}
+    D -- "Yes" --> E["Continue to next ch"]
+    D -- "No" --> F["Return False"]
+```
+
 ## Step-by-step trace
 
 Trace on `s = "([])"`:

@@ -29,6 +29,15 @@ $$\mathcal{O}(1) < \mathcal{O}(\log N) < \mathcal{O}(\sqrt{N}) < \mathcal{O}(N) 
 | $N \le 10^6$ | $\mathcal{O}(N)$ | Two pointers, sliding window, hash map, prefix sum |
 | $N \ge 10^9$ | $\mathcal{O}(\sqrt{N})$ or $\mathcal{O}(\log N)$ | Binary search, math / factor pairs |
 
+```mermaid
+flowchart TD
+    CheckN{"Check max input size N"} -- "N <= 20" --> Exp["O(2^N) or O(N!): Backtracking / Bitmask"]
+    CheckN -- "N <= 2,000" --> Quad["O(N^2): Nested loops / 2D DP"]
+    CheckN -- "N <= 10^5" --> NLogN["O(N log N): Sorting / Heap / Divide & Conquer"]
+    CheckN -- "N <= 10^6" --> Lin["O(N): Two Pointers / Sliding Window / Hash Map"]
+    CheckN -- "N >= 10^9" --> Log["O(log N) or O(sqrt(N)): Binary Search / Math"]
+```
+
 ---
 
 ## 3. Auxiliary Space Complexity

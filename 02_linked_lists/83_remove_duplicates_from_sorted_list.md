@@ -23,6 +23,15 @@ Walk a single pointer `cur` from `head` and compare `cur.val` with `cur.next.val
 
 Do you need a `dummy` node here? No. Even if the head value is duplicated (`[1, 1, 2]`), we always keep the first copy of `head` and delete the duplicates after it. Because `head` is never deleted, you can simply return `head` at the end.
 
+```mermaid
+flowchart TD
+    A["while cur and cur.next"] --> B{"cur.val == cur.next.val?"}
+    B -- "Yes (Duplicate)" --> C["Snip Neighbor<br/>cur.next = cur.next.next<br/>(Stay on cur)"]
+    B -- "No (Distinct)" --> D["Step Forward<br/>cur = cur.next"]
+    C --> A
+    D --> A
+```
+
 ## Step-by-step trace
 
 Trace on consecutive duplicates `head = [1, 1, 1]`:

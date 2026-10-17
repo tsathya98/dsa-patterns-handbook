@@ -49,6 +49,16 @@ Phase 4: Multi-Tier Production Infrastructure
    [ Read Replicas ] + [ Analytical DB / Data Warehouse ]
 ```
 
+```mermaid
+flowchart TD
+    C["Client"] --> EDGE["DNS + CDN / Edge"]
+    EDGE --> GW["API Gateway & L7 Load Balancer"]
+    GW --> SVC["Stateless Web Services"]
+    SVC -- "Fast Read" --> REDIS["Redis Cache"]
+    SVC -- "Write / Miss" --> DB["Primary DB & Read Replicas"]
+    SVC -- "Async Job" --> MQ["Kafka / Queue -> Workers"]
+```
+
 ## 2. Databases: matching storage to access patterns
 
 Pick a database engine based on read/write patterns, consistency requirements, and query shapes:

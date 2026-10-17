@@ -20,6 +20,15 @@ $$\implies \text{right\_sum} = \text{total\_sum} - \text{left\_sum} - \text{nums
      left_sum    nums[i]  total - left_sum - nums[i]
 ```
 
+```mermaid
+flowchart TD
+    Init["Compute total = sum(nums), set left_sum = 0"] --> Step["Inspect (i, num)"]
+    Step --> Right["right_sum = total - left_sum - num"]
+    Right --> Check{"left_sum == right_sum?"}
+    Check -- "Yes" --> Found["Return pivot index i"]
+    Check -- "No" --> Add["Add num to left_sum and advance i"]
+```
+
 ### Template ([LC 724: Find Pivot Index](../01_arrays_and_pointers/724_find_pivot_index.md))
 ```python
 def pivotIndex(nums: list[int]) -> int:

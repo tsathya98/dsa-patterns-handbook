@@ -68,6 +68,13 @@ After:
                       curr   (The list did not change; only the label moved)
 ```
 
+```mermaid
+flowchart TD
+    A["Pointer Assignment Expression"] --> B{"Is .next on the<br/>LEFT side of '='?"}
+    B -- "Yes: curr.next = target" --> C["Mutates the Wire<br/>(Rewires node's outgoing arrow in heap)"]
+    B -- "No: curr = curr.next" --> D["Moves Your Finger<br/>(Slides variable label to next node)"]
+```
+
 ## Why losing the head loses the list
 
 Variables in Python are labels pointing to objects in memory. Given `head -> [1] -> [2] -> [3] -> None`, if you run `head = head.next` without saving another reference to `[1]`, nothing points to `[1]` anymore. Since arrows only go forward, you can never walk back to `[1]`, and garbage collection reclaims it.

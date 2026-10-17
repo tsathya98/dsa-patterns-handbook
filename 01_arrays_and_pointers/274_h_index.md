@@ -26,6 +26,14 @@ If you sort `citations` from highest to lowest, each index `i` gives a 1-based p
 - As long as `citations[i] >= i + 1`, you have at least `i + 1` papers with `i + 1` or more citations.
 - The first time `citations[i] < i + 1`, stop immediately (`break`). Since the list is sorted descending, every paper after it has even fewer citations while the required rank keeps growing.
 
+```mermaid
+flowchart TD
+    Sort["Sort citations descending"] --> Loop["For i, c in enumerate(citations)"]
+    Loop --> Check{"c >= i + 1?"}
+    Check -- "Yes" --> Update["h_index = i + 1<br/>Continue to next i"]
+    Check -- "No" --> Stop["Break and return h_index"]
+```
+
 ## Step-by-step trace
 
 Sorting `citations = [3, 0, 6, 1, 5]` in descending order gives `[6, 5, 3, 1, 0]`:

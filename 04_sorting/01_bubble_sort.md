@@ -16,6 +16,17 @@ Pass i: The i-th largest number moves to index (n - i).
 ```
 After at most $n - 1$ passes, the array is sorted.
 
+```mermaid
+flowchart TD
+    Pass["Start Pass i (swapped = False)"] --> Scan["Compare adjacent pairs j and j + 1"]
+    Scan --> Check{"arr[j] > arr[j + 1]?"}
+    Check -- "Yes" --> Swap["Swap elements, set swapped = True"]
+    Check -- "No" --> EndPass{"Any swaps in this pass?"}
+    Swap --> EndPass
+    EndPass -- "No (swapped == False)" --> Done["Array is sorted! Break early"]
+    EndPass -- "Yes" --> NextPass["Lock largest at end, start Pass i + 1"]
+```
+
 ## 2. Step-by-step walkthrough
 
 Sort `[5, 1, 4, 2, 8]` ($n = 5$):

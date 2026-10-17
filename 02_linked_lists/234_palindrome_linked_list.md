@@ -28,6 +28,15 @@ Since you cannot walk backward from the tail of a singly linked list, reverse th
 3. **Compare both halves inward:** Walk `first = head` and `second = prev` together while `second` is not `None`. If `first.val != second.val`, return `False`.
 4. **Optional cleanup:** If the caller still needs the input list intact after the check, reverse the second half a second time and reattach it to `slow.next`.
 
+```mermaid
+flowchart LR
+    A["1. Find End of 1st Half<br/>(slow +1, fast +2)"] --> B["2. Reverse 2nd Half<br/>(In-place from slow.next)"]
+    B --> C["3. Walk Inward & Compare<br/>(first = head, second = prev)"]
+    C --> D{"All values match?"}
+    D -- "Yes" --> E["Return True"]
+    D -- "No" --> F["Return False"]
+```
+
 ## Step-by-step trace
 
 ```text

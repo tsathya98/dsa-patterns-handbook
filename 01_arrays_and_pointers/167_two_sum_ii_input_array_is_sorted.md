@@ -23,6 +23,16 @@ Place `l = 0` at the smallest element and `r = len(numbers) - 1` at the largest 
 [ 2,      7,      11,      15 ],   target = 9
 ```
 
+```mermaid
+flowchart TD
+    Start["l = 0, r = n - 1"] --> Check{"cur_sum = numbers[l] + numbers[r]"}
+    Check -- "cur_sum == target" --> Found["Return [l + 1, r + 1]"]
+    Check -- "cur_sum < target (too small)" --> MoveL["l += 1"]
+    Check -- "cur_sum > target (too big)" --> MoveR["r -= 1"]
+    MoveL --> Check
+    MoveR --> Check
+```
+
 ## Step-by-step trace
 
 Input: `numbers = [2, 7, 11, 15]`, `target = 9`

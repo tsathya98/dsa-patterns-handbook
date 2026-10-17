@@ -36,3 +36,12 @@
 - **Read/Write Split:** Send writes to the Primary DB and scale reads across Read Replicas (with Cache-Aside in front).
 - **Edge Protection:** Rate limit by user/IP (Token Bucket) at the API Gateway.
 - **Fault Isolation:** Set timeouts, exponential backoff with jitter, and circuit breakers on every downstream network call.
+
+```mermaid
+flowchart LR
+    Client["Client"] --> Edge["CDN (Static) + API Gateway / LB (Rate Limit)"]
+    Edge --> App["Stateless App Tier"]
+    App -- "Fast Read" --> Cache["Redis Cache-Aside"]
+    App -- "Write / Cache Miss" --> DB["Primary DB + Read Replicas"]
+    App -- "Async Work" --> Queue["Kafka / SQS -> Worker Pool"]
+```

@@ -29,3 +29,13 @@ Need to sort data?
       ├── Strict O(1) extra space required? ───────► Heap Sort
       └── Fastest average in-place cache speed? ───► Quick Sort (with random/median pivot)
 ```
+
+```mermaid
+flowchart TD
+    Sort{"What are you sorting?"} -- "Linked List" --> MergeLL["Merge Sort: O(n log n) time, O(1) pointer space"]
+    Sort -- "Integers in small range [0..k]" --> Count["Counting / Bucket Sort: O(n + k) time"]
+    Sort -- "Only need Top K / K-th element" --> Heap["Min-Heap of size K: O(n log k) or Quickselect: O(n)"]
+    Sort -- "General Array" --> Constraint{"Main Constraint?"}
+    Constraint -- "Need Stability + O(n log n)" --> Tim["Merge Sort / Timsort"]
+    Constraint -- "In-place speed / O(1) space" --> Quick["Quick Sort (avg) / Heap Sort (strict O(1))"]
+```

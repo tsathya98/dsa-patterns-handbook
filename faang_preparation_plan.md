@@ -12,6 +12,13 @@
 | **Phase 3: Trees, Graphs & Heaps** | Weeks 7–9 | Tree DFS/BFS, Graph Flood-Fill & Topological Sort, Top-K Heaps, Tries | 120 $\to$ 180 |
 | **Phase 4: Backtracking & DP** | Weeks 10–12 | Subsets/Permutations, 1D/2D DP, Timed 45-Minute Mock Interviews | 180 $\to$ 210+ |
 
+```mermaid
+flowchart LR
+    P1["Phase 1 (W1-3)<br/>Arrays, Two Pointers,<br/>Sliding Window, Prefix"] --> P2["Phase 2 (W4-6)<br/>Linked Lists, Stacks,<br/>7 Binary Search Types"]
+    P2 --> P3["Phase 3 (W7-9)<br/>Trees, BFS/DFS,<br/>Graphs, Heaps"]
+    P3 --> P4["Phase 4 (W10-12)<br/>Backtracking, DP,<br/>System Design & Mocks"]
+```
+
 ---
 
 ## Phase 1: Arrays, Strings & Pointers (Weeks 1–3)

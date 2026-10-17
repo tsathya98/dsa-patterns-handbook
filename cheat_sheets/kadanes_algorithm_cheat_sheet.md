@@ -23,6 +23,16 @@ At every element `num`:
 $$\text{current\_sum} = \max(\text{num}, \text{current\_sum} + \text{num})$$
 $$\text{max\_sum} = \max(\text{max\_sum}, \text{current\_sum})$$
 
+```mermaid
+flowchart TD
+    Init["Init current_sum = nums[0], max_sum = nums[0]"] --> Step["Inspect next num"]
+    Step --> Check{"Is previous current_sum < 0?"}
+    Check -- "Yes (Negative debt)" --> Fresh["Start fresh: current_sum = num"]
+    Check -- "No (Positive cushion)" --> Extend["Extend: current_sum = current_sum + num"]
+    Fresh --> Best["Update max_sum = max(max_sum, current_sum)"]
+    Extend --> Best
+```
+
 ---
 
 ## 3. Why other patterns fail here

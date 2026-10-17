@@ -33,6 +33,12 @@ Update the running sum in $\mathcal{O}(1)$ time at each step `i` (for `i` from `
 
 $$\text{tot} = \text{tot} + \text{nums}[i] - \text{nums}[i - k]$$
 
+```mermaid
+flowchart LR
+    Init["tot = sum(nums[:k])<br/>max_tot = tot"] --> Slide["For i in k..n-1:<br/>tot += nums[i] - nums[i - k]<br/>max_tot = max(max_tot, tot)"]
+    Slide --> Ret["Return max_tot / k"]
+```
+
 ### Practical optimizations
 
 1. **Loop `for i in range(k, len(nums))`:** Indexing by the entering element `i` makes the leaving element `i - k`, avoiding `i + k - 1` off-by-one bugs.

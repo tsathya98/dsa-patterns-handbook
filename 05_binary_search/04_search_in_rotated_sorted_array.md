@@ -40,6 +40,17 @@ Since nums[lo] <= nums[mid] (4 <= 7), the left half [4, 5, 6, 7] is sorted.
    * If yes, search right: `lo = mid + 1`.
    * Otherwise, search left: `hi = mid - 1`.
 
+```mermaid
+flowchart TD
+    Mid["Check mid (return mid if nums[mid] == target)"] --> Half{"nums[lo] <= nums[mid]?"}
+    Half -- "Yes (Left half sorted)" --> InLeft{"nums[lo] <= target < nums[mid]?"}
+    InLeft -- "Yes" --> GoLeft1["Search Left: hi = mid - 1"]
+    InLeft -- "No" --> GoRight1["Search Right: lo = mid + 1"]
+    Half -- "No (Right half sorted)" --> InRight{"nums[mid] < target <= nums[hi]?"}
+    InRight -- "Yes" --> GoRight2["Search Right: lo = mid + 1"]
+    InRight -- "No" --> GoLeft2["Search Left: hi = mid - 1"]
+```
+
 ## 3. Implementation (LeetCode 33)
 
 ```python

@@ -29,6 +29,16 @@ Match: advance both p1 and p2. On mismatch: advance only p2.
 
 If `p1` reaches `len(s)`, every character in `s` was matched in order.
 
+```mermaid
+flowchart TD
+    Loop{"p1 < len(s) and p2 < len(t)?"} -- "Yes" --> Match{"s[p1] == t[p2]?"}
+    Match -- "Yes (matched char)" --> AdvBoth["p1 += 1, p2 += 1"]
+    Match -- "No" --> AdvStream["p2 += 1"]
+    AdvBoth --> Loop
+    AdvStream --> Loop
+    Loop -- "No" --> Done["Return p1 == len(s)"]
+```
+
 ## Solution
 
 <details>

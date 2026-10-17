@@ -30,6 +30,14 @@ Every palindrome has one of two center types ($2n$ centers in total):
        " c  [b  b]  d "
 ```
 
+```mermaid
+flowchart TD
+    Center["For each index i:<br/>Try odd (l=i, r=i) and even (l=i, r=i+1)"] --> Expand{"l >= 0 and r < n<br/>and s[l] == s[r]?"}
+    Expand -- "Yes" --> Step["l -= 1, r += 1"]
+    Step --> Expand
+    Expand -- "No" --> Slice["Valid bounds: [l + 1 : r]<br/>Update best_l, best_r if longer"]
+```
+
 ## Boundary math: Why the valid slice is `s[l + 1 : r]`
 
 Inside the expansion loop:

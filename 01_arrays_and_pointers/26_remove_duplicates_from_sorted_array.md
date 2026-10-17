@@ -32,6 +32,15 @@ In LC 27 (Remove Element):     keep if nums[i] != val
 In LC 26 (Remove Duplicates):  keep if nums[i] != nums[i - 1]
 ```
 
+```mermaid
+flowchart TD
+    Start["k = 1, i = 1..n-1"] --> Check{"nums[i] != nums[i - 1]?"}
+    Check -- "Yes (new unique)" --> Write["nums[k] = nums[i]<br/>k += 1"]
+    Check -- "No (duplicate)" --> Skip["Leave k in place"]
+    Write --> Next["i += 1"]
+    Skip --> Next
+```
+
 ## Step-by-step trace
 
 Tracing `nums = [0, 0, 1, 1, 1, 2, 2, 3]`:

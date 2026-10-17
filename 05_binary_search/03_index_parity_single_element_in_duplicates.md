@@ -47,6 +47,16 @@ At each midpoint `mid`:
    * If `first_idx % 2 == 0`, we are still in the `(even, odd)` left region, so the single element is further right: `lo = first_idx + 2`.
    * If `first_idx % 2 == 1`, the parity has already shifted to `(odd, even)`, so the single element is to the left: `hi = first_idx - 1`.
 
+```mermaid
+flowchart TD
+    Mid["Inspect mid = lo + (hi - lo) // 2"] --> Single{"Unpaired with mid - 1 and mid + 1?"}
+    Single -- "Yes" --> Found["Return arr[mid]"]
+    Single -- "No" --> Align["Find pair start: first_idx = mid - 1 (if paired left) else mid"]
+    Align --> Parity{"Is first_idx even?"}
+    Parity -- "Yes (first_idx % 2 == 0)" --> Right["Intact (even, odd) left side -> lo = first_idx + 2"]
+    Parity -- "No (first_idx % 2 == 1)" --> Left["Shifted (odd, even) right side -> hi = first_idx - 1"]
+```
+
 ## 4. Implementation (LeetCode 540)
 
 ```python

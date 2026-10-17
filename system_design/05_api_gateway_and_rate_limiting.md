@@ -24,6 +24,14 @@ An API gateway is an L7 reverse proxy sitting between external clients and inter
   [ User Service ] [ Order Service ] [ Payment Service ]
 ```
 
+```mermaid
+flowchart LR
+    C["Client Request"] --> GW["API Gateway<br/>(TLS + JWT Auth)"]
+    GW --> RL{"Redis Lua Rate Limit<br/>(Under Quota?)"}
+    RL -- "No (> Limit)" --> REJ["Return HTTP 429<br/>(Retry-After Header)"]
+    RL -- "Yes (<= Limit)" --> RT["Route to Microservice<br/>(Users / Orders / Payments)"]
+```
+
 ## 2. Five rate limiting algorithms compared
 
 Rate limiters cap how many requests a user, IP address, or API key can send within a time window to block brute-force logins, scrapers, and noisy neighbors:

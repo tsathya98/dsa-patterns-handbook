@@ -19,6 +19,16 @@ Find the length of the shortest contiguous subarray containing both the global m
 
 If `min_val == max_val`, the answer is $1$. Otherwise, scan left to right while tracking `last_min` and `last_max` (the most recent indices where `min_val` and `max_val` appeared). Whenever you hit a min or max and both indices have been seen, update `min_len = min(min_len, abs(last_min - last_max) + 1)`.
 
+```mermaid
+flowchart TD
+    Scan["For each index i, val = ar[i]"] --> Check{"val == min_val or<br/>val == max_val?"}
+    Check -- "val == min_val" --> SetMin["last_min = i<br/>If last_max != -1: update min_len"]
+    Check -- "val == max_val" --> SetMax["last_max = i<br/>If last_min != -1: update min_len"]
+    Check -- "Neither" --> Next["Next i"]
+    SetMin --> Next
+    SetMax --> Next
+```
+
 | Index $i$ | `ar[i]` | `last_min` (val=1) | `last_max` (val=6) | Candidate length | `min_len` |
 |---|---|---|---|---|---|
 | 0 | 1 | 0 | -1 | - | 10 |

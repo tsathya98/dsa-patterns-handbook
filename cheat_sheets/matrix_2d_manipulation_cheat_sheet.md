@@ -53,6 +53,16 @@ bottom ─► [ 9, 10, 11, 12 ]
            left       right
 ```
 
+```mermaid
+flowchart TD
+    Loop{"top <= bottom and left <= right?"} -- "No" --> Done["Return res"]
+    Loop -- "Yes" --> Top["1. Sweep Top row (left -> right), top += 1"]
+    Top --> Right["2. Sweep Right col (top -> bottom), right -= 1"]
+    Right --> Bot["3. If top <= bottom: Sweep Bottom row (right -> left), bottom -= 1"]
+    Bot --> Left["4. If left <= right: Sweep Left col (bottom -> top), left += 1"]
+    Left --> Loop
+```
+
 ```python
 def spiralOrder(matrix: list[list[int]]) -> list[int]:
     top, bottom = 0, len(matrix) - 1

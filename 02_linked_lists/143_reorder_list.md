@@ -25,6 +25,13 @@ Break the problem into three standard steps:
 2. **Reverse the second half in-place (LC 206):** Flip the arrows of `second` so you can walk inward from the original tail.
 3. **Zipper merge both halves (LC 21):** Alternate taking one node from `first` and one node from `second`.
 
+```mermaid
+flowchart LR
+    A["1 -> 2 -> 3 -> 4 -> 5"] --> B["Phase 1: Split at Midpoint<br/>first: 1 -> 2 -> 3<br/>second: 4 -> 5"]
+    B --> C["Phase 2: Reverse 2nd Half<br/>first: 1 -> 2 -> 3<br/>second: 5 -> 4"]
+    C --> D["Phase 3: Zipper Merge<br/>1 -> 5 -> 2 -> 4 -> 3"]
+```
+
 ## Step-by-step trace
 
 Trace on `1 -> 2 -> 3 -> 4 -> 5 -> None`:

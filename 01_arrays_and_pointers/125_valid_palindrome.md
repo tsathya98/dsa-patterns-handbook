@@ -23,6 +23,18 @@ Place `l = 0` at the start and `r = len(s) - 1` at the end, then squeeze inward 
  "A   m a n ,   a   p l a n . . .   P a n a m a"
 ```
 
+```mermaid
+flowchart TD
+    Loop{"l < r?"} -- "not s[l].isalnum()" --> SkipL["l += 1"]
+    Loop -- "not s[r].isalnum()" --> SkipR["r -= 1"]
+    Loop -- "Both alphanumeric" --> Match{"s[l].lower() == s[r].lower()?"}
+    Match -- "Yes" --> Advance["l += 1, r -= 1"]
+    Match -- "No" --> Fail["Return False"]
+    SkipL --> Loop
+    SkipR --> Loop
+    Advance --> Loop
+```
+
 ## Step-by-step trace
 
 Input: `s = "A man, a"`

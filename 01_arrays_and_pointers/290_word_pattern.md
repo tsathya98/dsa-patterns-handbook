@@ -33,6 +33,15 @@ Hash tables index keys in $\mathcal{O}(1)$, not values. Checking `word in dct.va
 ### 1. Two hash maps (explicit forward and reverse lookup)
 Maintain two dictionaries: `p_to_w` (`char -> word`) and `w_to_p` (`word -> char`). On each pair `(p, w)`, verify that neither map has a conflicting entry in $\mathcal{O}(1)$ time.
 
+```mermaid
+flowchart TD
+    Len{"len(pattern) == len(words)?"} -- "No" --> Fail["Return False"]
+    Len -- "Yes" --> Loop["For each (p, w) in zip(pattern, words)"]
+    Loop --> Conflict{"(p in p_to_w and p_to_w[p] != w) or<br/>(w in w_to_p and w_to_p[w] != p)?"}
+    Conflict -- "Yes (conflict)" --> Fail
+    Conflict -- "No" --> Record["p_to_w[p] = w<br/>w_to_p[w] = p"]
+```
+
 ### 2. Set cardinality trick
 Two equal-length sequences form a bijection if and only if the number of unique characters, the number of unique words, and the number of unique `(char, word)` pairs are all equal:
 

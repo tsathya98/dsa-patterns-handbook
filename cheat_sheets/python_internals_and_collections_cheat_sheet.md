@@ -13,6 +13,17 @@
 | `set` | Yes | No (use `frozenset` if needed) | `set()` (`{}` is an empty dict) | `{45}` |
 | `dict` | Yes | No (`TypeError`) | `{}` | `{"a": 1}` |
 
+```mermaid
+flowchart TD
+    Key{"Can X be a dict key or set item?"} --> Mut{"Is X mutable (list, set, dict)?"}
+    Mut -- "Yes" --> Convert["Not hashable (TypeError)!<br/>Convert list -> tuple or set -> frozenset"]
+    Mut -- "No (int, str, tuple)" --> Tup{"Is X a tuple?"}
+    Tup -- "No" --> Valid["Valid dict key / set item"]
+    Tup -- "Yes" --> Inner{"Are ALL items inside the tuple immutable?"}
+    Inner -- "Yes" --> Valid
+    Inner -- "No (contains list/set)" --> Convert
+```
+
 ---
 
 ## 2. Why `t[1].append()` Works Inside a Tuple

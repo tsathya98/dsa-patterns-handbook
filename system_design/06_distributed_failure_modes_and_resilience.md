@@ -76,6 +76,14 @@ App Server
 * **What happens:** When a downstream dependency is down, callers keep sending requests and waiting for timeouts on every call.
 * **Fix:** Wrap calls in a circuit breaker state machine (`Closed` $\to$ `Open` $\to$ `Half-Open`). When failures cross a threshold (such as 50% over 10 seconds), trip the breaker to `Open` and fail fast in 0ms without making network calls. After a cool-down period, move to `Half-Open` and allow a few probe requests through to check if the dependency recovered.
 
+```mermaid
+flowchart LR
+    CL["Closed<br/>(Normal Traffic)"] -- "Error Rate > Threshold" --> OP["Open<br/>(Fail Fast in 0ms)"]
+    OP -- "Cooldown Timer Expires" --> HO["Half-Open<br/>(Allow Probe Requests)"]
+    HO -- "Probes Succeed" --> CL
+    HO -- "Probe Fails" --> OP
+```
+
 ### 4. Bulkhead isolation
 * **What happens:** If all downstream dependencies share a single thread pool or connection pool, one slow endpoint consumes every thread in the pool and blocks unrelated endpoints.
 * **Fix:** Partition threads, connection pools, or worker queues per dependency (like watertight compartments in a ship). If the PDF export pool saturates its 10 threads, the remaining 190 threads still serve checkout and login requests.

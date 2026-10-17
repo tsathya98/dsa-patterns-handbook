@@ -88,5 +88,15 @@ Message ──> [ Primary Queue ] ──> Consumer (Fails)
                          (Alert on-call / inspect & replay)
 ```
 
+```mermaid
+flowchart LR
+    Q["Primary Queue"] --> W{"Worker Processes<br/>Message"}
+    W -- "Success (Idempotent)" --> ACK["Commit Offset / ACK"]
+    W -- "Failure" --> R{"Attempt < Max Retries?"}
+    R -- "Yes" --> BO["Retry Queue<br/>(Exponential Backoff + Jitter)"]
+    BO --> W
+    R -- "No (Poison Pill)" --> DLQ["Dead Letter Queue (DLQ)<br/>& Alert On-Call"]
+```
+
 1. **Exponential backoff with jitter:** Wait $2^{\text{attempt}} + \text{random\_jitter}$ seconds between retries so recovering downstream services do not get hammered by synchronized retry waves.
 2. **Dead letter queue (DLQ):** If a malformed message ("poison pill") fails after $N$ retries, move it to a separate DLQ and advance the consumer offset so one bad message does not block the entire partition behind it.

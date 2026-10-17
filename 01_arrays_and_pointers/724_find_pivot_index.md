@@ -27,6 +27,14 @@ Compute `total` once up front and maintain a running `left_sum = 0`. At each ind
 
 $$\text{right\_sum} = \text{total} - \text{left\_sum} - \text{nums}[i]$$
 
+```mermaid
+flowchart TD
+    Init["total = sum(nums), left_sum = 0"] --> Loop["For each i, num in enumerate(nums)"]
+    Loop --> Check{"left_sum == total - left_sum - num?"}
+    Check -- "Yes" --> Found["Return i"]
+    Check -- "No" --> Add["left_sum += num<br/>Next i"]
+```
+
 ## Step-by-step trace
 
 Tracing `nums = [1, 7, 3, 6, 5, 6]` (`total = 28`):

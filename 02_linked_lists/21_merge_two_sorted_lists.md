@@ -23,6 +23,16 @@ Use two pointers to build the merged chain:
 
 When one list runs out of nodes, you do not need another loop. Since the remaining nodes in the other list are already sorted and connected, a single `cur.next = list1 or list2` attaches the entire leftover tail at once.
 
+```mermaid
+flowchart TD
+    A["while list1 and list2"] --> B{"list1.val <= list2.val?"}
+    B -- "Yes" --> C["cur.next = list1<br/>list1 = list1.next"]
+    B -- "No" --> D["cur.next = list2<br/>list2 = list2.next"]
+    C --> E["cur = cur.next"]
+    D --> E
+    A -- "Loop Ends" --> F["cur.next = list1 or list2<br/>Return dummy.next"]
+```
+
 ## Step-by-step trace
 
 Merging `list1 = [1, 4]` and `list2 = [2, 3]`:

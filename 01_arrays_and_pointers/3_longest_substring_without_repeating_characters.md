@@ -36,6 +36,14 @@ Window:      [b   c   a]                  seen = {'b', 'c', 'a'}, len = 3
 2. **Shrink (`left`):** While `c` is already in `seen`, remove `s[left]` from `seen` and increment `left += 1` until the duplicate is evicted.
 3. **Record:** Add `c` to `seen` and update `max_cnt = max(max_cnt, right - left + 1)` (or `len(seen)`).
 
+```mermaid
+flowchart TD
+    Expand["For each c = s[right]"] --> Dup{"c in seen?"}
+    Dup -- "Yes (duplicate in window)" --> Shrink["Remove s[left] from seen<br/>left += 1"]
+    Shrink --> Dup
+    Dup -- "No (window is valid)" --> Add["Add c to seen<br/>max_cnt = max(max_cnt, len(seen))"]
+```
+
 ## Step-by-step trace
 
 Tracing `s = "pwwkew"`:

@@ -43,6 +43,15 @@ An element is a leader if it is strictly greater than all elements to its right.
 
 Scanning right from every index $i$ takes $\mathcal{O}(N^2)$ time. Instead, scan from right to left ($N-1$ down to $0$) while tracking `max_so_far`. An element `arr[i]` is a leader if and only if `arr[i] > max_so_far`.
 
+```mermaid
+flowchart TD
+    Start["max_so_far = arr[n-1]<br/>Scan i from n-2 down to 0"] --> Check{"arr[i] > max_so_far?"}
+    Check -- "Yes (new leader)" --> Update["Append arr[i] to leaders<br/>max_so_far = arr[i]"]
+    Check -- "No" --> Skip["Ignore arr[i]"]
+    Update --> Next["i -= 1"]
+    Skip --> Next
+```
+
 | Index $i$ | `arr[i]` | `max_so_far` (before) | `arr[i] > max_so_far`? | Leader? | `max_so_far` (after) |
 |---|---|---|---|---|---|
 | 5 | 2 | None | Base case (rightmost) | Yes | 2 |

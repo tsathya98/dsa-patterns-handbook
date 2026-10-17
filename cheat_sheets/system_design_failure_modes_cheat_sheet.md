@@ -15,6 +15,14 @@ Quick reference for the 39 distributed systems failure modes that show up in sys
 10. **Transactional Outbox Pattern** (solving the DB + Queue dual-write bug)
 11. **Rate Limiting** (Token Bucket / Sliding Window at the API Gateway)
 
+```mermaid
+flowchart TD
+    Break{"What is breaking?"} -- "Traffic spike / retry storm" --> Spike["Add Jitter + Exponential Backoff + Rate Limiting (Token Bucket)"]
+    Break -- "Slow dependency stalling callers" --> Casc["Set Timeouts + Circuit Breaker + Bulkhead Pools"]
+    Break -- "Double charge / DB + Queue out of sync" --> Write["Idempotency Key (API) + Transactional Outbox (DB -> Kafka)"]
+    Break -- "Hot shard / zombie lock writer" --> Coord["Consistent Hashing + Salted Hot Keys + Lease with Fencing Token"]
+```
+
 ---
 
 ## 1. Traffic Spikes & Overload

@@ -20,6 +20,16 @@
                        [ Database ]                                 [ Database ]
 ```
 
+```mermaid
+flowchart TD
+    R["Read Request"] --> CHK{"Key in Redis?"}
+    CHK -- "Cache Hit" --> RET["Return Cached Value (<1ms)"]
+    CHK -- "Cache Miss" --> QDB["Query Database"]
+    QDB --> SET["Write to Redis with TTL<br/>& Return Value"]
+    W["Write Request"] --> UDB["1. Update Database"]
+    UDB --> DEL["2. Delete Key in Redis<br/>(Avoid Stale Race)"]
+```
+
 | Pattern | Read path | Write path | Pros | Cons and failure modes |
 | :--- | :--- | :--- | :--- | :--- |
 | **Cache-aside (lazy loading)** | Check cache; on miss, read DB, populate cache with TTL, return data. | Write directly to DB, then delete (invalidate) the cache key. | Only caches data that is actually read; survives cache cluster downtime. | First read pays a cache-miss penalty (3 network hops); race conditions if a concurrent read repopulates stale data during a write. |

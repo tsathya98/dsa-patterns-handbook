@@ -30,6 +30,16 @@ nums = [ 0 , 1 , 2 , 4 , 5 , 7 ]
        start     i (stops here because 4 != 2 + 1) -> records "0->2"
 ```
 
+```mermaid
+flowchart TD
+    Drop["Anchor start = nums[i]"] --> Scout{"i + 1 < n and<br/>nums[i + 1] == nums[i] + 1?"}
+    Scout -- "Yes (consecutive)" --> Step["i += 1"]
+    Step --> Scout
+    Scout -- "No (run ended)" --> Format{"start == nums[i]?"}
+    Format -- "Yes" --> Single["Append 'start', i += 1"]
+    Format -- "No" --> Span["Append 'start->nums[i]', i += 1"]
+```
+
 | Round | Anchor (`start`) | Scout (`i`) moves | Stops at `nums[i]` | Appended | Next `i` |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | 1 | `nums[0] = 0` | `0 -> 1 -> 2` | `2` (`4 != 2 + 1`) | `"0->2"` | `3` |

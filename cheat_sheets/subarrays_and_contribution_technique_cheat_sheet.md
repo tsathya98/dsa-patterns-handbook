@@ -29,6 +29,15 @@ def total_subarray_sum(arr: list[int]) -> int:
     return sum(val * (i + 1) * (n - i) for i, val in enumerate(arr))
 ```
 
+```mermaid
+flowchart LR
+    Idx["Element arr[i] at index i"] --> Left["Choices for start L (0..i): i + 1"]
+    Idx --> Right["Choices for end R (i..N-1): N - i"]
+    Left --> Count["Total subarrays containing i: (i + 1) * (N - i)"]
+    Right --> Count
+    Count --> Contrib["Contribution of arr[i]: arr[i] * (i + 1) * (N - i)"]
+```
+
 ---
 
 ## 3. Core Subarray Scan Patterns

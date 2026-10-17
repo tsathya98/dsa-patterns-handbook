@@ -54,6 +54,15 @@ The window grows and shrinks as needed:
 2. While the window violates the rule (like having a duplicate character or exceeding a sum), advance `left` to kick elements out until the window is valid again.
 3. Update the best length (`right - left + 1`).
 
+```mermaid
+flowchart TD
+    Expand["1. Expand: Add s[right] to window state"] --> Valid{"Is window valid?"}
+    Valid -- "No (Rule broken)" --> Shrink["2. Shrink: Remove s[left], left += 1"]
+    Shrink --> Valid
+    Valid -- "Yes" --> Record["3. Update answer: max_len = max(max_len, right - left + 1)"]
+    Record --> Next["Advance right += 1"]
+```
+
 ### Template ([LC 3: Longest Substring Without Repeating Characters](../01_arrays_and_pointers/3_longest_substring_without_repeating_characters.md))
 ```python
 def lengthOfLongestSubstring(s: str) -> int:

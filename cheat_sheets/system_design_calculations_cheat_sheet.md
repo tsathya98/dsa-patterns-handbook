@@ -61,3 +61,10 @@ $$\text{Average QPS} \approx \frac{\text{Daily Requests}}{100,000}, \qquad \text
 2. **Read QPS:** $1,000 \times 10 = \mathbf{10,000\text{ reads/s}}$ (Peak: `20,000 reads/s`).
 3. **Storage (5 years):** $100\text{M/day} \times 500\text{ B} = 50\text{ GB/day} \approx 18\text{ TB/year} \implies \mathbf{90\text{ TB over 5 years}}$.
 4. **Redis Cache RAM (20% hot working set):** $20\% \times 50\text{ GB/day} \times 10\text{ days} \approx \mathbf{100\text{ GB RAM}}$ (fits on 1–2 Redis nodes).
+
+```mermaid
+flowchart LR
+    DAU["1. Start with DAU & R:W Ratio"] --> QPS["2. Divide Daily Reqs by 100,000 -> Avg QPS (x2 for Peak)"]
+    QPS --> Disk["3. Daily Writes * Row Bytes * 365 * Years -> Disk TB"]
+    Disk --> RAM["4. Take 20% Hot Daily Data -> Redis Cache RAM GB"]
+```

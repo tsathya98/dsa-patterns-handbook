@@ -82,3 +82,11 @@ def singleNumber(nums: list[int]) -> int:
 | Check power of two | `n > 0 and (n & (n - 1)) == 0` | LC 231 |
 | Count set `1` bits | `n &= (n - 1)` in a `while n:` loop | LC 191 |
 | Missing number in `0..n` | XOR all indices `0..n` with all values | LC 268 |
+
+```mermaid
+flowchart TD
+    Goal{"Bitwise Problem Goal?"} -- "Cancel duplicate pairs" --> XOR["XOR accumulator: res ^= num"]
+    Goal -- "Drop or count set 1-bits" --> Clear["Clear lowest 1-bit: n &= (n - 1)"]
+    Goal -- "Check power of two" --> Pow2["Single 1-bit check: n > 0 and (n & (n - 1)) == 0"]
+    Goal -- "Read binary stream left-to-right" --> Shift["Shift and attach: ans = (ans << 1) | bit"]
+```

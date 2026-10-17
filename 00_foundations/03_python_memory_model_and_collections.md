@@ -67,6 +67,13 @@ Tuple t (Immutable Slots):
     (1)       (2)     0x999: [ 100, 200 ]  (Mutable List Object)
 ```
 
+```mermaid
+flowchart TD
+    T["Tuple t (Immutable Slots)<br/>[0x001, 0x002, 0x999]"] --> OP{"Operation on t[2]"}
+    OP -- "t[2].append(300)" --> MUT["Mutate List at 0x999 in Place<br/>(Slot stays 0x999 -> Succeeds)"]
+    OP -- "t[2] = [100, 200, 300]" --> REB["Try to Change Slot 2 to 0x888<br/>(Raises TypeError)"]
+```
+
 ### Case A: `t[2].append(300)` (succeeds)
 * Python follows pointer `0x999` to the list object and appends `300` inside that list.
 * Tuple slot 2 still holds `0x999`. Because the slot address never changed, no error is raised.

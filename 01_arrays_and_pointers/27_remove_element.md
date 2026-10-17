@@ -25,6 +25,15 @@ Invariant: [ Kept elements (0 .. k-1) | Ignored / Unexplored (k .. n-1) ]
 
 When the loop finishes, `k` equals the count of kept elements.
 
+```mermaid
+flowchart TD
+    Start["k = 0, i = 0..n-1"] --> Check{"nums[i] != val?"}
+    Check -- "Yes (keep)" --> Write["nums[k] = nums[i]<br/>k += 1"]
+    Check -- "No (remove)" --> Skip["Leave k waiting"]
+    Write --> Next["i += 1"]
+    Skip --> Next
+```
+
 ## Step-by-step trace
 
 Tracing `nums = [3, 2, 2, 3]`, `val = 3`:

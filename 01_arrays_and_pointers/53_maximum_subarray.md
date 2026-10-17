@@ -32,6 +32,15 @@ Running:     4 -> 3 -> 5 -> 6 (Max!)
 ```
 Even though `-1` dropped the total from `4` to `3`, keeping that `+3` cushion let us reach `6` when `2` and `1` showed up. We only reset when the running sum drops below `0`.
 
+```mermaid
+flowchart TD
+    Loop["For each num in nums[1:]"] --> Check{"current_sum < 0?"}
+    Check -- "Yes (negative baggage)" --> Reset["current_sum = num"]
+    Check -- "No (positive cushion)" --> Extend["current_sum += num"]
+    Reset --> Best["max_sum = max(max_sum, current_sum)"]
+    Extend --> Best
+```
+
 ## Trace
 | `num` | `current_sum + num` | Start fresh (`num`) | New `current_sum` | `max_sum` |
 | :--- | :--- | :--- | :--- | :--- |

@@ -26,6 +26,15 @@ Action:          skip   take   skip   take   skip
 Total profit = 4 + 3 = 7
 ```
 
+```mermaid
+flowchart TD
+    Start["profit = 0, i = 1..n-1"] --> Check{"prices[i] > prices[i - 1]?"}
+    Check -- "Yes (upward step)" --> Add["profit += prices[i] - prices[i - 1]"]
+    Check -- "No (flat or drop)" --> Skip["Skip day"]
+    Add --> Next["i += 1"]
+    Skip --> Next
+```
+
 ## Step-by-step trace
 
 Input: `prices = [7, 1, 5, 3, 6, 4]`

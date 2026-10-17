@@ -24,6 +24,14 @@ To build the output list cleanly, use two pointers:
 
 If you only used `dummy` and moved it forward, you would lose the front of your result list. If you never moved `dummy` and kept writing `dummy.next = ListNode(val)`, you would overwrite the first node on every loop iteration.
 
+```mermaid
+flowchart LR
+    A["while l1 or l2 or carry"] --> B["Read Digits<br/>v1 = l1.val or 0<br/>v2 = l2.val or 0"]
+    B --> C["Compute Sum & Carry<br/>total = v1 + v2 + carry<br/>carry = total // 10"]
+    C --> D["Append Digit Node<br/>cur.next = ListNode(total % 10)<br/>Advance cur, l1, l2"]
+    D --> A
+```
+
 ## Step-by-step trace
 
 ### Standard addition (`[2, 4, 3] + [5, 6, 4]`)

@@ -28,6 +28,16 @@ Instead of searching for an index in the input array, you binary search over the
 3. **Run binary search on $[lo, hi]$:**
    * When minimizing a maximum: if `is_feasible(mid)` is `True`, record `ans = mid` and search left (`hi = mid - 1`) for an even smaller valid capacity. Otherwise, search right (`lo = mid + 1`).
 
+```mermaid
+flowchart TD
+    Bounds["Set answer range [lo, hi]"] --> Loop{"lo <= hi?"}
+    Loop -- "No" --> End["Return best valid ans"]
+    Loop -- "Yes" --> Mid["Guess answer mid = lo + (hi - lo) // 2"]
+    Mid --> Check{"is_feasible(mid) in O(N)?"}
+    Check -- "Yes (Valid)" --> Save["Record ans = mid<br/>Min-Max: hi = mid - 1 | Max-Min: lo = mid + 1"]
+    Check -- "No (Invalid)" --> Discard["Discard half<br/>Min-Max: lo = mid + 1 | Max-Min: hi = mid - 1"]
+```
+
 ## 3. Minimizing a maximum: Painter's Partition / Split Array Largest Sum (LC 410)
 
 Given $N$ boards of length `nums[i]` and $k$ painters, find the minimum possible value of the largest board sum assigned to any painter, where each painter takes a contiguous slice.
