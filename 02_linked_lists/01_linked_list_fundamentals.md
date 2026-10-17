@@ -68,12 +68,13 @@ After:
                       curr   (The list did not change; only the label moved)
 ```
 
-```mermaid
-flowchart TD
-    A["Pointer Assignment Expression"] --> B{"Is .next on the<br/>LEFT side of '='?"}
-    B -- "Yes: curr.next = target" --> C["Mutates the Wire<br/>(Rewires node's outgoing arrow in heap)"]
-    B -- "No: curr = curr.next" --> D["Moves Your Finger<br/>(Slides variable label to next node)"]
-```
+### Algorithm steps:
+* **1. Inspect assignment expression:** Check whether `.next` sits on the left side of the equals sign.
+* **2. Identify operation type:**
+  * If `.next` is on the left (`curr.next = target`): mutate the outgoing wire in heap memory, altering the list structure.
+  * If `.next` is on the right (`curr = curr.next`): move your reference pointer forward along the chain without modifying any node.
+* **3. Preserve downstream links:** Save a bookmark (`nxt = curr.next`) before mutating wires to prevent orphaned nodes.
+* **4. Complete pointer update:** Conclude rewiring or advance the reference to complete the step.
 
 ## Why losing the head loses the list
 

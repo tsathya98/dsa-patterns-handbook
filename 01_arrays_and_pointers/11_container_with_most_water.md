@@ -26,16 +26,22 @@ Height:  [1,  8,  6,  2,  5,  4,  8,  3,  7]
 
 Water height is capped by the shorter of the two lines. If you move the taller line inward, width decreases by 1 and the height cannot exceed the current shorter line, so area can only shrink. Moving the shorter line inward is the only move that can find a taller bar to offset the lost width.
 
-```mermaid
-flowchart TD
-    Start["l = 0, r = n - 1"] --> Loop{"l < r?"}
-    Loop -- "Yes" --> Area["Update max_area with<br/>(r - l) * min(height[l], height[r])"]
-    Area --> Check{"height[l] < height[r]?"}
-    Check -- "Yes (left is bottleneck)" --> MoveL["l += 1"]
-    Check -- "No (right is bottleneck)" --> MoveR["r -= 1"]
-    MoveL --> Loop
-    MoveR --> Loop
+### Algorithm steps:
+* **1. Initialize two pointers:** Set `left = 0` and `right = len(height) - 1`. Track `max_water = 0`.
+* **2. Calculate container volume:** Width is `right - left`. Limiting height is `min(height[left], height[right])`. Current water volume is `width * min_height`.
+* **3. Update global best:** `max_water = max(max_water, current_volume)`.
+* **4. Shrink bottleneck wall:**
+  * If `height[left] < height[right]`, advance `left += 1` (left wall limits capacity; moving right inward can only decrease area).
+  * Otherwise, decrement `right -= 1`.
+* **5. Terminate:** Return `max_water` once pointers meet (`left >= right`).
+
+```playthrough
+{
+  "algorithm": "container_with_most_water",
+  "initial": [1, 8, 6, 2, 5, 4, 8, 3, 7]
+}
 ```
+
 
 ## Step-by-step trace
 

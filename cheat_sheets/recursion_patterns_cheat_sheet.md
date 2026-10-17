@@ -24,15 +24,11 @@ def print_1_to_n(n):
     print(n)                 # Work AFTER unwinding call stack
 ```
 
-```mermaid
-flowchart TD
-    Call1["print_1_to_n(3)"] --> Call2["print_1_to_n(2)"]
-    Call2 --> Call3["print_1_to_n(1)"]
-    Call3 --> Base["Base: print_1_to_n(0) returns"]
-    Base --> Print1["Unwind: prints 1"]
-    Print1 --> Print2["Unwind: prints 2"]
-    Print2 --> Print3["Unwind: prints 3"]
-```
+### Algorithm steps:
+* **1. Recursive descent:** Call `print_1_to_n(n - 1)` before executing any print logic, pushing each frame onto the call stack until hitting `n == 0`.
+* **2. Base case guard:** When `n == 0`, immediately return to stop further recursive calls.
+* **3. Post-recursion unwinding:** As each stack frame pops in reverse order (from `1` up to `n`), execute `print(n)` to produce ascending output in $\mathcal{O}(n)$ time and $\mathcal{O}(n)$ call stack depth.
+
 
 ---
 
@@ -40,14 +36,11 @@ flowchart TD
 
 When an expression contains operators (`+`, `-`, `*`), split at **every operator index**, recursively compute all possible values for the left sub-expression and right sub-expression, and combine them.
 
-```mermaid
-flowchart TD
-    Expr["'2 - 1 - 1'"]
-    Expr -- "Split at 1st '-'" --> Op1["Left: '2' | Right: '1 - 1'"]
-    Expr -- "Split at 2nd '-'" --> Op2["Left: '2 - 1' | Right: '1'"]
-    Op1 --> Res1["2 - (1 - 1) = 2"]
-    Op2 --> Res2["(2 - 1) - 1 = 0"]
-```
+### Algorithm steps:
+* **1. Operator pivot scan:** Iterate through each character of the string to find every arithmetic operator (`+`, `-`, `*`).
+* **2. Independent branch evaluation:** Split the expression into `left = expression[:i]` and `right = expression[i + 1:]`, recursively evaluating all possible outcomes for both sides.
+* **3. Cartesian combination:** Combine each result `l` from the left branch with each result `r` from the right branch using the pivot operator, returning raw integer values when no operators exist.
+
 
 ```python
 def diffWaysToCompute(expression: str) -> list[int]:

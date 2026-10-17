@@ -29,14 +29,11 @@ def total_subarray_sum(arr: list[int]) -> int:
     return sum(val * (i + 1) * (n - i) for i, val in enumerate(arr))
 ```
 
-```mermaid
-flowchart LR
-    Idx["Element arr[i] at index i"] --> Left["Choices for start L (0..i): i + 1"]
-    Idx --> Right["Choices for end R (i..N-1): N - i"]
-    Left --> Count["Total subarrays containing i: (i + 1) * (N - i)"]
-    Right --> Count
-    Count --> Contrib["Contribution of arr[i]: arr[i] * (i + 1) * (N - i)"]
-```
+### Algorithm steps:
+* **1. Start index permutations:** Calculate available starting boundaries $L \in [0, i]$, giving exactly $(i + 1)$ valid left endpoints.
+* **2. End index permutations:** Calculate available ending boundaries $R \in [i, N - 1]$, giving exactly $(N - i)$ valid right endpoints.
+* **3. Contribution aggregation:** Multiply occurrences $(i + 1) \cdot (N - i)$ by element value $\text{arr}[i]$ and sum across all indices in $\mathcal{O}(N)$ time and $\mathcal{O}(1)$ space.
+
 
 ---
 

@@ -24,14 +24,13 @@ A clean way to avoid dictionary lookups on closing brackets is the push-expected
 - Whenever you see a closing bracket, check that the stack is non-empty and that `stack.pop()` equals the current character. If the stack is empty or the popped closer does not match, return `False` immediately.
 - Also check `if len(s) % 2 != 0: return False` right at the start, since any odd-length string cannot pair up evenly.
 
-```mermaid
-flowchart TD
-    A["Read character ch"] --> B{"Is ch an opener?<br/>('(', '[', '{')"}
-    B -- "Yes" --> C["Push expected closer<br/>onto stack"]
-    B -- "No (Closer)" --> D{"Stack non-empty AND<br/>stack.pop() == ch?"}
-    D -- "Yes" --> E["Continue to next ch"]
-    D -- "No" --> F["Return False"]
-```
+### Algorithm steps:
+* **1. Validate parity and initialize stack:** If `len(s) % 2 != 0`, return `False` immediately. Initialize an empty stack `stack = []`.
+* **2. Scan each character:** For each character `ch` in `s`:
+  * If `ch` is an opening bracket (`'('`, `'['`, `'{'`), push its corresponding closing bracket (`')'`, `']'`, `'}'`) onto `stack`.
+  * If `ch` is a closing bracket, verify `stack` is non-empty and `stack.pop() == ch`. If either condition fails, return `False`.
+* **3. Process entire string:** Repeat for all characters until traversal finishes.
+* **4. Check remaining stack:** Return `len(stack) == 0` (any leftover expected closers mean unmatched opening brackets).
 
 ## Step-by-step trace
 

@@ -25,12 +25,14 @@ Break the problem into three standard steps:
 2. **Reverse the second half in-place (LC 206):** Flip the arrows of `second` so you can walk inward from the original tail.
 3. **Zipper merge both halves (LC 21):** Alternate taking one node from `first` and one node from `second`.
 
-```mermaid
-flowchart LR
-    A["1 -> 2 -> 3 -> 4 -> 5"] --> B["Phase 1: Split at Midpoint<br/>first: 1 -> 2 -> 3<br/>second: 4 -> 5"]
-    B --> C["Phase 2: Reverse 2nd Half<br/>first: 1 -> 2 -> 3<br/>second: 5 -> 4"]
-    C --> D["Phase 3: Zipper Merge<br/>1 -> 5 -> 2 -> 4 -> 3"]
-```
+### Algorithm steps:
+* **1. Split list at midpoint:** Walk `slow = head` and `fast = head.next` until `fast` and `fast.next` terminate. Set `second = slow.next` and cut the first half with `slow.next = None`.
+* **2. Reverse the second half:** Reverse `second` in-place using a 3-pointer flip (`prev = None`, `cur = second`) so the tail becomes the new head of the second half.
+* **3. Zipper merge both halves:** While `second` is not None:
+  * Cache forward pointers: `tmp1 = first.next`, `tmp2 = second.next`.
+  * Interleave nodes: `first.next = second`, `second.next = tmp1`.
+  * Advance pointers: `first = tmp1`, `second = tmp2`.
+* **4. Complete in-place:** The input list is reordered in-place; no return statement required.
 
 ## Step-by-step trace
 

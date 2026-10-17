@@ -26,13 +26,13 @@ If you sort `citations` from highest to lowest, each index `i` gives a 1-based p
 - As long as `citations[i] >= i + 1`, you have at least `i + 1` papers with `i + 1` or more citations.
 - The first time `citations[i] < i + 1`, stop immediately (`break`). Since the list is sorted descending, every paper after it has even fewer citations while the required rank keeps growing.
 
-```mermaid
-flowchart TD
-    Sort["Sort citations descending"] --> Loop["For i, c in enumerate(citations)"]
-    Loop --> Check{"c >= i + 1?"}
-    Check -- "Yes" --> Update["h_index = i + 1<br/>Continue to next i"]
-    Check -- "No" --> Stop["Break and return h_index"]
-```
+### Algorithm steps:
+* **1. Sort descending:** Sort `citations` in reverse order so largest citation counts come first. Initialize `h_index = 0`.
+* **2. Compare citation count against rank:** Iterate with `i, c in enumerate(citations)`. The 1-based paper rank is `i + 1`.
+* **3. Check threshold:**
+  * If `c >= i + 1`, at least `i + 1` papers have at least `i + 1` citations; update `h_index = i + 1`.
+  * If `c < i + 1`, break early since subsequent papers have even fewer citations.
+* **4. Return:** `h_index` in $\mathcal{O}(n \log n)$ time and $\mathcal{O}(1)$ auxiliary space.
 
 ## Step-by-step trace
 

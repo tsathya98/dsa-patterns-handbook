@@ -76,14 +76,14 @@ In a distributed system across multiple machines or availability zones, network 
                   (AP)                (CP)
 ```
 
-```mermaid
-flowchart TD
-    NET{"Network Partition<br/>Detected? (P)"}
-    NET -- "Yes (Partitioned)" --> P_CHOICE{"Choose C or A"}
-    P_CHOICE -- "CP (etcd / Spanner)" --> CP["Reject Minority Writes<br/>(Preserve Consistency)"]
-    P_CHOICE -- "AP (Cassandra / DynamoDB)" --> AP["Accept Local Reads & Writes<br/>(Reconcile Later)"]
-    NET -- "No (Healthy Network - E)" --> E_CHOICE{"Choose Latency (EL) or<br/>Consistency (EC)"}
-```
+### CAP and PACELC trade-off decisions:
+* **During network partition (P):**
+  * **CP (Consistency + Partition Tolerance):** Reject writes on minority partition to guarantee linearizability and prevent split-brain (e.g., etcd, ZooKeeper, Cloud Spanner).
+  * **AP (Availability + Partition Tolerance):** Keep accepting local reads and writes on all nodes; reconcile conflicting writes later via vector clocks or CRDTs (e.g., Cassandra, DynamoDB).
+* **During normal operation (Else - E):**
+  * **Latency (EL):** Return reads immediately from the nearest replica without waiting for cross-region synchronous quorum.
+  * **Consistency (EC):** Wait for synchronous acknowledgment from all replicas before confirming write success.
+
 
 Because **Partition Tolerance (P)** is required whenever nodes communicate over a network, a partitioned system has to choose how to behave when nodes cannot reach each other:
 

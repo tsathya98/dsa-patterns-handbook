@@ -23,15 +23,11 @@ At every element `num`:
 $$\text{current\_sum} = \max(\text{num}, \text{current\_sum} + \text{num})$$
 $$\text{max\_sum} = \max(\text{max\_sum}, \text{current\_sum})$$
 
-```mermaid
-flowchart TD
-    Init["Init current_sum = nums[0], max_sum = nums[0]"] --> Step["Inspect next num"]
-    Step --> Check{"Is previous current_sum < 0?"}
-    Check -- "Yes (Negative debt)" --> Fresh["Start fresh: current_sum = num"]
-    Check -- "No (Positive cushion)" --> Extend["Extend: current_sum = current_sum + num"]
-    Fresh --> Best["Update max_sum = max(max_sum, current_sum)"]
-    Extend --> Best
-```
+### Algorithm steps:
+* **1. Base accumulator initialization:** Initialize `current_sum = nums[0]` and `max_sum = nums[0]`.
+* **2. Debt evaluation and extension:** At each subsequent element `num`, check if `current_sum < 0`. If negative, discard accumulated debt and start fresh with `current_sum = num`; otherwise, extend the active subarray with `current_sum += num`.
+* **3. Global maximum update:** Recompute `max_sum = max(max_sum, current_sum)` on each iteration to guarantee optimal subarray identification in $\mathcal{O}(n)$ time and $\mathcal{O}(1)$ space.
+
 
 ---
 

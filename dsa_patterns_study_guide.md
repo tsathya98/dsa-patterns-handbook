@@ -4,20 +4,20 @@ A single-page map of the 13 core DSA patterns, when to reach for each one, and t
 
 ## How to pick a pattern in 10 seconds
 
-```mermaid
-flowchart TD
-    Start["Read Problem Clues"] --> Q1{"Sorted array or<br/>monotonic min/max?"}
-    Q1 -- "Yes (O(log n) target)" --> BS["Binary Search<br/>(Exact / Boundary / Answer)"]
-    Q1 -- "Yes (Pairs / Triplets / Palindrome)" --> TP["Two Pointers<br/>(Squeeze / Scout & Writer)"]
-    Q1 -- "No" --> Q2{"Contiguous subarray<br/>or substring?"}
-    Q2 -- "Max sum with negatives" --> Kadane["Kadane's Algorithm<br/>cur = max(x, cur + x)"]
-    Q2 -- "Range sum [L..R] or Pivot" --> Pref["Prefix Sum / Seesaw"]
-    Q2 -- "Longest / Shortest / Size K" --> SW["Sliding Window<br/>(Fixed K or Dynamic l..r)"]
-    Q2 -- "No" --> Q3{"Pointers, Nodes,<br/>or Nesting?"}
-    Q3 -- "Linked List nodes" --> LL["Dummy Head / Fast & Slow /<br/>4-Step Reversal"]
-    Q3 -- "Matching brackets / Undo" --> Stack["Stack / Monotonic Stack"]
-    Q3 -- "Fast O(1) lookup / Counts" --> Hash["HashMap / HashSet"]
-```
+* **Sorted array with $\mathcal{O}(\log n)$ target or monotonic condition:** Reach for **Binary Search** (exact match, occurrence boundary, or search on answer).
+* **Sorted array looking for pairs, triplets, or palindrome symmetry:** Reach for **Two Pointers** (squeeze inward from ends).
+* **In-place array partitioning or compaction (zeros/duplicates):** Reach for **Fast & Slow Two Pointers** (scout and writer).
+* **Contiguous subarray/substring with fixed length $K$ or dynamic constraint:** Reach for **Sliding Window** (expand right, shrink left when invalid).
+* **Max contiguous subarray sum with negative values:** Reach for **Kadane's Algorithm** (reset when running sum $< 0$).
+* **Range sum queries $[L, R]$ or pivot balance index:** Reach for **Prefix Sum & Seesaw Balance**.
+* **Sum of all subarrays or contribution to totals:** Reach for **Contribution Technique** ($(i+1)(N-i)$ multiplier).
+* **LIFO matching (parentheses, undo, next greater element):** Reach for **Stack** (or Monotonic Stack).
+* **Linked list manipulation (cycles, middle, reverse):** Reach for **Fast & Slow Pointers (Tortoise & Hare)** or **4-Step Pointer Flip**.
+* **Tree/Graph traversal:** **BFS** for shortest unweighted path/levels; **DFS** for exhaustively exploring branches/components.
+* **Combinations, permutations, subsets, or constraint grids:** Reach for **Backtracking** (choose, explore, un-choose).
+* **Top $K$ elements or continuous running median:** Reach for **Heaps / Priority Queues**.
+* **Pairwise cancellation or bit masks:** Reach for **Bit Manipulation** (XOR, bitwise shifts).
+
 
 ## Pattern Index
 

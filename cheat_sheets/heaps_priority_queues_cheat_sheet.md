@@ -25,14 +25,11 @@ Sorting the whole array takes $\mathcal{O}(n \log n)$ time. Maintaining a heap o
 - To keep the **$K$ largest** elements: use a **Min-Heap** of size $K$. Whenever the heap grows to $K + 1$, `heappop()` evicts the smallest loser, leaving the $K$ biggest champions inside.
 - To keep the **$K$ smallest** elements: use a **Max-Heap** of size $K$.
 
-```mermaid
-flowchart TD
-    Push["For each num: heappush(min_heap, num)"] --> Size{"len(min_heap) > k?"}
-    Size -- "Yes" --> Evict["heappop(min_heap) (evicts smallest loser)"]
-    Size -- "No" --> Next["Keep in heap, move to next num"]
-    Evict --> Next
-    Next --> Done["After loop: min_heap[0] is the K-th largest"]
-```
+### Algorithm steps:
+* **1. Element insertion:** Push each element `num` into the Min-Heap using `heapq.heappush(min_heap, num)`.
+* **2. Bounded capacity enforcement:** Check if `len(min_heap) > k`. If exceeded, call `heapq.heappop(min_heap)` to evict the smallest element, leaving only the $k$ largest candidates.
+* **3. Extract $k$-th order statistic:** After processing all $n$ numbers, `min_heap[0]` yields the $k$-th largest element in $\mathcal{O}(n \log k)$ time and $\mathcal{O}(k)$ auxiliary memory.
+
 
 ### Template (LC 215: Kth Largest Element in an Array)
 ```python

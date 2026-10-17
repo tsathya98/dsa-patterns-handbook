@@ -44,16 +44,11 @@ When $N = 36$ and $i = 6$, both $i$ and $N/i$ equal $6$. Count that factor once 
 * If `i * i == n`, add $1$ to the count.
 * Otherwise, add $2$ (for both $i$ and $n // i$).
 
-```mermaid
-flowchart TD
-    A["Loop while i * i <= n"] --> B{"n % i == 0?"}
-    B -- "No" --> E["i += 1"]
-    B -- "Yes" --> C{"i * i == n?<br/>(Perfect Square)"}
-    C -- "Yes" --> D1["count += 1<br/>(Count i once)"]
-    C -- "No" --> D2["count += 2<br/>(Count i and n // i)"]
-    D1 --> E
-    D2 --> E
-```
+### Algorithm steps:
+* **1. Bound search by square root:** Run the loop while `i * i <= n` because all unique factor pairs $(i, n // i)$ have at least one factor $\le \sqrt{n}$.
+* **2. Divisibility and pairing branch:** When `n % i == 0`, check if `i * i == n`. If true, increment count by 1 (square root factor); otherwise, increment count by 2 to record both factor pair members $i$ and $n // i$.
+* **3. Advance counter:** Increment `i` by 1 and repeat until `i * i > n`, maintaining $\mathcal{O}(\sqrt{N})$ time and $\mathcal{O}(1)$ space.
+
 
 ```python
 def count_factors(n: int) -> int:

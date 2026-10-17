@@ -28,15 +28,13 @@ Notice two mathematical properties:
 3. The **right half** (`k > mid`) is the bitwise complement (`1 - x`) of row $n - 1$ at relative index $k - mid$:  
    `kthGrammar(n, k) = 1 - kthGrammar(n - 1, k - mid)`.
 
-```mermaid
-flowchart TD
-    Start["kthGrammar(n, k)"] --> Base{"n == 1 and k == 1?"}
-    Base -- "Yes" --> Zero["Return 0"]
-    Base -- "No" --> Calc["mid = 2^(n-2)"]
-    Calc --> Side{"k <= mid?"}
-    Side -- "Left half (k <= mid)" --> Left["Return kthGrammar(n - 1, k)"]
-    Side -- "Right half (k > mid)" --> Right["Return 1 - kthGrammar(n - 1, k - mid)"]
-```
+### Algorithm steps:
+* **1. Check base case:** If `n == 1`, return `0` (the root row is defined as `0`).
+* **2. Compute midpoint:** Calculate the midpoint of row `n`: `mid = 2 ** (n - 2)`.
+* **3. Branch by half:**
+  * If `k <= mid`: target sits in the left half, identical to parent row; return `kthGrammar(n - 1, k)`.
+  * If `k > mid`: target sits in the right half, inverted relative to parent; return `1 - kthGrammar(n - 1, k - mid)`.
+* **4. Terminate:** Return the unwound bit value.
 
 ## Step-by-step trace
 

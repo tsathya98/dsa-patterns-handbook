@@ -24,13 +24,12 @@ An API gateway is an L7 reverse proxy sitting between external clients and inter
   [ User Service ] [ Order Service ] [ Payment Service ]
 ```
 
-```mermaid
-flowchart LR
-    C["Client Request"] --> GW["API Gateway<br/>(TLS + JWT Auth)"]
-    GW --> RL{"Redis Lua Rate Limit<br/>(Under Quota?)"}
-    RL -- "No (> Limit)" --> REJ["Return HTTP 429<br/>(Retry-After Header)"]
-    RL -- "Yes (<= Limit)" --> RT["Route to Microservice<br/>(Users / Orders / Payments)"]
-```
+### Gateway request evaluation steps:
+* **1. Edge ingress:** Terminate SSL/TLS and inspect JWT bearer tokens / API keys.
+* **2. Rate limit evaluation:** Execute atomic Redis Lua script (Token Bucket or Sliding Window Log) against caller ID / IP.
+* **3. Rejection:** If quota exceeded, return `HTTP 429 Too Many Requests` immediately with a `Retry-After: <seconds>` header.
+* **4. Upstream routing:** If within limit, append verified user context headers (`X-User-Id`, `X-Scopes`) and route request to the target microservice.
+
 
 ## 2. Five rate limiting algorithms compared
 

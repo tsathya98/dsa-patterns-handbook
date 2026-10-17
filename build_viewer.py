@@ -713,6 +713,81 @@ def build_html(default_view: str = "concepts") -> str:
       display: none;
     }}
 
+    /* 7. Interactive Playthrough Widget */
+    .playthrough-widget {{
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1.15rem 1.25rem;
+      margin: 1.5rem 0;
+      box-shadow: 0 4px 20px -4px rgba(0,0,0,0.12);
+      transition: all 0.3s ease;
+    }}
+    .pt-cell {{
+      min-width: 3.1rem;
+      height: 3.6rem;
+      border-radius: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-weight: 700;
+      font-size: 1.15rem;
+      border: 1.5px solid var(--border);
+      background: var(--surface-card);
+      color: var(--text);
+      transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      user-select: none;
+    }}
+    .pt-cell-active {{
+      border-color: #f59e0b !important;
+      background: rgba(245, 158, 11, 0.18) !important;
+      color: #d97706 !important;
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.35);
+      transform: translateY(-2px);
+    }}
+    body.theme-dark .pt-cell-active {{
+      color: #fbbf24 !important;
+    }}
+    .pt-cell-swapped {{
+      border-color: var(--accent) !important;
+      background: var(--accent-soft) !important;
+      color: var(--accent-text) !important;
+      box-shadow: 0 0 0 3px var(--accent-border);
+      transform: translateY(-3px) scale(1.04);
+    }}
+    .pt-cell-sorted {{
+      border-color: #10b981 !important;
+      background: rgba(16, 185, 129, 0.15) !important;
+      color: #059669 !important;
+    }}
+    body.theme-dark .pt-cell-sorted {{
+      color: #34d399 !important;
+    }}
+    .pt-cell-dimmed {{
+      opacity: 0.22;
+      filter: grayscale(1);
+    }}
+    .pt-ptr-pill {{
+      font-size: 0.68rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-weight: 700;
+      padding: 0.1rem 0.35rem;
+      border-radius: 0.35rem;
+      background: rgba(245, 158, 11, 0.2);
+      color: #d97706;
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.15rem;
+      white-space: nowrap;
+    }}
+    body.theme-dark .pt-ptr-pill {{
+      color: #fbbf24;
+    }}
+
+
     dialog::backdrop {{
       background: rgba(8, 10, 18, 0.75);
       backdrop-filter: blur(4px);
@@ -834,8 +909,8 @@ def build_html(default_view: str = "concepts") -> str:
               </button>
             </div>
 
-            <button type="button" onclick="toggleFlowcharts()" id="btn-toggle-flowcharts" class="px-2.5 py-1 rounded-lg border ui-accent-soft text-xs font-semibold" title="Show or hide Mermaid flowcharts">
-              📊 Flowcharts: ON
+            <button type="button" onclick="jumpToPlaythrough()" id="btn-open-playthrough" class="px-2.5 py-1 rounded-lg border ui-surface text-xs font-semibold hover:ui-accent-soft transition-colors flex items-center gap-1.5" title="Interactive step-by-step playthrough with Next/Prev">
+              🎮 Interactive Playthrough
             </button>
 
             <button type="button" onclick="loadCurrentDocIntoPlayground()" id="btn-open-in-playground" class="px-2.5 py-1 rounded-lg border ui-surface text-xs font-semibold hover:ui-accent-soft transition-colors" title="Open and execute this guide's Python code in the browser playground">
@@ -2168,6 +2243,1326 @@ print("Hello from Python 3 Playground!")
       renderDoc(key);
     }}
 
+
+    // 5.5 INTERACTIVE PLAYTHROUGH ENGINE
+    const CONCEPT_PLAYTHROUGHS = {{
+      '04_sorting/01_bubble_sort.md': {{ algorithm: 'bubble_sort', initial: [5, 1, 4, 2, 8] }},
+      '04_sorting/02_selection_sort.md': {{ algorithm: 'selection_sort', initial: [64, 25, 12, 22, 11] }},
+      '04_sorting/03_insertion_sort.md': {{ algorithm: 'insertion_sort', initial: [12, 11, 13, 5, 6] }},
+      '04_sorting/04_merge_sort.md': {{ algorithm: 'merge_sort', initial: [38, 27, 43, 3, 9, 82, 10] }},
+      '04_sorting/05_quick_sort.md': {{ algorithm: 'quick_sort', initial: [10, 80, 30, 90, 40, 50, 70] }},
+      '05_binary_search/01_binary_search_fundamentals_and_occurrences.md': {{ algorithm: 'binary_search', initial: [2, 5, 8, 12, 16, 23, 38], target: 23 }},
+      '05_binary_search/02_local_minima_and_peak_finding.md': {{ algorithm: 'peak_finding', initial: [1, 2, 1, 3, 5, 6, 4] }},
+      '01_arrays_and_pointers/75_sort_colors.md': {{ algorithm: 'sort_colors', initial: [2, 0, 2, 1, 1, 0] }},
+      '01_arrays_and_pointers/11_container_with_most_water.md': {{ algorithm: 'container_with_most_water', initial: [1, 8, 6, 2, 5, 4, 8, 3, 7] }},
+      '01_arrays_and_pointers/53_maximum_subarray.md': {{ algorithm: 'kadanes', initial: [-2, 1, -3, 4, -1, 2, 1, -5, 4] }},
+      '02_linked_lists/206_reverse_linked_list.md': {{ algorithm: 'reverse_linked_list', initial: [1, 2, 3, 4, 5] }}
+    }};
+
+    const PLAYTHROUGH_PRESETS = {{
+      bubble_sort: [
+        {{ label: 'Default [5, 1, 4, 2, 8]', val: [5, 1, 4, 2, 8] }},
+        {{ label: 'Reversed [5, 4, 3, 2, 1]', val: [5, 4, 3, 2, 1] }},
+        {{ label: 'Nearly Sorted [1, 2, 4, 3, 5]', val: [1, 2, 4, 3, 5] }},
+        {{ label: 'Already Sorted [1, 2, 3, 4, 5]', val: [1, 2, 3, 4, 5] }}
+      ],
+      selection_sort: [
+        {{ label: 'Default [64, 25, 12, 22, 11]', val: [64, 25, 12, 22, 11] }},
+        {{ label: 'Reversed [5, 4, 3, 2, 1]', val: [5, 4, 3, 2, 1] }},
+        {{ label: 'Small [3, 1, 2]', val: [3, 1, 2] }}
+      ],
+      insertion_sort: [
+        {{ label: 'Default [12, 11, 13, 5, 6]', val: [12, 11, 13, 5, 6] }},
+        {{ label: 'Reversed [5, 4, 3, 2, 1]', val: [5, 4, 3, 2, 1] }},
+        {{ label: 'Already Sorted [1, 2, 3, 4, 5]', val: [1, 2, 3, 4, 5] }}
+      ],
+      binary_search: [
+        {{ label: 'Target 23 (In list)', val: [2, 5, 8, 12, 16, 23, 38], target: 23 }},
+        {{ label: 'Target 5 (Left side)', val: [2, 5, 8, 12, 16, 23, 38], target: 5 }},
+        {{ label: 'Target 10 (Not found)', val: [2, 5, 8, 12, 16, 23, 38], target: 10 }}
+      ],
+      peak_finding: [
+        {{ label: 'Default [1, 2, 1, 3, 5, 6, 4]', val: [1, 2, 1, 3, 5, 6, 4] }},
+        {{ label: 'Single Peak [1, 3, 7, 4, 2]', val: [1, 3, 7, 4, 2] }}
+      ],
+      sort_colors: [
+        {{ label: 'Default [2, 0, 2, 1, 1, 0]', val: [2, 0, 2, 1, 1, 0] }},
+        {{ label: 'Alternating [1, 2, 0, 1, 2, 0]', val: [1, 2, 0, 1, 2, 0] }},
+        {{ label: 'Reversed [2, 2, 1, 1, 0, 0]', val: [2, 2, 1, 1, 0, 0] }}
+      ],
+      container_with_most_water: [
+        {{ label: 'Default [1, 8, 6, 2, 5, 4, 8, 3, 7]', val: [1, 8, 6, 2, 5, 4, 8, 3, 7] }},
+        {{ label: 'Pyramid [1, 4, 8, 8, 4, 1]', val: [1, 4, 8, 8, 4, 1] }},
+        {{ label: 'Descending [8, 6, 4, 2]', val: [8, 6, 4, 2] }}
+      ],
+      kadanes: [
+        {{ label: 'Default [-2, 1, -3, 4, -1, 2, 1, -5, 4]', val: [-2, 1, -3, 4, -1, 2, 1, -5, 4] }},
+        {{ label: 'All Negative [-5, -2, -8, -1]', val: [-5, -2, -8, -1] }},
+        {{ label: 'All Positive [1, 2, 3, 4]', val: [1, 2, 3, 4] }}
+      ],
+      reverse_linked_list: [
+        {{ label: 'Default [1, 2, 3, 4, 5]', val: [1, 2, 3, 4, 5] }},
+        {{ label: 'Short [1, 2, 3]', val: [1, 2, 3] }}
+      ]
+    }};
+
+    function generateBubbleSortSteps(initialArr) {{
+      const arr = [...initialArr];
+      const n = arr.length;
+      const steps = [];
+
+      steps.push({{
+        type: 'array',
+        array: [...arr],
+        active: [],
+        pointers: {{}},
+        sorted: [],
+        tag: 'Start',
+        badge: 'Initial State',
+        badgeColor: 'blue',
+        desc: `Starting Bubble Sort with array [${{arr.join(', ')}}]. We make passes comparing adjacent pairs and bubbling the largest unsorted value right.`,
+        vars: {{ n, pass: 0 }}
+      }});
+
+      for (let i = 0; i < n - 1; i++) {{
+        let swapped = false;
+        const locked = [];
+        for (let k = n - i; k < n; k++) locked.push(k);
+
+        for (let j = 0; j < n - 1 - i; j++) {{
+          steps.push({{
+            type: 'array',
+            array: [...arr],
+            active: [j, j + 1],
+            pointers: {{ j, 'j+1': j + 1 }},
+            sorted: [...locked],
+            tag: `Pass ${{i + 1}} (i = ${{i}})`,
+            badge: 'Compare',
+            badgeColor: 'amber',
+            desc: `Compare arr[${{j}}] (${{arr[j]}}) and arr[${{j + 1}}] (${{arr[j + 1]}}). ${{arr[j] > arr[j + 1] ? `Since ${{arr[j]}} > ${{arr[j + 1]}}, they are out of order!` : `Since ${{arr[j]}} ≤ ${{arr[j + 1]}}, they are in relative order.`}}`,
+            vars: {{ i, j, 'arr[j]': arr[j], 'arr[j+1]': arr[j + 1], swapped }}
+          }});
+
+          if (arr[j] > arr[j + 1]) {{
+            const tmp = arr[j];
+            arr[j] = arr[j + 1];
+            arr[j + 1] = tmp;
+            swapped = true;
+
+            steps.push({{
+              type: 'array',
+              array: [...arr],
+              active: [j, j + 1],
+              swapped: [j, j + 1],
+              pointers: {{ j, 'j+1': j + 1 }},
+              sorted: [...locked],
+              tag: `Pass ${{i + 1}} (i = ${{i}})`,
+              badge: 'Swap',
+              badgeColor: 'rose',
+              desc: `Swapped ${{arr[j + 1]}} and ${{arr[j]}}. Array is now [${{arr.join(', ')}}]. Marked swapped = True.`,
+              vars: {{ i, j, 'arr[j]': arr[j], 'arr[j+1]': arr[j + 1], swapped: true }}
+            }});
+          }}
+        }}
+
+        locked.unshift(n - 1 - i);
+        steps.push({{
+          type: 'array',
+          array: [...arr],
+          active: [n - 1 - i],
+          pointers: {{}},
+          sorted: [...locked],
+          tag: `Pass ${{i + 1}} Done`,
+          badge: 'Locked',
+          badgeColor: 'emerald',
+          desc: `Pass ${{i + 1}} complete. Value ${{arr[n - 1 - i]}} is now permanently settled at index ${{n - 1 - i}}.`,
+          vars: {{ i, sortedCount: locked.length, swapped }}
+        }});
+
+        if (!swapped) {{
+          steps.push({{
+            type: 'array',
+            array: [...arr],
+            active: [],
+            pointers: {{}},
+            sorted: arr.map((_, idx) => idx),
+            tag: 'Early Exit',
+            badge: 'Sorted!',
+            badgeColor: 'emerald',
+            desc: `Zero swaps occurred in Pass ${{i + 1}} (swapped == False). The array is fully sorted! Breaking early in O(n) time.`,
+            vars: {{ status: 'Terminated early', passes: i + 1 }}
+          }});
+          return steps;
+        }}
+      }}
+
+      steps.push({{
+        type: 'array',
+        array: [...arr],
+        active: [],
+        pointers: {{}},
+        sorted: arr.map((_, idx) => idx),
+        tag: 'Finished',
+        badge: 'Sorted',
+        badgeColor: 'emerald',
+        desc: `Array is fully sorted: [${{arr.join(', ')}}].`,
+        vars: {{ status: 'Complete' }}
+      }});
+      return steps;
+    }}
+
+    function generateSelectionSortSteps(initialArr) {{
+      const arr = [...initialArr];
+      const n = arr.length;
+      const steps = [];
+
+      steps.push({{
+        type: 'array',
+        array: [...arr],
+        active: [],
+        pointers: {{}},
+        sorted: [],
+        tag: 'Start',
+        badge: 'Initial State',
+        badgeColor: 'blue',
+        desc: `Starting Selection Sort with array [${{arr.join(', ')}}]. We scan the unsorted suffix to find the minimum, then swap it into the sorted prefix.`,
+        vars: {{ n }}
+      }});
+
+      for (let i = 0; i < n - 1; i++) {{
+        let minIdx = i;
+        const sorted = [];
+        for (let k = 0; k < i; k++) sorted.push(k);
+
+        steps.push({{
+          type: 'array',
+          array: [...arr],
+          active: [i],
+          pointers: {{ i, min_idx: minIdx }},
+          sorted: [...sorted],
+          tag: `Pass ${{i + 1}} (i = ${{i}})`,
+          badge: 'Init Min',
+          badgeColor: 'amber',
+          desc: `Starting pass ${{i + 1}}. Assume minimum is at current index i = ${{i}} (value ${{arr[i]}}).`,
+          vars: {{ i, min_idx: minIdx, min_val: arr[minIdx] }}
+        }});
+
+        for (let j = i + 1; j < n; j++) {{
+          const isSmaller = arr[j] < arr[minIdx];
+          steps.push({{
+            type: 'array',
+            array: [...arr],
+            active: [j, minIdx],
+            pointers: {{ i, j, min_idx: minIdx }},
+            sorted: [...sorted],
+            tag: `Scanning suffix`,
+            badge: 'Compare',
+            badgeColor: 'amber',
+            desc: `Compare arr[j=${{j}}] (${{arr[j]}}) with current min arr[min_idx=${{minIdx}}] (${{arr[minIdx]}}). ${{isSmaller ? `Found smaller element! Update min_idx to ${{j}}.` : `arr[j] >= current min. Keep min_idx = ${{minIdx}}.`}}`,
+            vars: {{ i, j, min_idx: isSmaller ? j : minIdx }}
+          }});
+          if (isSmaller) {{
+            minIdx = j;
+          }}
+        }}
+
+        if (minIdx !== i) {{
+          const tmp = arr[i];
+          arr[i] = arr[minIdx];
+          arr[minIdx] = tmp;
+
+          steps.push({{
+            type: 'array',
+            array: [...arr],
+            active: [i, minIdx],
+            swapped: [i, minIdx],
+            pointers: {{ i, min_idx: minIdx }},
+            sorted: [...sorted],
+            tag: `Swap Minimum`,
+            badge: 'Swap',
+            badgeColor: 'rose',
+            desc: `Swap minimum value ${{arr[i]}} at index ${{minIdx}} into slot i = ${{i}}. Array is now [${{arr.join(', ')}}].`,
+            vars: {{ i, min_idx: minIdx, swapped: true }}
+          }});
+        }}
+
+        sorted.push(i);
+        steps.push({{
+          type: 'array',
+          array: [...arr],
+          active: [i],
+          pointers: {{}},
+          sorted: [...sorted],
+          tag: `Prefix Grown`,
+          badge: 'Locked',
+          badgeColor: 'emerald',
+          desc: `Element at index ${{i}} (${{arr[i]}}) is now locked in its final sorted position.`,
+          vars: {{ sortedCount: sorted.length }}
+        }});
+      }}
+
+      steps.push({{
+        type: 'array',
+        array: [...arr],
+        active: [],
+        pointers: {{}},
+        sorted: arr.map((_, idx) => idx),
+        tag: 'Finished',
+        badge: 'Sorted',
+        badgeColor: 'emerald',
+        desc: `Selection Sort complete! Array is sorted: [${{arr.join(', ')}}].`,
+        vars: {{ status: 'Complete' }}
+      }});
+      return steps;
+    }}
+
+    function generateInsertionSortSteps(initialArr) {{
+      const arr = [...initialArr];
+      const n = arr.length;
+      const steps = [];
+
+      steps.push({{
+        type: 'array',
+        array: [...arr],
+        active: [0],
+        pointers: {{ sorted: 0 }},
+        sorted: [0],
+        tag: 'Start',
+        badge: 'Initial State',
+        badgeColor: 'blue',
+        desc: `Starting Insertion Sort with [${{arr.join(', ')}}]. Index 0 ([${{arr[0]}}]) forms the initial sorted hand of cards.`,
+        vars: {{ n }}
+      }});
+
+      for (let i = 1; i < n; i++) {{
+        const key = arr[i];
+        let j = i - 1;
+        const sorted = [];
+        for (let k = 0; k < i; k++) sorted.push(k);
+
+        steps.push({{
+          type: 'array',
+          array: [...arr],
+          active: [i],
+          pointers: {{ i, key: i }},
+          sorted: [...sorted],
+          tag: `Pick Key (i = ${{i}})`,
+          badge: 'Pick Key',
+          badgeColor: 'amber',
+          desc: `Pick key = arr[${{i}}] (${{key}}). Scan sorted prefix left and shift larger elements right.`,
+          vars: {{ i, key, j }}
+        }});
+
+        while (j >= 0 && arr[j] > key) {{
+          steps.push({{
+            type: 'array',
+            array: [...arr],
+            active: [j, j + 1],
+            pointers: {{ j, 'j+1': j + 1, key: i }},
+            sorted: [...sorted],
+            tag: `Compare with key`,
+            badge: 'Shift Right',
+            badgeColor: 'rose',
+            desc: `arr[${{j}}] (${{arr[j]}}) > key (${{key}}). Shift arr[${{j}}] right into index ${{j + 1}}.`,
+            vars: {{ j, 'arr[j]': arr[j], key }}
+          }});
+
+          arr[j + 1] = arr[j];
+          j -= 1;
+        }}
+
+        arr[j + 1] = key;
+        sorted.push(i);
+
+        steps.push({{
+          type: 'array',
+          array: [...arr],
+          active: [j + 1],
+          pointers: {{ inserted: j + 1 }},
+          sorted: [...sorted],
+          tag: `Insert Key`,
+          badge: 'Inserted',
+          badgeColor: 'emerald',
+          desc: `Dropped key ${{key}} into sorted slot index ${{j + 1}}. Array is now [${{arr.join(', ')}}].`,
+          vars: {{ insertedAt: j + 1, key }}
+        }});
+      }}
+
+      steps.push({{
+        type: 'array',
+        array: [...arr],
+        active: [],
+        pointers: {{}},
+        sorted: arr.map((_, idx) => idx),
+        tag: 'Finished',
+        badge: 'Sorted',
+        badgeColor: 'emerald',
+        desc: `Insertion Sort complete! Array is sorted: [${{arr.join(', ')}}].`,
+        vars: {{ status: 'Complete' }}
+      }});
+      return steps;
+    }}
+
+    function generateBinarySearchSteps(initialArr, targetVal) {{
+      const arr = [...initialArr];
+      const target = targetVal !== undefined ? targetVal : 23;
+      const n = arr.length;
+      const steps = [];
+
+      let lo = 0;
+      let hi = n - 1;
+
+      steps.push({{
+        type: 'array',
+        array: [...arr],
+        active: [],
+        pointers: {{ lo: 0, hi: n - 1 }},
+        dimmed: [],
+        tag: 'Start Search',
+        badge: 'Initial State',
+        badgeColor: 'blue',
+        desc: `Searching for target = ${{target}} in sorted array [${{arr.join(', ')}}]. Active search interval is [lo=0, hi=${{n - 1}}].`,
+        vars: {{ target, lo: 0, hi: n - 1 }}
+      }});
+
+      while (lo <= hi) {{
+        const mid = Math.floor(lo + (hi - lo) / 2);
+        const dimmed = [];
+        for (let k = 0; k < lo; k++) dimmed.push(k);
+        for (let k = hi + 1; k < n; k++) dimmed.push(k);
+
+        steps.push({{
+          type: 'array',
+          array: [...arr],
+          active: [mid],
+          pointers: {{ lo, mid, hi }},
+          dimmed: [...dimmed],
+          tag: `Check Midpoint`,
+          badge: 'Midpoint',
+          badgeColor: 'amber',
+          desc: `Compute mid = lo + (hi - lo) // 2 = ${{lo}} + (${{hi}} - ${{lo}}) // 2 = ${{mid}}. Comparing arr[mid] (${{arr[mid]}}) with target (${{target}}).`,
+          vars: {{ lo, mid, hi, 'arr[mid]': arr[mid], target }}
+        }});
+
+        if (arr[mid] === target) {{
+          steps.push({{
+            type: 'array',
+            array: [...arr],
+            active: [mid],
+            pointers: {{ MATCH: mid }},
+            sorted: [mid],
+            dimmed: [...dimmed],
+            tag: `Target Found`,
+            badge: 'Match!',
+            badgeColor: 'emerald',
+            desc: `arr[mid=${{mid}}] == ${{target}}! Target found at index ${{mid}} in O(log n) time.`,
+            vars: {{ resultIndex: mid, target }}
+          }});
+          return steps;
+        }} else if (arr[mid] < target) {{
+          const nextLo = mid + 1;
+          steps.push({{
+            type: 'array',
+            array: [...arr],
+            active: [mid],
+            pointers: {{ lo, mid, hi }},
+            dimmed: [...dimmed],
+            tag: `Steer Right`,
+            badge: 'arr[mid] < target',
+            badgeColor: 'rose',
+            desc: `arr[mid] (${{arr[mid]}}) < target (${{target}}). Since array is sorted, target cannot exist in [lo...mid]. Discard left half: lo = mid + 1 = ${{nextLo}}.`,
+            vars: {{ lo: nextLo, hi, action: 'lo = mid + 1' }}
+          }});
+          lo = nextLo;
+        }} else {{
+          const nextHi = mid - 1;
+          steps.push({{
+            type: 'array',
+            array: [...arr],
+            active: [mid],
+            pointers: {{ lo, mid, hi }},
+            dimmed: [...dimmed],
+            tag: `Steer Left`,
+            badge: 'arr[mid] > target',
+            badgeColor: 'rose',
+            desc: `arr[mid] (${{arr[mid]}}) > target (${{target}}). Target cannot exist in [mid...hi]. Discard right half: hi = mid - 1 = ${{nextHi}}.`,
+            vars: {{ lo, hi: nextHi, action: 'hi = mid - 1' }}
+          }});
+          hi = nextHi;
+        }}
+      }}
+
+      steps.push({{
+        type: 'array',
+        array: [...arr],
+        active: [],
+        pointers: {{}},
+        dimmed: arr.map((_, i) => i),
+        tag: 'Not Found',
+        badge: 'Return -1',
+        badgeColor: 'rose',
+        desc: `lo > hi (interval exhausted). Target ${{target}} does not exist in the array. Return -1.`,
+        vars: {{ lo, hi, result: -1 }}
+      }});
+      return steps;
+    }}
+
+    function generatePeakFindingSteps(initialArr) {{
+      const arr = [...initialArr];
+      const n = arr.length;
+      const steps = [];
+
+      let lo = 0;
+      let hi = n - 1;
+
+      steps.push({{
+        type: 'array',
+        array: [...arr],
+        active: [],
+        pointers: {{ lo: 0, hi: n - 1 }},
+        tag: 'Start Peak Search',
+        badge: 'Initial State',
+        badgeColor: 'blue',
+        desc: `Searching for any peak element where arr[i] > arr[i-1] and arr[i] > arr[i+1]. We climb the slope via binary search!`,
+        vars: {{ lo: 0, hi: n - 1 }}
+      }});
+
+      while (lo < hi) {{
+        const mid = Math.floor(lo + (hi - lo) / 2);
+        const isUpward = arr[mid] < arr[mid + 1];
+
+        steps.push({{
+          type: 'array',
+          array: [...arr],
+          active: [mid, mid + 1],
+          pointers: {{ lo, mid, 'mid+1': mid + 1, hi }},
+          tag: `Inspect Slope at mid = ${{mid}}`,
+          badge: isUpward ? 'Upward Slope' : 'Downward Slope',
+          badgeColor: isUpward ? 'emerald' : 'rose',
+          desc: `arr[mid=${{mid}}] = ${{arr[mid]}} vs arr[mid+1=${{mid+1}}] = ${{arr[mid+1]}}. ${{isUpward ? `Since arr[mid] < arr[mid+1], slope is rising to the right! A peak is guaranteed in [mid+1...hi]. Steer lo = mid + 1 = ${{mid + 1}}.` : `Since arr[mid] > arr[mid+1], slope is falling. A peak exists at or left of mid. Steer hi = mid = ${{mid}}.`}}`,
+          vars: {{ lo, mid, hi, 'arr[mid]': arr[mid], 'arr[mid+1]': arr[mid+1] }}
+        }});
+
+        if (isUpward) {{
+          lo = mid + 1;
+        }} else {{
+          hi = mid;
+        }}
+      }}
+
+      steps.push({{
+        type: 'array',
+        array: [...arr],
+        active: [lo],
+        pointers: {{ PEAK: lo }},
+        sorted: [lo],
+        tag: 'Peak Found',
+        badge: `Peak = ${{arr[lo]}}`,
+        badgeColor: 'emerald',
+        desc: `lo == hi (${{lo}})! Peak element found at index ${{lo}} with value ${{arr[lo]}} in O(log n) time.`,
+        vars: {{ peakIndex: lo, peakValue: arr[lo] }}
+      }});
+      return steps;
+    }}
+
+    function generateSortColorsSteps(initialArr) {{
+      const arr = [...initialArr];
+      const n = arr.length;
+      const steps = [];
+
+      let low = 0;
+      let mid = 0;
+      let high = n - 1;
+
+      steps.push({{
+        type: 'array',
+        array: [...arr],
+        active: [],
+        pointers: {{ low: 0, mid: 0, high: n - 1 }},
+        tag: 'Start Dutch Flag',
+        badge: 'Initial State',
+        badgeColor: 'blue',
+        desc: `Sorting 0s (Red), 1s (White), and 2s (Blue) in a single O(n) pass. Invariant: [0...low-1] is 0, [low...mid-1] is 1, [high+1...n-1] is 2.`,
+        vars: {{ low, mid, high }}
+      }});
+
+      while (mid <= high) {{
+        const val = arr[mid];
+        steps.push({{
+          type: 'array',
+          array: [...arr],
+          active: [mid],
+          pointers: {{ low, mid, high }},
+          tag: `Inspect mid = ${{mid}}`,
+          badge: `Val = ${{val}}`,
+          badgeColor: val === 0 ? 'rose' : (val === 1 ? 'blue' : 'amber'),
+          desc: `Inspecting nums[mid=${{mid}}] = ${{val}}. ${{val === 0 ? 'Value is 0: swap with low, advance both low and mid.' : (val === 1 ? 'Value is 1: already in middle region, advance mid.' : 'Value is 2: swap with high, decrement high. Do NOT advance mid!')}}`,
+          vars: {{ low, mid, high, 'nums[mid]': val }}
+        }});
+
+        if (val === 0) {{
+          const tmp = arr[low];
+          arr[low] = arr[mid];
+          arr[mid] = tmp;
+          low += 1;
+          mid += 1;
+        }} else if (val === 1) {{
+          mid += 1;
+        }} else {{
+          const tmp = arr[high];
+          arr[high] = arr[mid];
+          arr[mid] = tmp;
+          high -= 1;
+        }}
+      }}
+
+      steps.push({{
+        type: 'array',
+        array: [...arr],
+        active: [],
+        pointers: {{}},
+        sorted: arr.map((_, i) => i),
+        tag: 'Partition Finished',
+        badge: 'Sorted!',
+        badgeColor: 'emerald',
+        desc: `mid > high! Single-pass Dutch National Flag partition complete: [${{arr.join(', ')}}].`,
+        vars: {{ status: 'Sorted' }}
+      }});
+      return steps;
+    }}
+
+    function generateContainerWaterSteps(initialArr) {{
+      const arr = [...initialArr];
+      const n = arr.length;
+      const steps = [];
+
+      let l = 0;
+      let r = n - 1;
+      let maxWater = 0;
+      let bestL = 0;
+      let bestR = n - 1;
+
+      steps.push({{
+        type: 'array',
+        array: [...arr],
+        active: [l, r],
+        pointers: {{ left: l, right: r }},
+        tag: 'Start Two Pointers',
+        badge: 'Max Width',
+        badgeColor: 'blue',
+        desc: `Initialize left = 0, right = ${{r}}. Start with maximum possible container width = ${{r - l}}.`,
+        vars: {{ left: l, right: r, max_water: 0 }}
+      }});
+
+      while (l < r) {{
+        const width = r - l;
+        const hL = arr[l];
+        const hR = arr[r];
+        const minH = Math.min(hL, hR);
+        const area = width * minH;
+        const isNewMax = area > maxWater;
+        if (isNewMax) {{
+          maxWater = area;
+          bestL = l;
+          bestR = r;
+        }}
+
+        steps.push({{
+          type: 'array',
+          array: [...arr],
+          active: [l, r],
+          pointers: {{ left: l, right: r }},
+          tag: `Evaluate Container`,
+          badge: `Area = ${{area}}`,
+          badgeColor: isNewMax ? 'emerald' : 'amber',
+          desc: `left=${{l}} (h=${{hL}}), right=${{r}} (h=${{hR}}). Width = ${{width}}, limiting height = min(${{hL}}, ${{hR}}) = ${{minH}}. Area = ${{width}} × ${{minH}} = ${{area}}. ${{isNewMax ? `New maximum water = ${{maxWater}}!` : `Does not beat current best (${{maxWater}}).`}}`,
+          vars: {{ left: l, right: r, width, min_height: minH, current_area: area, max_water: maxWater }}
+        }});
+
+        if (hL < hR) {{
+          steps.push({{
+            type: 'array',
+            array: [...arr],
+            active: [l],
+            pointers: {{ left: l, right: r }},
+            tag: `Shrink Left Wall`,
+            badge: `h[left] < h[right]`,
+            badgeColor: 'rose',
+            desc: `Left wall (${{hL}}) is shorter than right wall (${{hR}}). Moving right cannot help since width shrinks and height is bottlenecked by the left wall. Advance left += 1 to look for a taller wall.`,
+            vars: {{ left: l + 1, right: r, max_water: maxWater }}
+          }});
+          l += 1;
+        }} else {{
+          steps.push({{
+            type: 'array',
+            array: [...arr],
+            active: [r],
+            pointers: {{ left: l, right: r }},
+            tag: `Shrink Right Wall`,
+            badge: `h[right] <= h[left]`,
+            badgeColor: 'rose',
+            desc: `Right wall (${{hR}}) is the bottleneck (or equal). Decrement right -= 1.`,
+            vars: {{ left: l, right: r - 1, max_water: maxWater }}
+          }});
+          r -= 1;
+        }}
+      }}
+
+      steps.push({{
+        type: 'array',
+        array: [...arr],
+        active: [bestL, bestR],
+        pointers: {{ best_left: bestL, best_right: bestR }},
+        tag: 'Optimal Found',
+        badge: `Max = ${{maxWater}}`,
+        badgeColor: 'emerald',
+        desc: `Pointers met! Maximum water capacity is ${{maxWater}} between index ${{bestL}} (height ${{arr[bestL]}}) and index ${{bestR}} (height ${{arr[bestR]}}).`,
+        vars: {{ max_water: maxWater, best_left: bestL, best_right: bestR }}
+      }});
+      return steps;
+    }}
+
+    function generateKadanesSteps(initialArr) {{
+      const arr = [...initialArr];
+      const n = arr.length;
+      const steps = [];
+
+      let curSum = arr[0];
+      let maxSum = arr[0];
+      let start = 0;
+      let bestStart = 0;
+      let bestEnd = 0;
+
+      steps.push({{
+        type: 'array',
+        array: [...arr],
+        active: [0],
+        pointers: {{ i: 0 }},
+        tag: 'Start Kadane',
+        badge: `Init Sum = ${{arr[0]}}`,
+        badgeColor: 'blue',
+        desc: `Initialize running sum cur_sum = ${{arr[0]}} and max_sum = ${{arr[0]}}. At each element, decide: extend existing subarray or start fresh?`,
+        vars: {{ cur_sum: curSum, max_sum: maxSum }}
+      }});
+
+      for (let i = 1; i < n; i++) {{
+        const x = arr[i];
+        const extendSum = curSum + x;
+        const reset = x > extendSum;
+        if (reset) {{
+          curSum = x;
+          start = i;
+        }} else {{
+          curSum = extendSum;
+        }}
+
+        const isNewMax = curSum > maxSum;
+        if (isNewMax) {{
+          maxSum = curSum;
+          bestStart = start;
+          bestEnd = i;
+        }}
+
+        const activeSubarray = [];
+        for (let k = start; k <= i; k++) activeSubarray.push(k);
+
+        steps.push({{
+          type: 'array',
+          array: [...arr],
+          active: [...activeSubarray],
+          pointers: {{ i }},
+          tag: `Element ${{x}} (idx ${{i}})`,
+          badge: reset ? 'Start Fresh' : 'Extend Subarray',
+          badgeColor: isNewMax ? 'emerald' : 'amber',
+          desc: `Evaluating arr[${{i}}] = ${{x}}. Extend sum (${{extendSum}}) vs start fresh (${{x}}) -> cur_sum = max(${{x}}, ${{extendSum}}) = ${{curSum}}. ${{reset ? `Previous sum was negative; starting fresh at index ${{i}}.` : `Extended previous subarray.`}} ${{isNewMax ? `New max_sum = ${{maxSum}}!` : `Global max_sum remains ${{maxSum}}.`}}`,
+          vars: {{ i, 'arr[i]': x, cur_sum: curSum, max_sum: maxSum, start, end: i }}
+        }});
+      }}
+
+      const finalSub = [];
+      for (let k = bestStart; k <= bestEnd; k++) finalSub.push(k);
+
+      steps.push({{
+        type: 'array',
+        array: [...arr],
+        active: [...finalSub],
+        pointers: {{ best_start: bestStart, best_end: bestEnd }},
+        tag: 'Search Complete',
+        badge: `Max Sum = ${{maxSum}}`,
+        badgeColor: 'emerald',
+        desc: `Kadane's algorithm complete! Maximum contiguous subarray sum is ${{maxSum}} (from index ${{bestStart}} to ${{bestEnd}}).`,
+        vars: {{ max_sum: maxSum, start: bestStart, end: bestEnd }}
+      }});
+      return steps;
+    }}
+
+    function generateReverseLinkedListSteps(initialArr) {{
+      const vals = [...initialArr];
+      const steps = [];
+
+      steps.push({{
+        type: 'linked_list',
+        nodes: vals.map((v, idx) => ({{ val: v, nextIdx: idx + 1 < vals.length ? idx + 1 : null }})),
+        pointers: {{ prev: null, curr: 0, head: 0 }},
+        tag: 'Start Reversal',
+        badge: 'Initial List',
+        badgeColor: 'blue',
+        desc: `Reversing linked list [${{vals.join(' -> ')}} -> null]. Initialize prev = null, curr = head (Node ${{vals[0]}}).`,
+        vars: {{ prev: 'null', curr: `Node(${{vals[0]}})`, head: `Node(${{vals[0]}})` }}
+      }});
+
+      const nodes = vals.map((v, idx) => ({{ val: v, nextIdx: idx + 1 < vals.length ? idx + 1 : null }}));
+      let prev = null;
+      let curr = 0;
+
+      while (curr !== null) {{
+        const nxt = nodes[curr].nextIdx;
+
+        steps.push({{
+          type: 'linked_list',
+          nodes: nodes.map(n => ({{ ...n }})),
+          pointers: {{ prev, curr, nxt }},
+          tag: `Step A & B (curr = Node(${{vals[curr]}}))`,
+          badge: 'Bookmark & Flip',
+          badgeColor: 'amber',
+          desc: `1. Bookmark next node: nxt = curr.next (${{nxt !== null ? `Node(${{vals[nxt]}})` : 'null'}}). 2. Flip arrow backward: curr.next = prev (${{prev !== null ? `Node(${{vals[prev]}})` : 'null'}}).`,
+          vars: {{ prev: prev !== null ? `Node(${{vals[prev]}})` : 'null', curr: `Node(${{vals[curr]}})`, nxt: nxt !== null ? `Node(${{vals[nxt]}})` : 'null' }}
+        }});
+
+        nodes[curr].nextIdx = prev;
+        prev = curr;
+        curr = nxt;
+
+        steps.push({{
+          type: 'linked_list',
+          nodes: nodes.map(n => ({{ ...n }})),
+          pointers: {{ prev, curr }},
+          tag: `Step C & D: Advance Pointers`,
+          badge: 'Slide Forward',
+          badgeColor: 'rose',
+          desc: `3. Slide prev forward: prev = curr (${{prev !== null ? `Node(${{vals[prev]}})` : 'null'}}). 4. Slide curr forward: curr = nxt (${{curr !== null ? `Node(${{vals[curr]}})` : 'null'}}).`,
+          vars: {{ prev: prev !== null ? `Node(${{vals[prev]}})` : 'null', curr: curr !== null ? `Node(${{vals[curr]}})` : 'null' }}
+        }});
+      }}
+
+      steps.push({{
+        type: 'linked_list',
+        nodes: nodes.map(n => ({{ ...n }})),
+        pointers: {{ 'new_head': prev }},
+        tag: 'Reversal Complete',
+        badge: 'Reversed!',
+        badgeColor: 'emerald',
+        desc: `curr is null! The new head is prev (Node(${{vals[prev]}})). List is fully reversed: [${{[...vals].reverse().join(' -> ')}} -> null].`,
+        vars: {{ new_head: `Node(${{vals[prev]}})`, status: 'Reversed' }}
+      }});
+      return steps;
+    }}
+
+    function generateMergeSortSteps(initialArr) {{
+      const arr = [...initialArr];
+      return [
+        {{
+          type: 'array',
+          array: [...arr],
+          active: [],
+          pointers: {{}},
+          tag: '1. Divide Phase',
+          badge: 'Full Array',
+          badgeColor: 'blue',
+          desc: 'Merge sort divides the array recursively at mid = len // 2 into left and right halves until single elements are reached.',
+          vars: {{ size: arr.length }}
+        }},
+        {{
+          type: 'array',
+          array: [38, 27, 43, 3, 9, 82, 10],
+          active: [0, 1, 2, 3],
+          pointers: {{ left: 0, right: 4 }},
+          tag: '2. Split Halves',
+          badge: 'Halving',
+          badgeColor: 'amber',
+          desc: 'Left half: [38, 27, 43, 3] | Right half: [9, 82, 10]. Recurse down each half.',
+          vars: {{ leftSize: 4, rightSize: 3 }}
+        }},
+        {{
+          type: 'array',
+          array: [27, 38, 3, 43, 9, 82, 10],
+          active: [0, 1, 2, 3],
+          sorted: [0, 1, 2, 3],
+          pointers: {{}},
+          tag: '3. Merge Base Pairs',
+          badge: 'Conquer',
+          badgeColor: 'emerald',
+          desc: 'Merged pairs: [38] and [27] -> [27, 38]. [43] and [3] -> [3, 43].',
+          vars: {{ leftSubsorted: true }}
+        }},
+        {{
+          type: 'array',
+          array: [3, 27, 38, 43, 9, 10, 82],
+          active: [0, 1, 2, 3, 4, 5, 6],
+          sorted: [0, 1, 2, 3, 4, 5, 6],
+          pointers: {{}},
+          tag: '4. Merge Quarter Arrays',
+          badge: 'Two Pointers Merge',
+          badgeColor: 'emerald',
+          desc: 'Two pointers merge [27, 38] and [3, 43] -> [3, 27, 38, 43]. Right half merged -> [9, 10, 82].',
+          vars: {{ leftQuarter: 4, rightQuarter: 3 }}
+        }},
+        {{
+          type: 'array',
+          array: [3, 9, 10, 27, 38, 43, 82],
+          active: [],
+          pointers: {{}},
+          sorted: [0, 1, 2, 3, 4, 5, 6],
+          tag: '5. Final Combined Merge',
+          badge: 'Sorted!',
+          badgeColor: 'emerald',
+          desc: 'Merged [3, 27, 38, 43] and [9, 10, 82] using two pointers in O(n) linear time! Array is sorted.',
+          vars: {{ result: 'Fully sorted', complexity: 'O(n log n)' }}
+        }}
+      ];
+    }}
+
+    function generateQuickSortSteps(initialArr) {{
+      const arr = [10, 80, 30, 90, 40, 50, 70];
+      return [
+        {{
+          type: 'array',
+          array: [...arr],
+          active: [6],
+          pointers: {{ pivot: 6, i: -1, j: 0 }},
+          tag: '1. Pivot Choice (Lomuto)',
+          badge: 'Pivot = 70',
+          badgeColor: 'blue',
+          desc: 'Pivot chosen as last element arr[6] = 70. Pointer i tracks region <= 70, j scans indices 0 to 5.',
+          vars: {{ pivot: 70, i: -1, j: 0 }}
+        }},
+        {{
+          type: 'array',
+          array: [10, 80, 30, 90, 40, 50, 70],
+          active: [0],
+          pointers: {{ i: 0, j: 0, pivot: 6 }},
+          tag: '2. Scan arr[0] = 10',
+          badge: '10 <= 70',
+          badgeColor: 'emerald',
+          desc: 'arr[0] (10) <= 70. Increment i to 0, swap arr[0] with arr[0].',
+          vars: {{ i: 0, j: 0 }}
+        }},
+        {{
+          type: 'array',
+          array: [10, 30, 80, 90, 40, 50, 70],
+          active: [1, 2],
+          swapped: [1, 2],
+          pointers: {{ i: 1, j: 2, pivot: 6 }},
+          tag: '3. Scan arr[2] = 30',
+          badge: 'Swap 80 and 30',
+          badgeColor: 'rose',
+          desc: 'arr[2] (30) <= 70. Increment i to 1, swap arr[1] (80) and arr[2] (30).',
+          vars: {{ i: 1, j: 2 }}
+        }},
+        {{
+          type: 'array',
+          array: [10, 30, 40, 90, 80, 50, 70],
+          active: [2, 4],
+          swapped: [2, 4],
+          pointers: {{ i: 2, j: 4, pivot: 6 }},
+          tag: '4. Scan arr[4] = 40',
+          badge: 'Swap 90 and 40',
+          badgeColor: 'rose',
+          desc: 'arr[4] (40) <= 70. Increment i to 2, swap arr[2] (90) and arr[4] (40).',
+          vars: {{ i: 2, j: 4 }}
+        }},
+        {{
+          type: 'array',
+          array: [10, 30, 40, 50, 80, 90, 70],
+          active: [3, 5],
+          swapped: [3, 5],
+          pointers: {{ i: 3, j: 5, pivot: 6 }},
+          tag: '5. Scan arr[5] = 50',
+          badge: 'Swap 80 and 50',
+          badgeColor: 'rose',
+          desc: 'arr[5] (50) <= 70. Increment i to 3, swap arr[3] (80) and arr[5] (50). Scanner j reaches end.',
+          vars: {{ i: 3, j: 5 }}
+        }},
+        {{
+          type: 'array',
+          array: [10, 30, 40, 50, 70, 90, 80],
+          active: [4, 6],
+          swapped: [4, 6],
+          sorted: [4],
+          pointers: {{ LOCKED_PIVOT: 4 }},
+          tag: '6. Place Pivot into Slot',
+          badge: 'Pivot Locked',
+          badgeColor: 'emerald',
+          desc: 'Swap pivot 70 with arr[i + 1] (arr[4] = 80). 70 is permanently settled at index 4! Everything to its left is <= 70, everything right is > 70.',
+          vars: {{ pivotIndex: 4, value: 70 }}
+        }},
+        {{
+          type: 'array',
+          array: [10, 30, 40, 50, 70, 80, 90],
+          active: [],
+          pointers: {{}},
+          sorted: [0, 1, 2, 3, 4, 5, 6],
+          tag: '7. Recursive Subarrays Sorted',
+          badge: 'Done!',
+          badgeColor: 'emerald',
+          desc: 'Recurse on left [10, 30, 40, 50] and right [80, 90]. Entire array is sorted!',
+          vars: {{ status: 'Sorted' }}
+        }}
+      ];
+    }}
+
+    function createPlaythroughWidget(spec) {{
+      const widget = document.createElement('div');
+      widget.className = 'playthrough-widget not-prose';
+
+      let algo = spec.algorithm || 'bubble_sort';
+      let currentArr = spec.initial ? [...spec.initial] : (PLAYTHROUGH_PRESETS[algo] ? [...PLAYTHROUGH_PRESETS[algo][0].val] : [5, 1, 4, 2, 8]);
+      let targetVal = spec.target !== undefined ? spec.target : 23;
+
+      let steps = [];
+      function computeSteps() {{
+        if (spec.steps) {{
+          steps = spec.steps;
+        }} else if (algo === 'bubble_sort') {{
+          steps = generateBubbleSortSteps(currentArr);
+        }} else if (algo === 'selection_sort') {{
+          steps = generateSelectionSortSteps(currentArr);
+        }} else if (algo === 'insertion_sort') {{
+          steps = generateInsertionSortSteps(currentArr);
+        }} else if (algo === 'binary_search') {{
+          steps = generateBinarySearchSteps(currentArr, targetVal);
+        }} else if (algo === 'peak_finding') {{
+          steps = generatePeakFindingSteps(currentArr);
+        }} else if (algo === 'sort_colors') {{
+          steps = generateSortColorsSteps(currentArr);
+        }} else if (algo === 'container_with_most_water') {{
+          steps = generateContainerWaterSteps(currentArr);
+        }} else if (algo === 'kadanes') {{
+          steps = generateKadanesSteps(currentArr);
+        }} else if (algo === 'reverse_linked_list') {{
+          steps = generateReverseLinkedListSteps(currentArr);
+        }} else if (algo === 'merge_sort') {{
+          steps = generateMergeSortSteps(currentArr);
+        }} else if (algo === 'quick_sort') {{
+          steps = generateQuickSortSteps(currentArr);
+        }} else {{
+          steps = generateBubbleSortSteps(currentArr);
+        }}
+      }}
+      computeSteps();
+
+      let stepIdx = 0;
+      let playInterval = null;
+
+      const algoTitle = algo.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+
+      widget.innerHTML = `
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b ui-border pb-2.5 mb-3">
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-bold ui-accent-text flex items-center gap-1.5">
+              🎮 Interactive Playthrough: ${{algoTitle}}
+            </span>
+            <span class="pt-step-badge text-xs px-2 py-0.5 rounded-full ui-card border font-mono font-semibold">
+              Step 1 / ${{steps.length}}
+            </span>
+          </div>
+          <div class="flex items-center gap-2 pt-preset-container">
+          </div>
+        </div>
+
+        <div class="pt-stage min-h-[135px] flex flex-col items-center justify-center py-2">
+        </div>
+
+        <div class="pt-desc-box ui-card border rounded-xl p-3.5 my-3 space-y-2">
+        </div>
+
+        <div class="space-y-2 pt-1">
+          <input type="range" class="pt-slider w-full accent-[var(--accent)] cursor-pointer" min="0" max="${{Math.max(0, steps.length - 1)}}" value="0">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-1.5 sm:gap-2">
+              <button type="button" class="btn-pt-reset px-2.5 py-1 rounded-lg border ui-card text-xs font-semibold hover:ui-accent-soft transition-colors" title="Reset (Step 1)">⏮ Reset</button>
+              <button type="button" class="btn-pt-prev px-3 py-1 rounded-lg border ui-card text-xs font-bold hover:ui-accent-soft transition-colors flex items-center gap-1" title="Previous Step (Left Arrow)">◀ Prev</button>
+              <button type="button" class="btn-pt-play px-3.5 py-1 rounded-lg ui-accent-btn text-xs font-bold transition-all flex items-center gap-1.5" title="Auto Play / Pause (Spacebar)">▶ Play</button>
+              <button type="button" class="btn-pt-next px-3 py-1 rounded-lg border ui-card text-xs font-bold hover:ui-accent-soft transition-colors flex items-center gap-1" title="Next Step (Right Arrow)">Next ▶</button>
+              <button type="button" class="btn-pt-end px-2.5 py-1 rounded-lg border ui-card text-xs font-semibold hover:ui-accent-soft transition-colors" title="Jump to Final Step">⏭ End</button>
+            </div>
+            <div class="text-[11px] ui-text-muted flex items-center gap-2">
+              <span>Tip: Use <kbd class="px-1 py-0.5 rounded border ui-card text-[10px]">←</kbd> <kbd class="px-1 py-0.5 rounded border ui-card text-[10px]">→</kbd> <kbd class="px-1 py-0.5 rounded border ui-card text-[10px]">Space</kbd></span>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Preset picker setup
+      const presetContainer = widget.querySelector('.pt-preset-container');
+      const presets = PLAYTHROUGH_PRESETS[algo];
+      if (presets && presets.length) {{
+        const select = document.createElement('select');
+        select.className = 'text-xs ui-card border rounded px-2 py-1 cursor-pointer';
+        presets.forEach((p, idx) => {{
+          const opt = document.createElement('option');
+          opt.value = idx;
+          opt.textContent = p.label;
+          select.appendChild(opt);
+        }});
+        presetContainer.appendChild(select);
+
+        select.addEventListener('change', () => {{
+          stopPlay();
+          const chosen = presets[parseInt(select.value)];
+          currentArr = [...chosen.val];
+          if (chosen.target !== undefined) targetVal = chosen.target;
+          computeSteps();
+          stepIdx = 0;
+          widget.querySelector('.pt-slider').max = Math.max(0, steps.length - 1);
+          renderStep();
+        }});
+      }}
+
+      const stageEl = widget.querySelector('.pt-stage');
+      const descBox = widget.querySelector('.pt-desc-box');
+      const stepBadge = widget.querySelector('.pt-step-badge');
+      const slider = widget.querySelector('.pt-slider');
+      const btnPlay = widget.querySelector('.btn-pt-play');
+      const btnPrev = widget.querySelector('.btn-pt-prev');
+      const btnNext = widget.querySelector('.btn-pt-next');
+      const btnReset = widget.querySelector('.btn-pt-reset');
+      const btnEnd = widget.querySelector('.btn-pt-end');
+
+      function stopPlay() {{
+        if (playInterval) {{
+          clearInterval(playInterval);
+          playInterval = null;
+          btnPlay.innerHTML = '▶ Play';
+        }}
+      }}
+
+      function startPlay() {{
+        stopPlay();
+        btnPlay.innerHTML = '⏸ Pause';
+        playInterval = setInterval(() => {{
+          if (stepIdx < steps.length - 1) {{
+            stepIdx += 1;
+            renderStep();
+          }} else {{
+            stopPlay();
+          }}
+        }}, 1150);
+      }}
+
+      function togglePlay() {{
+        if (playInterval) {{
+          stopPlay();
+        }} else {{
+          if (stepIdx >= steps.length - 1) stepIdx = 0;
+          startPlay();
+        }}
+      }}
+
+      function renderStep() {{
+        const step = steps[stepIdx] || steps[0];
+        stepBadge.textContent = `Step ${{stepIdx + 1}} / ${{steps.length}}`;
+        slider.value = stepIdx;
+        btnPrev.disabled = stepIdx === 0;
+        btnNext.disabled = stepIdx === steps.length - 1;
+        btnPrev.style.opacity = stepIdx === 0 ? '0.4' : '1';
+        btnNext.style.opacity = stepIdx === steps.length - 1 ? '0.4' : '1';
+
+        // Render Stage
+        if (step.type === 'linked_list') {{
+          const nodes = step.nodes || [];
+          const ptrs = step.pointers || {{}};
+          let html = `<div class="flex items-center justify-center flex-wrap gap-2 py-3 overflow-x-auto w-full">`;
+          nodes.forEach((n, idx) => {{
+            const activePtrs = Object.entries(ptrs).filter(([_, v]) => v === idx).map(([k]) => k);
+            html += `
+              <div class="flex items-center gap-2">
+                <div class="flex flex-col items-center">
+                  ${{activePtrs.length ? `<span class="pt-ptr-pill mb-1">${{activePtrs.join(', ')}} ↓</span>` : '<span class="h-4"></span>'}}
+                  <div class="px-3.5 py-2.5 rounded-xl border ui-card font-mono font-bold text-base flex items-center gap-2 shadow-sm ${{step.active && step.active.includes(idx) ? 'ring-2 ring-amber-400' : ''}}">
+                    <span>${{n.val}}</span>
+                    <span class="text-xs ui-text-muted">•</span>
+                  </div>
+                  <span class="text-[10px] font-mono ui-text-muted mt-1">idx ${{idx}}</span>
+                </div>
+                <span class="font-mono text-xs ui-text-muted">──►</span>
+              </div>
+            `;
+          }});
+          html += `
+            <div class="flex flex-col items-center">
+              <span class="h-4"></span>
+              <span class="font-mono text-xs font-semibold px-2.5 py-1.5 rounded-lg ui-surface border ui-text-muted">null</span>
+            </div>
+          </div>`;
+          stageEl.innerHTML = html;
+        }} else {{
+          // Array Stage
+          const arr = step.array || [];
+          const active = step.active || [];
+          const swapped = step.swapped || [];
+          const sorted = step.sorted || [];
+          const dimmed = step.dimmed || [];
+          const ptrs = step.pointers || {{}};
+
+          let html = `
+            <div class="flex flex-col items-center justify-center gap-1 overflow-x-auto py-1 max-w-full">
+              <!-- Pointers Row -->
+              <div class="flex items-center gap-2 sm:gap-2.5 mb-1 min-h-[22px]">
+                ${{arr.map((_, i) => {{
+                  const activePtrs = Object.entries(ptrs).filter(([_, v]) => v === i).map(([k]) => k);
+                  return `<div class="w-11 sm:w-13 h-5 flex items-center justify-center">
+                    ${{activePtrs.length ? `<span class="pt-ptr-pill">${{activePtrs.join(', ')}} ↓</span>` : ''}}
+                  </div>`;
+                }}).join('')}}
+              </div>
+
+              <!-- Cells Row -->
+              <div class="flex items-center gap-2 sm:gap-2.5">
+                ${{arr.map((val, i) => {{
+                  const isAct = active.includes(i);
+                  const isSwap = swapped.includes(i);
+                  const isSort = sorted.includes(i);
+                  const isDim = dimmed.includes(i);
+
+                  let cls = 'pt-cell w-11 sm:w-13 h-13 sm:h-15 text-base sm:text-lg ';
+                  if (isDim) cls += 'pt-cell-dimmed ';
+                  else if (isSwap) cls += 'pt-cell-swapped ';
+                  else if (isAct) cls += 'pt-cell-active ';
+                  else if (isSort) cls += 'pt-cell-sorted ';
+
+                  return `
+                    <div class="${{cls}}">
+                      <span>${{val}}</span>
+                      ${{isSort ? '<span class="absolute top-1 right-1 text-[9px] text-emerald-500 font-bold">✓</span>' : ''}}
+                    </div>
+                  `;
+                }}).join('')}}
+              </div>
+
+              <!-- Indices Row -->
+              <div class="flex items-center gap-2 sm:gap-2.5 mt-1">
+                ${{arr.map((_, i) => `<div class="w-11 sm:w-13 text-center text-[10px] font-mono ui-text-muted">${{i}}</div>`).join('')}}
+              </div>
+            </div>
+          `;
+          stageEl.innerHTML = html;
+        }}
+
+        // Render Description Box
+        let badgeColorClass = 'bg-amber-500/15 text-amber-500 border border-amber-500/30';
+        if (step.badgeColor === 'emerald') badgeColorClass = 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/30';
+        else if (step.badgeColor === 'rose') badgeColorClass = 'bg-rose-500/15 text-rose-500 border border-rose-500/30';
+        else if (step.badgeColor === 'blue') badgeColorClass = 'bg-sky-500/15 text-sky-500 border border-sky-500/30';
+
+        let varsHtml = '';
+        if (step.vars) {{
+          varsHtml = Object.entries(step.vars).map(([k, v]) => `<span><strong class="text-[var(--text)]">${{k}}:</strong> ${{v}}</span>`).join(' • ');
+        }}
+
+        descBox.innerHTML = `
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="text-xs font-bold uppercase tracking-wider ui-accent-text">${{step.tag || 'Step'}}</span>
+              <span class="text-xs px-2 py-0.5 rounded font-mono font-semibold ${{badgeColorClass}}">${{step.badge || 'Action'}}</span>
+            </div>
+            <span class="text-xs font-mono ui-text-muted">Step ${{stepIdx + 1}} of ${{steps.length}}</span>
+          </div>
+          <p class="text-sm leading-relaxed">${{step.desc || ''}}</p>
+          ${{varsHtml ? `<div class="flex flex-wrap items-center gap-2 pt-2 border-t ui-border text-xs font-mono ui-text-muted">${{varsHtml}}</div>` : ''}}
+        `;
+      }}
+
+      btnPrev.onclick = () => {{
+        stopPlay();
+        if (stepIdx > 0) {{
+          stepIdx -= 1;
+          renderStep();
+        }}
+      }};
+
+      btnNext.onclick = () => {{
+        stopPlay();
+        if (stepIdx < steps.length - 1) {{
+          stepIdx += 1;
+          renderStep();
+        }}
+      }};
+
+      btnReset.onclick = () => {{
+        stopPlay();
+        stepIdx = 0;
+        renderStep();
+      }};
+
+      btnEnd.onclick = () => {{
+        stopPlay();
+        stepIdx = steps.length - 1;
+        renderStep();
+      }};
+
+      btnPlay.onclick = () => {{
+        togglePlay();
+      }};
+
+      slider.oninput = (e) => {{
+        stopPlay();
+        stepIdx = parseInt(e.target.value);
+        renderStep();
+      }};
+
+      renderStep();
+      return widget;
+    }}
+
+    function jumpToPlaythrough() {{
+      let widget = document.querySelector('#rendered-content .playthrough-widget');
+      if (!widget) {{
+        const spec = CONCEPT_PLAYTHROUGHS[currentDocPath];
+        if (spec) {{
+          widget = createPlaythroughWidget(spec);
+          const contentEl = document.getElementById('rendered-content');
+          contentEl.insertBefore(widget, contentEl.firstChild);
+        }}
+      }}
+      if (widget) {{
+        widget.scrollIntoView({{ behavior: 'smooth', block: 'center' }});
+        widget.classList.add('ring-2', 'ring-[var(--accent)]');
+        setTimeout(() => widget.classList.remove('ring-2', 'ring-[var(--accent)]'), 1200);
+      }}
+    }}
+
+
+    // Keyboard navigation for active Playthrough
+    window.addEventListener('keydown', (e) => {{
+      const tag = document.activeElement ? document.activeElement.tagName : '';
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || document.activeElement?.isContentEditable) return;
+
+      const widget = document.querySelector('#rendered-content .playthrough-widget');
+      if (!widget) return;
+
+      if (e.key === 'ArrowLeft') {{
+        const btnPrev = widget.querySelector('.btn-pt-prev');
+        if (btnPrev && !btnPrev.disabled) {{
+          e.preventDefault();
+          btnPrev.click();
+        }}
+      }} else if (e.key === 'ArrowRight') {{
+        const btnNext = widget.querySelector('.btn-pt-next');
+        if (btnNext && !btnNext.disabled) {{
+          e.preventDefault();
+          btnNext.click();
+        }}
+      }} else if (e.key === ' ' && !e.repeat) {{
+        const btnPlay = widget.querySelector('.btn-pt-play');
+        if (btnPlay) {{
+          e.preventDefault();
+          btnPlay.click();
+        }}
+      }}
+    }});
+
+
     // 6. Markdown + KaTeX + Mermaid Pipeline
     function renderMarkdownInto(containerEl, markdownText, basePath) {{
       if (typeof marked !== 'undefined') {{
@@ -2175,6 +3570,20 @@ print("Hello from Python 3 Playground!")
       }} else {{
         containerEl.innerHTML = '<pre><code>' + markdownText + '</code></pre>';
       }}
+
+      // Mount interactive playthrough widgets from ```playthrough blocks
+      containerEl.querySelectorAll('pre code.language-playthrough').forEach((codeEl) => {{
+        const pre = codeEl.parentElement;
+        const text = codeEl.textContent.trim();
+        let spec = {{}};
+        try {{
+          spec = JSON.parse(text);
+        }} catch (e) {{
+          spec = {{ algorithm: text || 'bubble_sort' }};
+        }}
+        const widget = createPlaythroughWidget(spec);
+        pre.replaceWith(widget);
+      }});
 
       containerEl.querySelectorAll('pre code.language-mermaid').forEach((codeEl) => {{
         const pre = codeEl.parentElement;

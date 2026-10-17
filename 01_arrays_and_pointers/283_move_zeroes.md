@@ -28,14 +28,13 @@ At every step, the array is partitioned into three regions:
 
 Whenever `nums[fast] != 0`, swap `nums[slow]` and `nums[fast]`, then advance `slow += 1`.
 
-```mermaid
-flowchart TD
-    Start["slow = 0, fast = 0..n-1"] --> Check{"nums[fast] != 0?"}
-    Check -- "Yes (non-zero)" --> Swap["Swap nums[slow] and nums[fast]<br/>slow += 1"]
-    Check -- "No (zero)" --> Skip["Leave slow waiting on zero"]
-    Swap --> Next["fast += 1"]
-    Skip --> Next
-```
+### Algorithm steps:
+* **1. Initialize slow pointer:** Set `slow = 0` to mark the position where the next non-zero element belongs.
+* **2. Iterate fast pointer:** Loop `fast` from `0` to `len(nums) - 1`.
+* **3. Swap non-zeros forward:**
+  * If `nums[fast] != 0`, swap `nums[slow]` and `nums[fast]`, then advance `slow += 1`.
+  * If `nums[fast] == 0`, skip and leave `slow` waiting on the zero.
+* **4. Termination:** Modifies array in-place in $\mathcal{O}(n)$ time and $\mathcal{O}(1)$ space.
 
 ### Why `slow += 1` always lands on a zero
 

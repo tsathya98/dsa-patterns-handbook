@@ -25,14 +25,13 @@ Invariant: [ Kept elements (0 .. k-1) | Ignored / Unexplored (k .. n-1) ]
 
 When the loop finishes, `k` equals the count of kept elements.
 
-```mermaid
-flowchart TD
-    Start["k = 0, i = 0..n-1"] --> Check{"nums[i] != val?"}
-    Check -- "Yes (keep)" --> Write["nums[k] = nums[i]<br/>k += 1"]
-    Check -- "No (remove)" --> Skip["Leave k waiting"]
-    Write --> Next["i += 1"]
-    Skip --> Next
-```
+### Algorithm steps:
+* **1. Initialize writer pointer:** Set `k = 0` to track the boundary where valid non-`val` elements will be placed.
+* **2. Scout through elements:** Loop `i` from `0` to `len(nums) - 1`.
+* **3. Filter elements:**
+  * If `nums[i] != val`, keep the element: write `nums[k] = nums[i]` and advance `k += 1`.
+  * If `nums[i] == val`, skip the element and leave `k` unchanged.
+* **4. Return:** `k`, the number of elements not equal to `val`.
 
 ## Step-by-step trace
 

@@ -32,14 +32,13 @@ In LC 27 (Remove Element):     keep if nums[i] != val
 In LC 26 (Remove Duplicates):  keep if nums[i] != nums[i - 1]
 ```
 
-```mermaid
-flowchart TD
-    Start["k = 1, i = 1..n-1"] --> Check{"nums[i] != nums[i - 1]?"}
-    Check -- "Yes (new unique)" --> Write["nums[k] = nums[i]<br/>k += 1"]
-    Check -- "No (duplicate)" --> Skip["Leave k in place"]
-    Write --> Next["i += 1"]
-    Skip --> Next
-```
+### Algorithm steps:
+* **1. Base case and initialization:** If `nums` is empty, return `0`. Otherwise, first element is already unique; set writer pointer `k = 1`.
+* **2. Scout through array:** Loop `i` from index `1` to `len(nums) - 1`.
+* **3. Write unique elements:**
+  * If `nums[i] != nums[i - 1]`, a new unique element is found: write `nums[k] = nums[i]` and advance `k += 1`.
+  * Otherwise, ignore duplicate element and leave `k` in place.
+* **4. Return:** `k` representing the count of unique elements.
 
 ## Step-by-step trace
 

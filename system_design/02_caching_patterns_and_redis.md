@@ -20,15 +20,11 @@
                        [ Database ]                                 [ Database ]
 ```
 
-```mermaid
-flowchart TD
-    R["Read Request"] --> CHK{"Key in Redis?"}
-    CHK -- "Cache Hit" --> RET["Return Cached Value (<1ms)"]
-    CHK -- "Cache Miss" --> QDB["Query Database"]
-    QDB --> SET["Write to Redis with TTL<br/>& Return Value"]
-    W["Write Request"] --> UDB["1. Update Database"]
-    UDB --> DEL["2. Delete Key in Redis<br/>(Avoid Stale Race)"]
-```
+### Cache-aside operational rules:
+* **Read path (Lazy loading):** Application queries Redis first. On cache hit, return immediately ($< 1$ms). On cache miss, query primary DB, set the value in Redis with an explicit TTL, and return.
+* **Write path (Invalidate, never overwrite):** First commit the update to the Database, then delete (`DEL`) the key from Redis. Never write directly to Redis on write, because concurrent updates can overwrite the cache with stale data.
+* **TTL safeguard:** Always attach a Time-To-Live (TTL) to every key so any race conditions self-heal when the TTL expires.
+
 
 | Pattern | Read path | Write path | Pros | Cons and failure modes |
 | :--- | :--- | :--- | :--- | :--- |

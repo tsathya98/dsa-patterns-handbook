@@ -83,10 +83,9 @@ def singleNumber(nums: list[int]) -> int:
 | Count set `1` bits | `n &= (n - 1)` in a `while n:` loop | LC 191 |
 | Missing number in `0..n` | XOR all indices `0..n` with all values | LC 268 |
 
-```mermaid
-flowchart TD
-    Goal{"Bitwise Problem Goal?"} -- "Cancel duplicate pairs" --> XOR["XOR accumulator: res ^= num"]
-    Goal -- "Drop or count set 1-bits" --> Clear["Clear lowest 1-bit: n &= (n - 1)"]
-    Goal -- "Check power of two" --> Pow2["Single 1-bit check: n > 0 and (n & (n - 1)) == 0"]
-    Goal -- "Read binary stream left-to-right" --> Shift["Shift and attach: ans = (ans << 1) | bit"]
-```
+### Decision rules:
+* **1. Duplicate pair cancellation:** Use XOR accumulator `res ^= num` when finding single isolated values, since `x ^ x = 0` and `x ^ 0 = x`.
+* **2. Clear lowest set bit:** Use `n &= (n - 1)` to erase the lowest `1` bit in $\mathcal{O}(k)$ time, where $k$ is the number of set bits (Brian Kernighan's algorithm).
+* **3. Power of two validation:** Check `n > 0 and (n & (n - 1)) == 0` to confirm that exactly one binary bit is set in the entire integer.
+* **4. Bit stream reconstruction:** Use `ans = (ans << 1) | bit` to parse a stream of bits from most significant to least significant in $\mathcal{O}(1)$ space.
+

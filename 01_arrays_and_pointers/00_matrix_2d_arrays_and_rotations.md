@@ -72,14 +72,14 @@ Maintain four boundaries: `top = 0`, `bottom = m - 1`, `left = 0`, `right = n - 
 
 The `top <= bottom` and `left <= right` checks before steps 3 and 4 prevent double-counting when a non-square matrix reduces to a single remaining row or column.
 
-```mermaid
-flowchart TD
-    Loop{"top <= bottom and<br/>left <= right?"} -- "Yes" --> Top["Sweep top row (left..right)<br/>top += 1"]
-    Top --> Right["Sweep right col (top..bottom)<br/>right -= 1"]
-    Right --> Bottom["If top <= bottom:<br/>Sweep bottom row (right..left), bottom -= 1"]
-    Bottom --> Left["If left <= right:<br/>Sweep left col (bottom..top), left += 1"]
-    Left --> Loop
-```
+### Algorithm steps:
+* **1. Initialize boundaries:** Set `top = 0`, `bottom = m - 1`, `left = 0`, and `right = n - 1`. Prepare `result = []`.
+* **2. Traverse while boundaries are valid:** While `top <= bottom` and `left <= right`:
+  * Sweep top row from `left` to `right`, then increment `top += 1`.
+  * Sweep right column from `top` to `bottom`, then decrement `right -= 1`.
+  * If `top <= bottom`, sweep bottom row from `right` down to `left`, then decrement `bottom -= 1`.
+  * If `left <= right`, sweep left column from `bottom` down to `top`, then increment `left += 1`.
+* **3. Termination:** Once boundaries cross, return `result`.
 
 <details>
 <summary>Spoiler: Solution Code</summary>

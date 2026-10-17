@@ -24,22 +24,21 @@ Use Dijkstra's **Dutch National Flag** algorithm with three pointers:
           low        mid     high
 ```
 
-Rules while `mid <= high`:
-1. If `nums[mid] == 0`: swap with `nums[low]`, increment `low += 1` and `mid += 1`.
-2. If `nums[mid] == 1`: already in the middle region, just advance `mid += 1`.
-3. If `nums[mid] == 2`: swap with `nums[high]`, decrement `high -= 1`. Do **not** increment `mid`, because the newly swapped value from `high` has not been evaluated yet!
+### Algorithm steps (Dutch National Flag):
+* **1. Initialize three pointers:** `low = 0` (boundary for 0s), `mid = 0` (current scanner), and `high = n - 1` (boundary for 2s).
+* **2. Scan while mid <= high:**
+  * `nums[mid] == 0`: Swap with `nums[low]`, then advance both `low += 1` and `mid += 1`.
+  * `nums[mid] == 1`: Already in correct middle section; simply advance `mid += 1`.
+  * `nums[mid] == 2`: Swap with `nums[high]`, then decrement `high -= 1` (do NOT advance `mid`, since the swapped element from `high` must still be inspected).
+* **3. Termination:** Invariant ensures `[0...low-1]` is 0s, `[low...mid-1]` is 1s, and `[high+1...n-1]` is 2s in a single $\mathcal{O}(n)$ pass.
 
-```mermaid
-flowchart TD
-    Loop{"mid <= high?"} -- "No" --> Done["Sorted in-place!"]
-    Loop -- "Yes" --> Val{"nums[mid] value?"}
-    Val -- "0 (Red)" --> SwapLow["Swap nums[low], nums[mid]<br/>low += 1, mid += 1"]
-    Val -- "1 (White)" --> AdvanceMid["mid += 1"]
-    Val -- "2 (Blue)" --> SwapHigh["Swap nums[high], nums[mid]<br/>high -= 1<br/>(Keep mid in place)"]
-    SwapLow --> Loop
-    AdvanceMid --> Loop
-    SwapHigh --> Loop
+```playthrough
+{
+  "algorithm": "sort_colors",
+  "initial": [2, 0, 2, 1, 1, 0]
+}
 ```
+
 
 ## Step-by-step trace
 

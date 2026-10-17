@@ -26,15 +26,13 @@ At each index `i`, check three things in order:
 2. **How far can I reach from here?** Update `max_reach = max(max_reach, i + nums[i])`.
 3. **Did I reach the end?** If `max_reach >= len(nums) - 1`, return `True` early.
 
-```mermaid
-flowchart TD
-    Loop["For each index i, jump = nums[i]"] --> Reach{"i > max_reach?"}
-    Reach -- "Yes (stranded)" --> Fail["Return False"]
-    Reach -- "No" --> Update["max_reach = max(max_reach, i + jump)"]
-    Update --> Goal{"max_reach >= n - 1?"}
-    Goal -- "Yes" --> Win["Return True"]
-    Goal -- "No" --> Loop
-```
+### Algorithm steps:
+* **1. Initialize reach boundary:** Set `max_reach = 0` and target index `target = len(nums) - 1`.
+* **2. Scan indices sequentially:** For each index `i` and jump value `jump` in `enumerate(nums)`:
+  * If `i > max_reach`, the current index is unreachable; return `False`.
+  * Update farthest reachable position: `max_reach = max(max_reach, i + jump)`.
+  * If `max_reach >= target`, return `True` early.
+* **3. Termination:** Return `True` if loop finishes without becoming stranded.
 
 ## Step-by-step trace
 

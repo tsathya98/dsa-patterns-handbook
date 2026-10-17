@@ -39,16 +39,16 @@ After scanning the string, some `'('` may still sit in `open_stack`. Pop from bo
 
 Any extra stars left after `open_stack` empties simply become `""`.
 
-```mermaid
-flowchart TD
-    A["Pass 1: Hit ')'"] --> B{"open_stack<br/>non-empty?"}
-    B -- "Yes" --> C["Pop open_stack<br/>(Save '*' for later)"]
-    B -- "No" --> D{"star_stack<br/>non-empty?"}
-    D -- "Yes" --> E["Pop star_stack<br/>(Use '*' as '(')"]
-    D -- "No" --> F["Return False"]
-    C --> G["Pass 2: Match leftover '(' with '*' at higher index<br/>(open_stack[-1] < star_stack[-1])"]
-    E --> G
-```
+### Algorithm steps:
+* **1. Initialize index stacks:** Create two empty stacks, `open_stack = []` for `'('` indices and `star_stack = []` for `'*'` indices.
+* **2. Scan string (Pass 1):** Iterate through `(i, ch)` in `enumerate(s)`:
+  * If `ch == '('`: push `i` onto `open_stack`.
+  * If `ch == '*'`: push `i` onto `star_stack`.
+  * If `ch == ')'`: pop from `open_stack` first; if empty, pop from `star_stack`; if both stacks are empty, return `False`.
+* **3. Match leftover openers with stars (Pass 2):** While both `open_stack` and `star_stack` are non-empty:
+  * If `open_stack[-1] < star_stack[-1]`: the star appears after the opener, so pop both (star acts as `')'`).
+  * Else: the star appears before the opener and cannot close it; return `False`.
+* **4. Check remaining openers:** Return `len(open_stack) == 0` (any extra stars safely resolve to empty strings).
 
 ## Step-by-step trace
 

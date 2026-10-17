@@ -25,15 +25,14 @@ Instead of treating every linked list question as a new puzzle, map it to one of
    └────────────────────────┘
 ```
 
-```mermaid
-flowchart TD
-    ROOT["Linked List Problem"] --> ONE["1 Linked List"]
-    ROOT --> TWO["2+ Linked Lists<br/>(Zipper Merge / Carry / Intersection)"]
-    ROOT --> DES["Design & Hybrid<br/>(HashMap + DLL / Merge Sort / Trees)"]
-    ONE --> P1["Reversal & Reorder<br/>(3-Pointer Flip / Split & Merge)"]
-    ONE --> P2["Delete / Fixed Gap<br/>(Dummy Head + Leader/Follower)"]
-    ONE --> P3["Fast & Slow Pointers<br/>(Cycle Detection / Midpoint)"]
-```
+### Algorithm steps (decision framework):
+* **1. Categorize input size:** Determine whether the problem provides a single list, two or more lists, or asks for a hybrid data structure design.
+* **2. Select pattern strategy:**
+  * Single list: Apply in-place reversal (3-pointer flip), fixed-gap deletion with a dummy head, or fast and slow pointers (cycle detection, midpoint).
+  * Multiple lists: Apply zipper merging, schoolbook carry traversal, or length-difference alignment.
+  * Design and hybrid: Combine doubly linked lists with hash maps (LRU cache) or divide-and-conquer merge sort.
+* **3. Initialize pointers and sentinels:** Set up a dummy anchor (`dummy.next = head`), boundary trackers (`prev`, `cur`, `nxt`), or two-speed runners (`slow`, `fast`).
+* **4. Traverse and return:** Execute the pointer loop until reaching null terminators, returning either the new head or `dummy.next`.
 
 ## 0. Linked list fundamentals
 

@@ -23,13 +23,15 @@ s = "a  b  c  i  i  i  d  e  f",  k = 3
      -  [b  c  i]                 'a' leaves (-1), 'i' enters (+1) -> count = 1
 ```
 
-```mermaid
-flowchart TD
-    Init["Count vowels in s[0:k]<br/>max_count = count"] --> Slide["Slide right edge i from k to n-1"]
-    Slide --> Enter["If s[i] in vowels: count += 1"]
-    Enter --> Leave["If s[i - k] in vowels: count -= 1"]
-    Leave --> Update["max_count = max(max_count, count)<br/>(Return k early if max_count == k)"]
-```
+### Algorithm steps:
+* **1. Initialize first window:** Define vowel set `vowels = {"a", "e", "i", "o", "u"}`. Count vowels in initial prefix `s[0:k]`. Set `count` and `max_count` to this value. If `max_count == k`, return `k` early.
+* **2. Slide fixed window of length k:** Loop index `i` from `k` to `len(s) - 1`.
+* **3. Update window vowel count:**
+  * Add entering character: if `s[i] in vowels`, `count += 1`.
+  * Remove leaving character: if `s[i - k] in vowels`, `count -= 1`.
+  * Update global best: `max_count = max(max_count, count)`.
+  * Optional early exit: if `max_count == k`, return `k`.
+* **4. Return:** `max_count` after sliding through the entire string.
 
 ## Step-by-step trace
 

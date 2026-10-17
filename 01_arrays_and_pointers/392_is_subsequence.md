@@ -29,15 +29,12 @@ Match: advance both p1 and p2. On mismatch: advance only p2.
 
 If `p1` reaches `len(s)`, every character in `s` was matched in order.
 
-```mermaid
-flowchart TD
-    Loop{"p1 < len(s) and p2 < len(t)?"} -- "Yes" --> Match{"s[p1] == t[p2]?"}
-    Match -- "Yes (matched char)" --> AdvBoth["p1 += 1, p2 += 1"]
-    Match -- "No" --> AdvStream["p2 += 1"]
-    AdvBoth --> Loop
-    AdvStream --> Loop
-    Loop -- "No" --> Done["Return p1 == len(s)"]
-```
+### Algorithm steps:
+* **1. Initialize pointers:** Set `p1 = 0` (targeting `s`) and `p2 = 0` (scanning `t`).
+* **2. Scan stream while both pointers are in bounds:** While `p1 < len(s)` and `p2 < len(t)`:
+  * If `s[p1] == t[p2]`, advance target pointer `p1 += 1`.
+  * Always advance stream pointer `p2 += 1`.
+* **3. Termination:** Return `p1 == len(s)` to verify all characters of `s` were matched in order.
 
 ## Solution
 

@@ -49,15 +49,13 @@ Phase 4: Multi-Tier Production Infrastructure
    [ Read Replicas ] + [ Analytical DB / Data Warehouse ]
 ```
 
-```mermaid
-flowchart TD
-    C["Client"] --> EDGE["DNS + CDN / Edge"]
-    EDGE --> GW["API Gateway & L7 Load Balancer"]
-    GW --> SVC["Stateless Web Services"]
-    SVC -- "Fast Read" --> REDIS["Redis Cache"]
-    SVC -- "Write / Miss" --> DB["Primary DB & Read Replicas"]
-    SVC -- "Async Job" --> MQ["Kafka / Queue -> Workers"]
-```
+### Production tier responsibilities:
+* **Edge & DNS:** Route 53 handles geolocation DNS routing; Cloudflare/CloudFront CDN absorbs static asset traffic and caches frequent read queries at the edge.
+* **Gateway & Load Balancer:** API Gateway terminates TLS, enforces token-bucket rate limits, validates JWT auth tokens, and L7 LB distributes requests across stateless app instances.
+* **In-Memory Cache:** Redis clusters provide sub-millisecond reads for hot keys, session states, and leaderboards.
+* **Transactional Persistence:** Primary SQL database handles writes with ACID guarantees and replicates asynchronously to Read Replicas.
+* **Asynchronous Processing:** Heavy tasks (image processing, email notifications, analytics events) publish to Kafka/RabbitMQ for background worker queues.
+
 
 ## 2. Databases: matching storage to access patterns
 

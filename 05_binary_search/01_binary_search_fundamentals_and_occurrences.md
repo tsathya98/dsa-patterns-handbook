@@ -23,15 +23,21 @@ Array:  [ 2 ,  5 ,  8 , 12 , 16 , 23 , 38 ]   Target = 23
 1. arr[mid] = 12 < 23 -> Target must be to the right -> lo = mid + 1
 ```
 
-```mermaid
-flowchart TD
-    Start["lo = 0, hi = n - 1"] --> Loop{"lo <= hi?"}
-    Loop -- "No" --> End["Return -1 (or recorded boundary ans)"]
-    Loop -- "Yes" --> Mid["mid = lo + (hi - lo) // 2"]
-    Mid --> Check{"Compare arr[mid] with target k"}
-    Check -- "arr[mid] == k" --> Found["Exact match: return mid<br/>(First/Last: ans = mid, steer left/right)"]
-    Check -- "arr[mid] < k" --> Right["lo = mid + 1 (Search Right)"]
-    Check -- "arr[mid] > k" --> Left["hi = mid - 1 (Search Left)"]
+### Algorithm steps:
+* **1. Define search bounds:** Set `lo = 0` and `hi = len(arr) - 1`.
+* **2. Calculate midpoint safely:** While `lo <= hi`, compute `mid = lo + (hi - lo) // 2` to avoid 32-bit integer overflow.
+* **3. Compare with target ($k$):**
+  * `arr[mid] == k`: Exact match found! Return `mid` (or record `ans = mid` and steer if finding first/last occurrence).
+  * `arr[mid] < k`: Target must lie in the right half; narrow interval with `lo = mid + 1`.
+  * `arr[mid] > k`: Target must lie in the left half; narrow interval with `hi = mid - 1`.
+* **4. Termination:** If `lo > hi`, the interval is exhausted and target is not in array; return `-1`.
+
+```playthrough
+{
+  "algorithm": "binary_search",
+  "initial": [2, 5, 8, 12, 16, 23, 38],
+  "target": 23
+}
 ```
 
 ```python

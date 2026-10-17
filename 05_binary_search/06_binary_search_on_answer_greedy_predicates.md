@@ -28,15 +28,14 @@ Instead of searching for an index in the input array, you binary search over the
 3. **Run binary search on $[lo, hi]$:**
    * When minimizing a maximum: if `is_feasible(mid)` is `True`, record `ans = mid` and search left (`hi = mid - 1`) for an even smaller valid capacity. Otherwise, search right (`lo = mid + 1`).
 
-```mermaid
-flowchart TD
-    Bounds["Set answer range [lo, hi]"] --> Loop{"lo <= hi?"}
-    Loop -- "No" --> End["Return best valid ans"]
-    Loop -- "Yes" --> Mid["Guess answer mid = lo + (hi - lo) // 2"]
-    Mid --> Check{"is_feasible(mid) in O(N)?"}
-    Check -- "Yes (Valid)" --> Save["Record ans = mid<br/>Min-Max: hi = mid - 1 | Max-Min: lo = mid + 1"]
-    Check -- "No (Invalid)" --> Discard["Discard half<br/>Min-Max: lo = mid + 1 | Max-Min: hi = mid - 1"]
-```
+### Algorithm steps:
+* **1. Define candidate answer space:** Set lower bound `lo` (e.g. `max(arr)`) and upper bound `hi` (e.g. `sum(arr)`). Initialize `ans = hi`.
+* **2. Evaluate midpoint feasibility:** While `lo <= hi`, compute candidate `mid = lo + (hi - lo) // 2` and run greedy check `is_feasible(mid)`:
+  * If feasible (for minimizing a maximum): record `ans = mid` and try tighter bounds with `hi = mid - 1`.
+  * If infeasible (for minimizing a maximum): capacity is too small, increase lower bound with `lo = mid + 1`.
+  * For maximizing a minimum: reverse the search directions accordingly.
+* **3. Narrow interval:** Discard half the remaining search space on every check.
+* **4. Terminate and return:** When `lo > hi`, return the best recorded `ans`.
 
 ## 3. Minimizing a maximum: Painter's Partition / Split Array Largest Sum (LC 410)
 

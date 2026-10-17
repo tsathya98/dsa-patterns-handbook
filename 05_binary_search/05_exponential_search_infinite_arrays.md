@@ -37,14 +37,15 @@ Step 3: lo = 4, hi = 8   -> arr[8] = 17 >= 13 -> stop
 ### Phase 2: Binary search inside $[lo, hi]$ ($\mathcal{O}(\log P)$)
 Once `arr[lo] < k <= arr[hi]`, run standard binary search on `[lo, hi]`.
 
-```mermaid
-flowchart TD
-    Start["Phase 1: Set lo = 0, hi = 1"] --> Cond{"reader.get(hi) < target?"}
-    Cond -- "Yes" --> Double["Double window: lo = hi, hi = hi * 2"]
-    Double --> Cond
-    Cond -- "No (Target bracketed)" --> Phase2["Phase 2: Standard binary search in [lo, hi]"]
-    Phase2 --> Done["Return target index (or -1)"]
-```
+### Algorithm steps:
+* **1. Initialize exponential window (Phase 1):** Set initial bounds `lo = 0` and `hi = 1`.
+* **2. Bracket target by doubling:** While `reader.get(hi) < target`, advance and double the window: `lo = hi`, `hi = hi * 2`.
+* **3. Binary search bounded range (Phase 2):** While `lo <= hi`:
+  * Compute `mid = lo + (hi - lo) // 2` and fetch `val = reader.get(mid)`.
+  * If `val == target`: return `mid`.
+  * If `val < target`: narrow right with `lo = mid + 1`.
+  * If `val > target`: narrow left with `hi = mid - 1`.
+* **4. Terminate:** If `lo > hi`, target is absent; return `-1`.
 
 ## 3. Implementation (LeetCode 702)
 

@@ -83,14 +83,12 @@ Sketch the end-to-end happy path from client to storage:
                                                  [ Read Replicas ]
 ```
 
-```mermaid
-flowchart LR
-    C["Client"] --> LB["CDN & L7 Load Balancer"]
-    LB --> APP["Stateless App Servers"]
-    APP -- "Cache Hit" --> CACHE["Redis Cache"]
-    APP -- "Cache Miss / Write" --> DB["Primary DB (SQL)"]
-    DB -- "Async Replication" --> REP["Read Replicas"]
-```
+### Architecture request flow:
+* **1. Edge:** Client requests pass through CDN (static assets/caching) and L7 Load Balancer (TLS termination and round-robin distribution).
+* **2. Compute:** Stateless App Server tier handles business logic and scales horizontally behind the load balancer.
+* **3. Read path:** App checks Redis Cache first. On cache hit, return immediately; on cache miss, query Read Replicas, populate Redis, and return.
+* **4. Write path:** Mutations write to Primary DB (SQL), which asynchronously replicates to Read Replicas and invalidates/updates Redis cache.
+
 
 1. **State design choices aloud:** Keep the application tier stateless so instances can scale horizontally behind the load balancer.
 2. **Trace both paths:** Walk through the write path and the read path (cache hit vs. cache miss) step by step.

@@ -16,11 +16,11 @@
 | **Count connected components / islands** | **DFS** (or BFS) | Recursive flood-fill is shorter to write. |
 | **Detect cycles or topological sort** | **DFS** (or Kahn's BFS) | Tracks recursion stack ancestors easily. |
 
-```mermaid
-flowchart TD
-    Start{"What does the problem ask for?"} -- "Shortest path / min steps / level order" --> BFS["Pick BFS: Queue (deque.popleft)<br/>Mark visited BEFORE pushing"]
-    Start -- "Max depth / path sum / flood-fill / cycles" --> DFS["Pick DFS: Recursion / Call Stack<br/>Mark visited on entry"]
-```
+### Decision rules:
+* **1. Shortest path or level-order exploration:** Choose BFS using a double-ended queue (`collections.deque`). Mark visited nodes immediately when pushing onto the queue to prevent redundant explorations, guaranteeing shortest unweighted distance in $\mathcal{O}(V + E)$ time.
+* **2. Tree depth, exhaustive paths, or topological sorting:** Choose DFS using recursion or an explicit stack. Explore branch depth completely before backtracking, marking nodes visited on function entry.
+* **3. Connected components and flood-fill:** Use either BFS or DFS. Prefer recursive DFS for conciseness or iterative BFS if call stack depth risks exceeding recursion limits.
+
 
 ---
 

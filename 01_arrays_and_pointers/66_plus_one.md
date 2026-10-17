@@ -32,13 +32,12 @@ Case 2: [ 1, 2, 9 ] -> 9 becomes 0, bump 2 to 3 -> return [ 1, 3, 0 ] immediatel
 Case 3: [ 9, 9, 9 ] -> rolls to [ 0, 0, 0 ] -> loop ends -> return [ 1, 0, 0, 0 ]
 ```
 
-```mermaid
-flowchart TD
-    Start["Scan i from n - 1 down to 0"] --> Check{"digits[i] < 9?"}
-    Check -- "Yes (no carry left)" --> Bump["digits[i] += 1<br/>Return digits immediately"]
-    Check -- "No (digit is 9)" --> Roll["digits[i] = 0<br/>Continue to i - 1"]
-    Roll -- "All digits were 9" --> AllNine["Return [1] + digits"]
-```
+### Algorithm steps:
+* **1. Scan right to left:** Iterate `i` from `len(digits) - 1` down to `0`.
+* **2. Handle digit carry:**
+  * If `digits[i] < 9`, increment `digits[i] += 1` and return `digits` immediately (carry absorbed).
+  * If `digits[i] == 9`, set `digits[i] = 0` and continue loop to propagate carry leftward.
+* **3. Overflow fallback:** If loop finishes, all original digits were 9; return `[1] + digits`.
 
 ## Solution
 

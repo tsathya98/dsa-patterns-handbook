@@ -14,13 +14,11 @@ A working algorithm needs four things:
 3. Terminates in a finite number of steps without getting stuck in an infinite loop.
 4. Scales cleanly when input size $N$ grows large.
 
-```mermaid
-flowchart LR
-    A["Valid Input (N)"] --> B{"Finite Steps?<br/>(Terminates)"}
-    B -- "Yes" --> C{"Right Answer?<br/>(Correctness)"}
-    C -- "Yes" --> D{"Fast as N Grows?<br/>(Efficiency / Big O)"}
-    D -- "Yes" --> E["Production-Ready Algorithm"]
-```
+### Algorithm steps:
+* **1. Termination check:** Ensure the algorithm executes in finite elementary steps across all edge cases without looping infinitely.
+* **2. Correctness validation:** Verify that the procedure produces the exact desired output for every valid input configuration.
+* **3. Efficiency scaling:** Confirm that operation counts scale predictably within acceptable time bounds as input size $N$ increases.
+
 
 ## 2. Correctness vs. efficiency
 

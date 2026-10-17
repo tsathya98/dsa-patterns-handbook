@@ -18,15 +18,18 @@ Pass 2: Find minimum in arr[1...n-1], swap with arr[1].
 Pass i: Find minimum in arr[i...n-1], swap with arr[i].
 ```
 
-```mermaid
-flowchart TD
-    Start["Pass i = 0 to n - 2"] --> Init["Set min_idx = i"]
-    Init --> Scan["Scan unsorted suffix j = i + 1 to n - 1"]
-    Scan --> Check{"arr[j] < arr[min_idx]?"}
-    Check -- "Yes" --> Update["Update min_idx = j"]
-    Check -- "No" --> Swap["Swap arr[i] with arr[min_idx]"]
-    Update --> Swap
-    Swap --> Next["Advance i (grow sorted prefix)"]
+### Algorithm steps:
+* **1. Partition array:** Run pass $i$ from $0$ up to $n - 2$. The prefix before $i$ is sorted; $arr[i...n-1]$ is the unsorted suffix.
+* **2. Track minimum index:** Set `min_idx = i`.
+* **3. Scan suffix ($j$):** Iterate $j$ from $i + 1$ to $n - 1$. If `arr[j] < arr[min_idx]`, update `min_idx = j`.
+* **4. Swap into place:** If `min_idx != i`, swap `arr[i]` and `arr[min_idx]`.
+* **5. Grow prefix:** Advance $i$. The smallest unsorted element is now locked at index $i$.
+
+```playthrough
+{
+  "algorithm": "selection_sort",
+  "initial": [64, 25, 12, 22, 11]
+}
 ```
 
 ## 2. Walkthrough

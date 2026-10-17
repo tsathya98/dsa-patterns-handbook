@@ -62,9 +62,8 @@ $$\text{Average QPS} \approx \frac{\text{Daily Requests}}{100,000}, \qquad \text
 3. **Storage (5 years):** $100\text{M/day} \times 500\text{ B} = 50\text{ GB/day} \approx 18\text{ TB/year} \implies \mathbf{90\text{ TB over 5 years}}$.
 4. **Redis Cache RAM (20% hot working set):** $20\% \times 50\text{ GB/day} \times 10\text{ days} \approx \mathbf{100\text{ GB RAM}}$ (fits on 1–2 Redis nodes).
 
-```mermaid
-flowchart LR
-    DAU["1. Start with DAU & R:W Ratio"] --> QPS["2. Divide Daily Reqs by 100,000 -> Avg QPS (x2 for Peak)"]
-    QPS --> Disk["3. Daily Writes * Row Bytes * 365 * Years -> Disk TB"]
-    Disk --> RAM["4. Take 20% Hot Daily Data -> Redis Cache RAM GB"]
-```
+### Algorithm steps:
+* **1. Establish baseline throughput:** Start with DAU and the read-to-write ratio. Divide total daily operations by $100,000$ seconds to find average QPS, then multiply by $2$ to establish peak QPS capacity.
+* **2. Project long-term persistence storage:** Multiply daily write volume by average record size, then scale across $365$ days and retention years to determine required disk capacity in terabytes.
+* **3. Dimension volatile cache memory:** Apply the 80/20 Pareto principle by budgeting $20\%$ of daily read traffic or working set records into Redis RAM to minimize database disk reads.
+

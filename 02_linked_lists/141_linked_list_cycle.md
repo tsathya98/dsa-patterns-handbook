@@ -25,15 +25,13 @@ Suppose the straight path before the cycle has length $L$, the cycle has circumf
 
 This equation means the distance from `head` to the cycle entrance ($L$) equals the remaining distance from the collision point forward to the cycle entrance ($C - K$, plus any full laps). If you leave `slow` at the collision spot, start a second pointer `slow2 = head`, and walk both 1 step at a time, they are guaranteed to meet at the cycle entrance.
 
-```mermaid
-flowchart TD
-    A["Start: slow = head, fast = head"] --> B{"fast and fast.next<br/>exist?"}
-    B -- "No" --> C["Return False / None<br/>(No Cycle)"]
-    B -- "Yes" --> D["Step: slow += 1, fast += 2"]
-    D --> E{"slow == fast?<br/>(Collision)"}
-    E -- "No" --> B
-    E -- "Yes" --> F["Cycle Found (LC 141)<br/>Walk slow & head 1 step each until equal (LC 142)"]
-```
+### Algorithm steps:
+* **1. Initialize two-speed pointers:** Set `slow = head` and `fast = head`.
+* **2. Traverse while fast runner has runway:** While `fast` is not None and `fast.next` is not None:
+  * Advance pointers: `slow = slow.next` (1 step) and `fast = fast.next.next` (2 steps).
+  * Check for collision: If `slow == fast`, a cycle exists. Return `True` for LC 141 (or walk `slow` and a pointer from `head` at 1 step each to locate the entrance for LC 142).
+* **3. Continue loop:** Keep stepping until pointers meet or boundaries terminate.
+* **4. Terminate on null boundary:** If `fast` or `fast.next` reaches None, the list is acyclic; return `False`.
 
 ## Traps to watch for
 

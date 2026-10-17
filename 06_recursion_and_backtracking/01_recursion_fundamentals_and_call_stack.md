@@ -52,15 +52,11 @@ def print_1_to_n_head(n: int) -> None:
     print(n)                           # Work done during unwinding
 ```
 
-```mermaid
-flowchart TD
-    H1["print_1_to_n_head(3)"] --> H2["print_1_to_n_head(2)"]
-    H2 --> H3["print_1_to_n_head(1)"]
-    H3 --> Base["Base Case: n == 0 (returns)"]
-    Base --> Ret1["Unwinds to (1) -> prints 1"]
-    Ret1 --> Ret2["Unwinds to (2) -> prints 2"]
-    Ret2 --> Ret3["Unwinds to (3) -> prints 3"]
-```
+### Algorithm steps (head recursion unwinding):
+* **1. Check base case:** If `n == 0`, immediately return to prevent further stack frames.
+* **2. Recurse down before work:** Call `print_1_to_n_head(n - 1)` first, diving deeper until reaching the base case.
+* **3. Execute work on stack unwind:** As each stack frame pops, print `n` (producing ascending order `1, 2, ..., n`).
+* **4. Terminate:** Return control upward as each activation record leaves the call stack.
 
 ---
 
@@ -78,11 +74,11 @@ Pure recursion returns values up the call stack (e.g., `return 1 + count_nodes(n
   [1]          []
 ```
 
-```mermaid
-flowchart LR
-    Choose["1. Choose: path.append(x)"] --> Explore["2. Explore: recurse(next)"]
-    Explore --> Undo["3. Undo: path.pop()"]
-```
+### Algorithm steps (choose-explore-unchoose):
+* **1. Choose:** Append current candidate to active path (`path.append(x)`).
+* **2. Explore:** Recurse into subsequent subproblems with the updated state (`recurse(next_index)`).
+* **3. Unchoose (backtrack):** Revert state mutation (`path.pop()`) so subsequent branches explore cleanly.
+* **4. Record on base case:** When reaching a terminal condition, snapshot the path (`ans.append(list(path))`) and return.
 
 ---
 

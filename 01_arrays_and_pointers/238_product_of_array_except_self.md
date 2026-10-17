@@ -35,12 +35,15 @@ Suffix (right of i): [ 24,  12,   4,   1 ]
 res (Left * Right):  [ 24,  12,   8,   6 ]
 ```
 
-```mermaid
-flowchart LR
-    Init["res = [1] * n"] --> Fwd["Forward pass (i = 0..n-1):<br/>res[i] = prefix<br/>prefix *= nums[i]"]
-    Fwd --> Bwd["Backward pass (i = n-1..0):<br/>res[i] *= suffix<br/>suffix *= nums[i]"]
-    Bwd --> Ret["Return res"]
-```
+### Algorithm steps:
+* **1. Initialize result array:** Create `res = [1] * n` and track running `prefix = 1`.
+* **2. Forward pass (left products):** For each index `i` from `0` to `n - 1`:
+  * Store current prefix product: `res[i] = prefix`.
+  * Update prefix product: `prefix *= nums[i]`.
+* **3. Backward pass (right products):** Initialize running `suffix = 1`. For each index `i` from `n - 1` down to `0`:
+  * Multiply stored prefix with suffix: `res[i] *= suffix`.
+  * Update suffix product: `suffix *= nums[i]`.
+* **4. Return:** `res` in $\mathcal{O}(n)$ time and $\mathcal{O}(1)$ auxiliary space.
 
 ## Cutting space from $\mathcal{O}(n)$ to $\mathcal{O}(1)$
 

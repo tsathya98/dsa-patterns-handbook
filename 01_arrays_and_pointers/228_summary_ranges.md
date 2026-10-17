@@ -30,15 +30,16 @@ nums = [ 0 , 1 , 2 , 4 , 5 , 7 ]
        start     i (stops here because 4 != 2 + 1) -> records "0->2"
 ```
 
-```mermaid
-flowchart TD
-    Drop["Anchor start = nums[i]"] --> Scout{"i + 1 < n and<br/>nums[i + 1] == nums[i] + 1?"}
-    Scout -- "Yes (consecutive)" --> Step["i += 1"]
-    Step --> Scout
-    Scout -- "No (run ended)" --> Format{"start == nums[i]?"}
-    Format -- "Yes" --> Single["Append 'start', i += 1"]
-    Format -- "No" --> Span["Append 'start->nums[i]', i += 1"]
-```
+### Algorithm steps:
+* **1. Initialize index and result:** Set `res = []` and pointer `i = 0`.
+* **2. Anchor and scout ahead:** While `i < len(nums)`:
+  * Record range start: `start = nums[i]`.
+  * Scout consecutive numbers: while `i + 1 < len(nums)` and `nums[i + 1] == nums[i] + 1`, advance `i += 1`.
+* **3. Format and record range:**
+  * If `start == nums[i]`, append `f"{start}"`.
+  * Otherwise, append `f"{start}->{nums[i]}"`.
+  * Advance `i += 1` to begin the next range.
+* **4. Return:** `res` after processing all runs in $\mathcal{O}(n)$ time and $\mathcal{O}(1)$ extra space.
 
 | Round | Anchor (`start`) | Scout (`i`) moves | Stops at `nums[i]` | Appended | Next `i` |
 | :--- | :--- | :--- | :--- | :--- | :--- |

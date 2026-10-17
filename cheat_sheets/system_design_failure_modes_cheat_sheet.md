@@ -15,13 +15,12 @@ Quick reference for the 39 distributed systems failure modes that show up in sys
 10. **Transactional Outbox Pattern** (solving the DB + Queue dual-write bug)
 11. **Rate Limiting** (Token Bucket / Sliding Window at the API Gateway)
 
-```mermaid
-flowchart TD
-    Break{"What is breaking?"} -- "Traffic spike / retry storm" --> Spike["Add Jitter + Exponential Backoff + Rate Limiting (Token Bucket)"]
-    Break -- "Slow dependency stalling callers" --> Casc["Set Timeouts + Circuit Breaker + Bulkhead Pools"]
-    Break -- "Double charge / DB + Queue out of sync" --> Write["Idempotency Key (API) + Transactional Outbox (DB -> Kafka)"]
-    Break -- "Hot shard / zombie lock writer" --> Coord["Consistent Hashing + Salted Hot Keys + Lease with Fencing Token"]
-```
+### Decision rules:
+* **1. Traffic spikes and retry storms:** Apply randomized jitter with exponential backoff and throttle abusive senders using Token Bucket rate limiting.
+* **2. Cascading downstream degradation:** Protect callers from slow or unresponsive services by setting aggressive timeouts, tripping circuit breakers, and isolating thread pools with bulkheads.
+* **3. Dual-writes and inconsistent transactions:** Enforce client-side idempotency keys for API operations and use the Transactional Outbox pattern with Change Data Capture (CDC) to publish database events reliably.
+* **4. Hot partitions and split-brain zombies:** Replicate hot keys across salted suffixes, route traffic via consistent hashing, and issue monotonically increasing fencing tokens on leases to reject stale leader writes.
+
 
 ---
 

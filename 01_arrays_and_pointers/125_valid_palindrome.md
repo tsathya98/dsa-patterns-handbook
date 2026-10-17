@@ -23,17 +23,14 @@ Place `l = 0` at the start and `r = len(s) - 1` at the end, then squeeze inward 
  "A   m a n ,   a   p l a n . . .   P a n a m a"
 ```
 
-```mermaid
-flowchart TD
-    Loop{"l < r?"} -- "not s[l].isalnum()" --> SkipL["l += 1"]
-    Loop -- "not s[r].isalnum()" --> SkipR["r -= 1"]
-    Loop -- "Both alphanumeric" --> Match{"s[l].lower() == s[r].lower()?"}
-    Match -- "Yes" --> Advance["l += 1, r -= 1"]
-    Match -- "No" --> Fail["Return False"]
-    SkipL --> Loop
-    SkipR --> Loop
-    Advance --> Loop
-```
+### Algorithm steps:
+* **1. Initialize two pointers:** Set `l = 0` and `r = len(s) - 1`.
+* **2. Squeeze inward while l < r:**
+  * If `not s[l].isalnum()`, advance `l += 1`.
+  * Else if `not s[r].isalnum()`, retreat `r -= 1`.
+  * Else compare characters case-insensitively: if `s[l].lower() == s[r].lower()`, advance both pointers with `l += 1` and `r -= 1`.
+  * If characters do not match, return `False` immediately.
+* **3. Termination:** If pointers cross without mismatch, return `True`.
 
 ## Step-by-step trace
 

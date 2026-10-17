@@ -13,16 +13,11 @@
 | `set` | Yes | No (use `frozenset` if needed) | `set()` (`{}` is an empty dict) | `{45}` |
 | `dict` | Yes | No (`TypeError`) | `{}` | `{"a": 1}` |
 
-```mermaid
-flowchart TD
-    Key{"Can X be a dict key or set item?"} --> Mut{"Is X mutable (list, set, dict)?"}
-    Mut -- "Yes" --> Convert["Not hashable (TypeError)!<br/>Convert list -> tuple or set -> frozenset"]
-    Mut -- "No (int, str, tuple)" --> Tup{"Is X a tuple?"}
-    Tup -- "No" --> Valid["Valid dict key / set item"]
-    Tup -- "Yes" --> Inner{"Are ALL items inside the tuple immutable?"}
-    Inner -- "Yes" --> Valid
-    Inner -- "No (contains list/set)" --> Convert
-```
+### Decision rules:
+* **1. Top-level mutability check:** If the object is a mutable container (like `list`, `set`, or `dict`), it cannot be hashed directly and raises `TypeError`. Convert lists to tuples or sets to frozensets.
+* **2. Primitive immutable types:** If the object is a primitive immutable value (`int`, `float`, `bool`, `str`), it is directly hashable and safe to use as a dictionary key or set element.
+* **3. Recursive tuple inspection:** If the object is a `tuple`, verify that every nested item inside is also immutable. A tuple containing even one mutable element (such as a list) fails hashability and raises `TypeError`.
+
 
 ---
 

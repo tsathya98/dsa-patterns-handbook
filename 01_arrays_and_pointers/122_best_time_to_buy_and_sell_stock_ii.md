@@ -26,14 +26,13 @@ Action:          skip   take   skip   take   skip
 Total profit = 4 + 3 = 7
 ```
 
-```mermaid
-flowchart TD
-    Start["profit = 0, i = 1..n-1"] --> Check{"prices[i] > prices[i - 1]?"}
-    Check -- "Yes (upward step)" --> Add["profit += prices[i] - prices[i - 1]"]
-    Check -- "No (flat or drop)" --> Skip["Skip day"]
-    Add --> Next["i += 1"]
-    Skip --> Next
-```
+### Algorithm steps:
+* **1. Initialize total profit:** Set `profit = 0`.
+* **2. Scan adjacent trading days:** Loop `i` from `1` to `len(prices) - 1`.
+* **3. Capture upward steps:**
+  * If `prices[i] > prices[i - 1]`, add the daily gain: `profit += prices[i] - prices[i - 1]`.
+  * Otherwise, skip flat days and price drops.
+* **4. Return:** `profit` after traversing the array once in $\mathcal{O}(n)$ time and $\mathcal{O}(1)$ space.
 
 ## Step-by-step trace
 

@@ -33,12 +33,11 @@ When $N = 1,000,000$, $N^2 = 1,000,000,000,000$. The lower-order terms barely re
 * $N^2 + N \implies \mathcal{O}(N^2)$
 * $N^3 + 500N^2 + 10 \implies \mathcal{O}(N^3)$
 
-```mermaid
-flowchart LR
-    A["Raw Step Count<br/>e.g. 3N² + 50N + 10"] --> B["1. Drop Lower Terms<br/>Keep 3N²"]
-    B --> C["2. Drop Constants & Divisors<br/>Keep N²"]
-    C --> D["3. Final Big O Class<br/>O(N²)"]
-```
+### Algorithm steps:
+* **1. Drop non-dominant terms:** Identify the fastest-growing term as $N \to \infty$ and discard all lower-order terms (e.g. discard $50N + 10$ from $3N^2 + 50N + 10$).
+* **2. Eliminate constant factors:** Strip off constant multipliers and divisors since they do not affect the asymptotic rate of growth (e.g. strip $3$ from $3N^2$).
+* **3. Classify asymptotic bound:** Express the simplified expression within Big O notation to represent worst-case runtime scaling (e.g. $\mathcal{O}(N^2)$).
+
 
 ## 3. How to calculate time complexity from loops
 

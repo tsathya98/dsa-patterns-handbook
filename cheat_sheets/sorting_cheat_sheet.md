@@ -84,13 +84,11 @@ Total operations = (N - 1) + (N - 2) + ... + 2 + 1
 
 ## 5. How to Pick in Interviews
 
-```mermaid
-flowchart TD
-    Sort{"What are you sorting?"} -- "Linked List" --> MergeLL["Merge Sort: O(n log n) time, O(1) pointer space"]
-    Sort -- "Integers in small range [0..k]" --> Count["Counting / Bucket Sort: O(n + k) linear time"]
-    Sort -- "Only need Top K / K-th element" --> Heap["Min-Heap of size K: O(n log k) or Quickselect: O(n)"]
-    Sort -- "General Array" --> Constraint{"Main Constraint?"}
-    Constraint -- "Need Stability + O(n log n)" --> Tim["Merge Sort / Timsort"]
-    Constraint -- "Strict O(1) Extra Space" --> HeapSort["Heap Sort: guaranteed O(n log n) and O(1) space"]
-    Constraint -- "Fastest In-Memory Cache" --> Quick["Quick Sort with random/median-of-3 pivot"]
-```
+### Decision rules:
+* **1. Linked lists:** Use Merge Sort because slow/fast pointers split the list in $\mathcal{O}(n)$ time and merging requires only $\mathcal{O}(1)$ pointer reassignments without allocating array buffers.
+* **2. Small integer ranges:** Use Counting Sort or Bucket Sort to achieve $\mathcal{O}(n + k)$ non-comparison linear time when maximum value $k$ is small.
+* **3. Partial selection (Top K):** Maintain a Min-Heap of size $k$ running in $\mathcal{O}(n \log k)$ time, or use Quickselect to find the $k$-th order statistic in $\mathcal{O}(n)$ average time.
+* **4. Stability with guaranteed $\mathcal{O}(n \log n)$:** Choose Merge Sort or Python's native Timsort when relative order of equal elements must be preserved.
+* **5. Strict $\mathcal{O}(1)$ auxiliary space:** Choose Heap Sort for guaranteed $\mathcal{O}(n \log n)$ worst-case time with in-place heapification.
+* **6. Average cache performance:** Choose Quick Sort with randomized or median-of-three pivot selection for optimal CPU cache locality.
+

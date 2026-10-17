@@ -19,15 +19,13 @@ Find the length of the shortest contiguous subarray containing both the global m
 
 If `min_val == max_val`, the answer is $1$. Otherwise, scan left to right while tracking `last_min` and `last_max` (the most recent indices where `min_val` and `max_val` appeared). Whenever you hit a min or max and both indices have been seen, update `min_len = min(min_len, abs(last_min - last_max) + 1)`.
 
-```mermaid
-flowchart TD
-    Scan["For each index i, val = ar[i]"] --> Check{"val == min_val or<br/>val == max_val?"}
-    Check -- "val == min_val" --> SetMin["last_min = i<br/>If last_max != -1: update min_len"]
-    Check -- "val == max_val" --> SetMax["last_max = i<br/>If last_min != -1: update min_len"]
-    Check -- "Neither" --> Next["Next i"]
-    SetMin --> Next
-    SetMax --> Next
-```
+### Algorithm steps:
+* **1. Identify extremes:** Find `min_val = min(ar)` and `max_val = max(ar)`. If `min_val == max_val`, return `1` immediately.
+* **2. Initialize index trackers:** Set `last_min = -1`, `last_max = -1`, and `min_len = len(ar)`.
+* **3. Scan left to right:** For each index `i` and value `val`:
+  * If `val == min_val`, update `last_min = i`. If `last_max != -1`, update `min_len = min(min_len, i - last_max + 1)`.
+  * If `val == max_val`, update `last_max = i`. If `last_min != -1`, update `min_len = min(min_len, i - last_min + 1)`.
+* **4. Return:** `min_len` after scanning the entire array in $\mathcal{O}(n)$ time and $\mathcal{O}(1)$ space.
 
 | Index $i$ | `ar[i]` | `last_min` (val=1) | `last_max` (val=6) | Candidate length | `min_len` |
 |---|---|---|---|---|---|

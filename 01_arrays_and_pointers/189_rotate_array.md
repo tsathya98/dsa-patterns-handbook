@@ -22,12 +22,11 @@ Original:                  [ 1, 2, 3, 4 | 5, 6, 7 ]   (k = 3)
 3. Reverse remaining n-k:  [ 5, 6, 7 | 1, 2, 3, 4 ]
 ```
 
-```mermaid
-flowchart LR
-    Norm["k = k % n"] --> RevAll["1. Reverse all<br/>(0 .. n-1)"]
-    RevAll --> RevFirst["2. Reverse first k<br/>(0 .. k-1)"]
-    RevFirst --> RevRest["3. Reverse rest<br/>(k .. n-1)"]
-```
+### Algorithm steps (Three-reversal trick):
+* **1. Normalize k:** Compute `k = k % len(nums)` to handle rotation steps where $k \ge n$.
+* **2. Reverse entire array:** Reverse `nums[0 : n - 1]` using two pointers swapping from both ends.
+* **3. Reverse first k elements:** Reverse `nums[0 : k - 1]` to restore order in the rotated front partition.
+* **4. Reverse remaining elements:** Reverse `nums[k : n - 1]` to restore order in the shifted back partition in $\mathcal{O}(n)$ time and $\mathcal{O}(1)$ space.
 
 ## Step-by-step trace
 

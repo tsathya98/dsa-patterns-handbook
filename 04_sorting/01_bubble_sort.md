@@ -16,15 +16,18 @@ Pass i: The i-th largest number moves to index (n - i).
 ```
 After at most $n - 1$ passes, the array is sorted.
 
-```mermaid
-flowchart TD
-    Pass["Start Pass i (swapped = False)"] --> Scan["Compare adjacent pairs j and j + 1"]
-    Scan --> Check{"arr[j] > arr[j + 1]?"}
-    Check -- "Yes" --> Swap["Swap elements, set swapped = True"]
-    Check -- "No" --> EndPass{"Any swaps in this pass?"}
-    Swap --> EndPass
-    EndPass -- "No (swapped == False)" --> Done["Array is sorted! Break early"]
-    EndPass -- "Yes" --> NextPass["Lock largest at end, start Pass i + 1"]
+### Algorithm steps:
+* **1. Pass loop ($i$):** Run $i$ from $0$ up to $n - 2$. Elements from index $n - i$ onward are already locked in sorted order.
+* **2. Initialize flag:** Set `swapped = False` before starting each pass to detect early sortedness.
+* **3. Compare adjacent pairs ($j$):** Iterate $j$ from $0$ up to $n - 2 - i$. Compare `arr[j]` with `arr[j + 1]`.
+* **4. Swap if out of order:** If `arr[j] > arr[j + 1]`, swap them and set `swapped = True`.
+* **5. Early exit check:** If `swapped == False` after a full pass (zero swaps), break immediately in $\mathcal{O}(n)$ time.
+
+```playthrough
+{
+  "algorithm": "bubble_sort",
+  "initial": [5, 1, 4, 2, 8]
+}
 ```
 
 ## 2. Step-by-step walkthrough

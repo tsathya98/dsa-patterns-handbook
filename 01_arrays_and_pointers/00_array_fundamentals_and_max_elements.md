@@ -43,14 +43,13 @@ An element is a leader if it is strictly greater than all elements to its right.
 
 Scanning right from every index $i$ takes $\mathcal{O}(N^2)$ time. Instead, scan from right to left ($N-1$ down to $0$) while tracking `max_so_far`. An element `arr[i]` is a leader if and only if `arr[i] > max_so_far`.
 
-```mermaid
-flowchart TD
-    Start["max_so_far = arr[n-1]<br/>Scan i from n-2 down to 0"] --> Check{"arr[i] > max_so_far?"}
-    Check -- "Yes (new leader)" --> Update["Append arr[i] to leaders<br/>max_so_far = arr[i]"]
-    Check -- "No" --> Skip["Ignore arr[i]"]
-    Update --> Next["i -= 1"]
-    Skip --> Next
-```
+### Algorithm steps:
+* **1. Initialize rightmost leader:** Set `leaders = [arr[-1]]` and `max_so_far = arr[-1]`. The rightmost element has no elements to its right, so it is always a leader.
+* **2. Scan right to left:** Iterate `i` from `n - 2` down to `0`.
+* **3. Compare with running max:**
+  * If `arr[i] > max_so_far`, append `arr[i]` to `leaders` and update `max_so_far = arr[i]`.
+  * Otherwise, ignore `arr[i]` because a larger element exists to its right.
+* **4. Return leaders:** Reverse `leaders` if original left-to-right order is required, completing in $\mathcal{O}(n)$ time and $\mathcal{O}(1)$ auxiliary space.
 
 | Index $i$ | `arr[i]` | `max_so_far` (before) | `arr[i] > max_so_far`? | Leader? | `max_so_far` (after) |
 |---|---|---|---|---|---|

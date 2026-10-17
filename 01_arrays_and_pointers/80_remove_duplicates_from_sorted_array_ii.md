@@ -30,14 +30,12 @@ This single pattern generalizes to any maximum duplicate limit $M$:
 - Allow at most 2 copies (LC 80): `if k < 2 or x != nums[k - 2]:`
 - Allow at most $M$ copies: `if k < M or x != nums[k - M]:`
 
-```mermaid
-flowchart TD
-    Start["k = 0, for each x in nums"] --> Check{"k < 2 or x != nums[k - 2]?"}
-    Check -- "Yes (fewer than 2 copies)" --> Write["nums[k] = x<br/>k += 1"]
-    Check -- "No (already 2 copies)" --> Skip["Skip x (k stays put)"]
-    Write --> Next["Next x"]
-    Skip --> Next
-```
+### Algorithm steps:
+* **1. Initialize writer pointer:** Set `k = 0`.
+* **2. Scan each element:** For each `x` in `nums`:
+  * If `k < 2` or `x != nums[k - 2]`, write `nums[k] = x` and advance `k += 1`.
+  * Otherwise, skip `x` since two copies already exist in the valid prefix.
+* **3. Return:** `k` representing the new length with at most two duplicates per value.
 
 ## Step-by-step trace (Lookback-2)
 

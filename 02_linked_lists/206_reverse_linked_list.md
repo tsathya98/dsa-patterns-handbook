@@ -22,12 +22,22 @@ To flip arrows safely in-place, use three pointers and a 4-step loop:
 2. `cur`: starts at `head` (the node currently flipping its arrow).
 3. `nxt`: a temporary bookmark saved at the start of each iteration (`nxt = cur.next`) so you do not lose the rest of the list when you overwrite `cur.next`.
 
-```mermaid
-flowchart LR
-    A["1. nxt = cur.next<br/>(Bookmark rest of list)"] --> B["2. cur.next = prev<br/>(Flip arrow backward)"]
-    B --> C["3. prev = cur<br/>(Slide prev forward)"]
-    C --> D["4. cur = nxt<br/>(Slide cur forward)"]
+### Algorithm steps (4-step pointer flip):
+* **1. Initialize pointers:** `prev = None`, `cur = head`.
+* **2. While cur is not None:**
+  * Step A (Bookmark next): `nxt = cur.next` (saves reference to rest of list before breaking wire).
+  * Step B (Flip arrow backward): `cur.next = prev` (reverses the outgoing link).
+  * Step C (Slide prev forward): `prev = cur`.
+  * Step D (Slide cur forward): `cur = nxt`.
+* **3. Return new head:** Once `cur` is `None`, return `prev` (pointing to the new head of the reversed list).
+
+```playthrough
+{
+  "algorithm": "reverse_linked_list",
+  "initial": [1, 2, 3, 4, 5]
+}
 ```
+
 
 ## Step-by-step trace
 

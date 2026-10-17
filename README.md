@@ -12,13 +12,14 @@ Personal notes, pattern cheat sheets, and problem walkthroughs for Data Structur
 | **[dsa_patterns_study_guide.md](./dsa_patterns_study_guide.md)** | All 13 core DSA patterns in one single-page summary. |
 | **[`cheat_sheets/`](./cheat_sheets/)** | 21 quick-reference pattern and system design cheat sheets. |
 
-```mermaid
-flowchart LR
-    F["00. Foundations<br/>(Big-O, Memory, Primes)"] --> A["01. Arrays & Pointers<br/>(Two Pointers, Windows, Prefix)"]
-    A --> L["02. Linked Lists<br/>(Dummy, Fast/Slow, Flip)"]
-    L --> S["03–05. Stacks, Sorting<br/>& Binary Search"]
-    S --> SD["System Design<br/>(Caching, Sharding, Queues)"]
-```
+### Study Progression:
+* **1. Foundations (`00_foundations/`):** Big-O asymptotic analysis, Python memory model, pointer references, primes, and iteration counting.
+* **2. Arrays & Pointers (`01_arrays_and_pointers/`):** Two pointers, sliding window, prefix sums, seesaw pivot, contribution technique, and 2D matrix rotations.
+* **3. Linked Lists (`02_linked_lists/`):** Dummy nodes, fast & slow pointers (Tortoise & Hare), and in-place 4-step pointer reversal.
+* **4. Stacks, Sorting & Binary Search (`03_` to `05_`):** LIFO matching, monotonic stacks, elementary and divide-and-conquer sorting, and $\mathcal{O}(\log n)$ search spaces.
+* **5. Recursion & Backtracking (`06_recursion_and_backtracking/`):** Call stack frames, branch exploration, and state backtracking.
+* **6. System Design (`system_design/`):** Scalability, caching, database sharding, message queues, API gateways, and distributed resilience.
+
 
 ---
 

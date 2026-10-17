@@ -47,15 +47,15 @@ At each midpoint `mid`:
    * If `first_idx % 2 == 0`, we are still in the `(even, odd)` left region, so the single element is further right: `lo = first_idx + 2`.
    * If `first_idx % 2 == 1`, the parity has already shifted to `(odd, even)`, so the single element is to the left: `hi = first_idx - 1`.
 
-```mermaid
-flowchart TD
-    Mid["Inspect mid = lo + (hi - lo) // 2"] --> Single{"Unpaired with mid - 1 and mid + 1?"}
-    Single -- "Yes" --> Found["Return arr[mid]"]
-    Single -- "No" --> Align["Find pair start: first_idx = mid - 1 (if paired left) else mid"]
-    Align --> Parity{"Is first_idx even?"}
-    Parity -- "Yes (first_idx % 2 == 0)" --> Right["Intact (even, odd) left side -> lo = first_idx + 2"]
-    Parity -- "No (first_idx % 2 == 1)" --> Left["Shifted (odd, even) right side -> hi = first_idx - 1"]
-```
+### Algorithm steps:
+* **1. Check boundaries and initialize bounds:** Check if `arr[0] != arr[1]` or `arr[-1] != arr[-2]`. Otherwise, restrict search to interior indices `lo = 1` and `hi = len(arr) - 2`.
+* **2. Compute midpoint and test isolation:** While `lo <= hi`, set `mid = lo + (hi - lo) // 2`:
+  * If `arr[mid] != arr[mid - 1]` and `arr[mid] != arr[mid + 1]`: single element found, return `arr[mid]`.
+* **3. Determine pair start and steer by parity:**
+  * Find pair start: `first_idx = mid - 1` if `arr[mid] == arr[mid - 1]` else `mid`.
+  * If `first_idx % 2 == 0`: pair starts on an even index (left pattern intact); eliminate left by setting `lo = first_idx + 2`.
+  * If `first_idx % 2 == 1`: pair starts on an odd index (disrupted by earlier single element); eliminate right by setting `hi = first_idx - 1`.
+* **4. Terminate:** Return the isolated single element once encountered.
 
 ## 4. Implementation (LeetCode 540)
 

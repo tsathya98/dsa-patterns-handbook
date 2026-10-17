@@ -62,15 +62,14 @@ When index $i$ is removed:
 $$\text{new\_even} = \text{even\_sum}(0, i - 1) + \text{odd\_sum}(i + 1, N - 1)$$
 $$\text{new\_odd} = \text{odd\_sum}(0, i - 1) + \text{even\_sum}(i + 1, N - 1)$$
 
-```mermaid
-flowchart TD
-    Pre["Build pf_even and pf_odd prefix arrays"] --> Loop["For each index i in 0..n-1"]
-    Loop --> Calc["new_even = even(0..i-1) + odd(i+1..n-1)<br/>new_odd = odd(0..i-1) + even(i+1..n-1)"]
-    Calc --> Check{"new_even == new_odd?"}
-    Check -- "Yes" --> Inc["count += 1"]
-    Check -- "No" --> Next["Next i"]
-    Inc --> Next
-```
+### Algorithm steps:
+* **1. Build prefix parity arrays:** Construct `pf_even` and `pf_odd` storing cumulative sums of even and odd indexed elements up to each position.
+* **2. Iterate candidate split points:** Test removing each index `i` from `0` to `n - 1`.
+* **3. Calculate adjusted sums:**
+  * `new_even = even_sum(0, i - 1) + odd_sum(i + 1, n - 1)`.
+  * `new_odd = odd_sum(0, i - 1) + even_sum(i + 1, n - 1)`.
+  * Elements after index `i` shift left by one, which flips their index parities.
+* **4. Compare and count:** If `new_even == new_odd`, increment `count += 1`. Return `count` after testing all indices.
 
 <details>
 <summary>Spoiler: Solution Code</summary>

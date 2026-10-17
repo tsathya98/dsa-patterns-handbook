@@ -9,16 +9,11 @@ When decomposing a number into standard fixed units (Roman numerals, cash bills,
 2. The unit system is **canonical** (taking the largest piece first never blocks the optimal answer).
 3. You can list all denominations in descending order upfront.
 
-```mermaid
-flowchart TD
-    Start["Sort denominations largest to smallest"] --> NextUnit["Pick next (val, symbol)"]
-    NextUnit --> Fit{"num >= val?"}
-    Fit -- "Yes" --> Peel["Append symbol, subtract num -= val"]
-    Peel --> Fit
-    Fit -- "No" --> More{"More denominations and num > 0?"}
-    More -- "Yes" --> NextUnit
-    More -- "No" --> Done["Return joined result"]
-```
+### Algorithm steps:
+* **1. Descending denomination ordering:** Sort or declare all base units and special subtractive compounds from largest to smallest.
+* **2. Greedy match and peel:** Inspect each unit `(val, sym)`. While `num >= val`, append `sym` to the result and subtract `val` from `num`.
+* **3. Advance until exhausted:** Move to the next smaller denomination when `num < val`, terminating once all denominations are checked or `num == 0` in $\mathcal{O}(1)$ time.
+
 
 ---
 

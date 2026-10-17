@@ -32,14 +32,21 @@ Running:     4 -> 3 -> 5 -> 6 (Max!)
 ```
 Even though `-1` dropped the total from `4` to `3`, keeping that `+3` cushion let us reach `6` when `2` and `1` showed up. We only reset when the running sum drops below `0`.
 
-```mermaid
-flowchart TD
-    Loop["For each num in nums[1:]"] --> Check{"current_sum < 0?"}
-    Check -- "Yes (negative baggage)" --> Reset["current_sum = num"]
-    Check -- "No (positive cushion)" --> Extend["current_sum += num"]
-    Reset --> Best["max_sum = max(max_sum, current_sum)"]
-    Extend --> Best
+### Algorithm steps (Kadane's algorithm):
+* **1. Initialize trackers:** Set `current_sum = nums[0]` and `max_sum = nums[0]`.
+* **2. Iterate through array:** For each `num` from index 1 to $n - 1$:
+  * If `current_sum < 0`, carrying it forward only hurts future sums; start fresh with `current_sum = num`.
+  * Otherwise, extend the existing positive cushion: `current_sum += num`.
+  * Update global best: `max_sum = max(max_sum, current_sum)`.
+* **3. Return:** `max_sum` in $\mathcal{O}(n)$ time and $\mathcal{O}(1)$ space.
+
+```playthrough
+{
+  "algorithm": "kadanes",
+  "initial": [-2, 1, -3, 4, -1, 2, 1, -5, 4]
+}
 ```
+
 
 ## Trace
 | `num` | `current_sum + num` | Start fresh (`num`) | New `current_sum` | `max_sum` |

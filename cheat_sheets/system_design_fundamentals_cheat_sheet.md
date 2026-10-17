@@ -37,11 +37,9 @@
 - **Edge Protection:** Rate limit by user/IP (Token Bucket) at the API Gateway.
 - **Fault Isolation:** Set timeouts, exponential backoff with jitter, and circuit breakers on every downstream network call.
 
-```mermaid
-flowchart LR
-    Client["Client"] --> Edge["CDN (Static) + API Gateway / LB (Rate Limit)"]
-    Edge --> App["Stateless App Tier"]
-    App -- "Fast Read" --> Cache["Redis Cache-Aside"]
-    App -- "Write / Cache Miss" --> DB["Primary DB + Read Replicas"]
-    App -- "Async Work" --> Queue["Kafka / SQS -> Worker Pool"]
-```
+### Decision rules:
+* **1. Edge termination and validation:** Terminate requests at edge CDN caches for static assets, then enforce SSL termination and Token Bucket rate limiting at the API Gateway.
+* **2. Stateless app execution:** Route incoming API calls across horizontally scalable, stateless application nodes that store session context in external memory stores (Redis) rather than local process memory.
+* **3. Storage tiered access:** Route fast reads through a Redis Cache-Aside layer. Direct cache misses to Read Replicas and route write traffic strictly to the Primary DB instance.
+* **4. Asynchronous task offloading:** Push heavy background workloads, notifications, or batch processing onto message queues (Kafka / SQS) consumed by isolated worker pools.
+

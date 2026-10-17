@@ -33,12 +33,11 @@ You can find both target nodes in a single pass with $\mathcal{O}(1)$ space usin
 3. Advance both `fast` and `second` together until `fast` lands on the final node (`while fast.next:`).
 4. Because `fast` is at the end (1st node from the back) and `second` trails by `k - 1` steps, `second` is now sitting on the $k$-th node from the end. Swap `first.val` and `second.val`.
 
-```mermaid
-flowchart LR
-    A["1. Walk first k - 1 steps<br/>(Parks on k-th from start)"] --> B["2. Set fast = first,<br/>second = head"]
-    B --> C["3. Slide fast & second<br/>while fast.next exists"]
-    C --> D["4. Swap Values<br/>first.val, second.val"]
-```
+### Algorithm steps:
+* **1. Locate k-th node from start:** Initialize `first = head` and walk forward `k - 1` times. Keep `first` parked on this node.
+* **2. Initialize fixed-gap runner:** Set `fast = first` and follower `second = head` (preserving a gap of `k - 1` steps).
+* **3. Slide window to tail:** While `fast.next` is not None, advance both `fast = fast.next` and `second = second.next`.
+* **4. Swap values and return:** Swap the values `first.val, second.val = second.val, first.val`, then return `head`.
 
 ## Step-by-step trace
 

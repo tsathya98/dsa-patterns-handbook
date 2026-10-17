@@ -20,14 +20,11 @@ $$\implies \text{right\_sum} = \text{total\_sum} - \text{left\_sum} - \text{nums
      left_sum    nums[i]  total - left_sum - nums[i]
 ```
 
-```mermaid
-flowchart TD
-    Init["Compute total = sum(nums), set left_sum = 0"] --> Step["Inspect (i, num)"]
-    Step --> Right["right_sum = total - left_sum - num"]
-    Right --> Check{"left_sum == right_sum?"}
-    Check -- "Yes" --> Found["Return pivot index i"]
-    Check -- "No" --> Add["Add num to left_sum and advance i"]
-```
+### Algorithm steps:
+* **1. Total sum initialization:** Calculate `total = sum(nums)` in an initial pass and initialize running accumulator `left_sum = 0`.
+* **2. Pivot equality test:** At each index `i`, derive `right_sum = total - left_sum - num` and check whether `left_sum == right_sum`. If they match, return `i` immediately.
+* **3. Invariant maintenance:** Add `num` to `left_sum` only after performing the pivot comparison, guaranteeing $\mathcal{O}(n)$ time and $\mathcal{O}(1)$ extra space.
+
 
 ### Template ([LC 724: Find Pivot Index](../01_arrays_and_pointers/724_find_pivot_index.md))
 ```python

@@ -29,16 +29,15 @@ Decision Tree for [1, 2, 3]:
   [1,2,3]
 ```
 
-```mermaid
-flowchart TD
-    Enter["backtrack(start)"] --> Record["Record copy: res.append(path[:])"]
-    Record --> Loop{"Loop i = start..n-1"}
-    Loop -- "Done with choices" --> Return["Return to parent"]
-    Loop -- "Next choice" --> Pick["1. path.append(nums[i])"]
-    Pick --> Recurse["2. backtrack(i + 1)"]
-    Recurse --> Pop["3. path.pop()"]
-    Pop --> Loop
-```
+### Algorithm steps:
+* **1. Initialize containers:** Create results collector `res = []` and current exploration path `path = []`.
+* **2. Record state at every node:** In helper `backtrack(start)`:
+  * Snapshot current configuration: `res.append(path[:])` (every intermediate path is a valid subset).
+* **3. Loop through remaining candidates (choose-explore-unchoose):** For each index `i` from `start` to `len(nums) - 1`:
+  * Choose: `path.append(nums[i])`.
+  * Explore: recurse with `backtrack(i + 1)` (moving strictly rightward eliminates duplicate subsets).
+  * Unchoose: `path.pop()` to restore state for subsequent elements.
+* **4. Terminate and return:** Return `res` after exploring all branches.
 
 <details>
 <summary>Spoiler: Solution Code</summary>

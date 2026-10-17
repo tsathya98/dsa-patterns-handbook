@@ -25,17 +25,16 @@ Board Coordinates:
 (2,0) (2,1) (2,2)                               2   1   0
 ```
 
-```mermaid
-flowchart TD
-    Row["backtrack(row)"] --> CheckDone{"row == n?"}
-    CheckDone -- "Yes" --> Save["Save board copy to result"]
-    CheckDone -- "No" --> TryCol{"Loop col = 0..n-1"}
-    TryCol -- "Conflict in cols / diag / anti_diag" --> Skip["Continue (prune branch)"]
-    TryCol -- "Safe square" --> Place["1. Place 'Q' & add to 3 sets"]
-    Place --> Recurse["2. backtrack(row + 1)"]
-    Recurse --> Unplace["3. Remove 'Q' & remove from 3 sets"]
-    Unplace --> TryCol
-```
+### Algorithm steps:
+* **1. Initialize tracking sets and board:** Create empty sets `cols`, `diag` ($r - c$), and `anti_diag` ($r + c$), along with an $n \times n$ board initialized to `"."`.
+* **2. Base condition check:** In `backtrack(row)`:
+  * If `row == n`: all queens placed safely; format board configuration into string rows, append to `res`, and return.
+* **3. Column iteration and conflict pruning (choose-explore-unchoose):** For each column `col` in `range(n)`:
+  * Pruning check: If `col in cols`, `(row - col) in diag`, or `(row + col) in anti_diag`, skip this column.
+  * Choose: Place queen (`board[row][col] = 'Q'`) and add coordinates to `cols`, `diag`, and `anti_diag`.
+  * Explore: Recurse to the next row with `backtrack(row + 1)`.
+  * Unchoose: Revert square (`board[row][col] = '.'`) and discard coordinates from `cols`, `diag`, and `anti_diag`.
+* **4. Terminate and return:** Return `res` after search space exploration completes.
 
 <details>
 <summary>Spoiler: Solution Code</summary>

@@ -38,15 +38,14 @@ nums1 = [ 2 , 5 , 6 , 0 , 0 , 0 ]     nums2 = [ 1 , 3 , 4 ]
 
 At each step, compare `nums1[p1]` and `nums2[p2]`, place the larger value at `nums1[p]`, and decrement the corresponding pointers.
 
-```mermaid
-flowchart TD
-    Loop{"p1 >= 0 and p2 >= 0?"} -- "Yes" --> Cmp{"nums1[p1] > nums2[p2]?"}
-    Cmp -- "Yes" --> Take1["nums1[p] = nums1[p1]<br/>p1 -= 1, p -= 1"]
-    Cmp -- "No" --> Take2["nums1[p] = nums2[p2]<br/>p2 -= 1, p -= 1"]
-    Take1 --> Loop
-    Take2 --> Loop
-    Loop -- "No (copy leftover nums2)" --> Tail["While p2 >= 0:<br/>nums1[p] = nums2[p2], p2 -= 1, p -= 1"]
-```
+### Algorithm steps:
+* **1. Initialize three pointers at tails:** Set `p1 = m - 1` (last item in `nums1`), `p2 = n - 1` (last item in `nums2`), and writer pointer `p = m + n - 1` (end of `nums1` buffer).
+* **2. Merge from back to front:** While `p1 >= 0` and `p2 >= 0`:
+  * If `nums1[p1] > nums2[p2]`, write `nums1[p] = nums1[p1]` and decrement `p1 -= 1`.
+  * Otherwise, write `nums1[p] = nums2[p2]` and decrement `p2 -= 1`.
+  * Decrement writer `p -= 1`.
+* **3. Flush remaining elements from nums2:** While `p2 >= 0`, write `nums1[p] = nums2[p2]` and decrement both `p2 -= 1` and `p -= 1` (any remaining `nums1` elements are already in their correct places).
+* **4. Termination:** `nums1` is sorted in-place in $\mathcal{O}(m + n)$ time and $\mathcal{O}(1)$ space.
 
 ## Step-by-step trace
 

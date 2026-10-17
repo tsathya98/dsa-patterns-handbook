@@ -68,15 +68,11 @@ None ◄── [ 1 ]      [ 2 ] ──► [ 3 ] ──► None
           prev       cur       nxt
 ```
 
-```mermaid
-flowchart TD
-    Start["prev = None, cur = head"] --> Cond{"cur is not None?"}
-    Cond -- "No" --> Ret["Return prev (new head)"]
-    Cond -- "Yes" --> Step1["1. Bookmark: nxt = cur.next"]
-    Step1 --> Step2["2. Flip arrow: cur.next = prev"]
-    Step2 --> Step3["3. Shift pointers: prev = cur, cur = nxt"]
-    Step3 --> Cond
-```
+### Algorithm steps:
+* **1. Initialize pointers:** Set `prev = None` and `cur = head` before beginning traversal.
+* **2. Bookmark and reverse:** While `cur` is not None, save `nxt = cur.next` so the forward chain is preserved, then point `cur.next = prev` backward.
+* **3. Advance sliding window:** Shift pointers forward via `prev = cur` and `cur = nxt`. When `cur` reaches None, return `prev` as the new head in $\mathcal{O}(n)$ time and $\mathcal{O}(1)$ memory.
+
 
 ```python
 def reverseList(head):

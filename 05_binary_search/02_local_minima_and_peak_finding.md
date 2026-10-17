@@ -51,14 +51,21 @@ Case C: arr[mid] < arr[mid - 1] and arr[mid] < arr[mid + 1]
        -> Return mid.
 ```
 
-```mermaid
-flowchart TD
-    Start["Check ends arr[0] and arr[n - 1], then set lo = 1, hi = n - 2"] --> Mid["mid = lo + (hi - lo) // 2"]
-    Mid --> Check{"Compare arr[mid] with neighbors"}
-    Check -- "Smaller than both" --> Valley["Local minimum found! Return mid"]
-    Check -- "arr[mid] > arr[mid - 1]" --> Left["Downward slope left: hi = mid - 1"]
-    Check -- "arr[mid] > arr[mid + 1]" --> Right["Downward slope right: lo = mid + 1"]
+### Algorithm steps:
+* **1. Boundary edge cases:** If $N = 1$, return index 0. Check boundary endpoints `arr[0]` and `arr[n - 1]`.
+* **2. Initialize inner bounds:** Set `lo = 1` and `hi = n - 2`.
+* **3. Compare mid with neighbors:** Compute `mid = lo + (hi - lo) // 2`:
+  * If `arr[mid]` is smaller than both neighbors (`arr[mid - 1]` and `arr[mid + 1]`), valley found! Return `mid`.
+  * If `arr[mid] > arr[mid - 1]`, downward slope to the left guarantees a local minimum exists on the left; steer `hi = mid - 1`.
+  * Otherwise, downward slope to the right guarantees a local minimum on the right; steer `lo = mid + 1`.
+
+```playthrough
+{
+  "algorithm": "peak_finding",
+  "initial": [1, 2, 1, 3, 5, 6, 4]
+}
 ```
+
 
 ## 4. Implementation
 

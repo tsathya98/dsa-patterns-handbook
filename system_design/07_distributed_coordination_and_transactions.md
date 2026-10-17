@@ -32,13 +32,12 @@ App ──1. INSERT order──> [ Postgres ]     App ──1. BEGIN TX ──�
 
 * **Fix (Transactional Outbox):** Within a **single local SQL transaction**, `INSERT` the order into `orders` and `INSERT` the event payload into an `outbox` table, then `COMMIT`. A separate relay process (either polling the `outbox` table or tailing the Postgres WAL via Debezium CDC) publishes pending outbox rows to Kafka and marks them sent once Kafka acknowledges them.
 
-```mermaid
-flowchart LR
-    APP["App Service"] -- "1. Single ACID TX" --> DB["Postgres<br/>(INSERT orders + INSERT outbox)"]
-    DB -- "2. Tail WAL / Poll" --> RELAY["Outbox Relay / CDC"]
-    RELAY -- "3. At-Least-Once Publish" --> KAFKA["Kafka Topic"]
-    KAFKA -- "4. Consume & Deduplicate" --> WORKER["Idempotent Consumer"]
-```
+* **Transactional outbox 4-step sequence:**
+  * **1. Atomic local commit:** Within a single DB transaction, insert the entity into `orders` and the event into an `outbox` table, then commit.
+  * **2. Change data capture (CDC):** A background relay (Debezium tailing the WAL log or scheduled poller) reads unpublished outbox rows.
+  * **3. At-least-once publish:** The relay publishes the event to Kafka and updates the outbox row status to published upon broker ACK.
+  * **4. Idempotent consumption:** Consumers deduplicate messages via message ID before processing to prevent duplicate side-effects.
+
 
 ### 4. Saga pattern
 * **Problem:** A checkout workflow spans three separate services with their own databases: `ReserveInventory` $\to$ `ChargeCard` $\to$ `CreateShipment`. You cannot hold a single ACID database transaction across three independent microservices.

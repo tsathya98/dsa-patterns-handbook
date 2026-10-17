@@ -38,16 +38,12 @@ s + s = "abababab"
 chop  =  x bababa x   <-- "abab" is inside "bababa"!
 ```
 
-```mermaid
-flowchart TD
-    Start["n = len(s)"] --> Loop{"L from 1 to n // 2"}
-    Loop -- "L finished" --> FalseEnd["Return False"]
-    Loop -- "Next L" --> DivCheck{"n % L == 0?"}
-    DivCheck -- "No" --> Loop
-    DivCheck -- "Yes" --> MatchCheck{"s[:L] * (n // L) == s?"}
-    MatchCheck -- "Yes" --> Found["Return True"]
-    MatchCheck -- "No" --> Loop
-```
+### Algorithm steps (Divisor check):
+* **1. Set bounds:** Let `n = len(s)`. A repeating pattern must have length `L` at most `n // 2`.
+* **2. Test candidate lengths:** Loop candidate prefix length `L` from `1` to `n // 2`:
+  * If `n % L != 0`, skip `L` (cannot divide string into equal blocks).
+  * If `s[:L] * (n // L) == s`, repeating this prefix reconstructs `s`; return `True`.
+* **3. Termination:** If no prefix length forms the string, return `False`.
 
 ## Step-by-step trace
 

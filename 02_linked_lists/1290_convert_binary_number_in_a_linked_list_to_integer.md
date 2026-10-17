@@ -32,14 +32,12 @@ For base 2, do the exact same thing, except multiply by `2` instead of `10`:
 - `ans = ans * 2 + head.val`
 - Or using bitwise operators: shift all existing bits left by 1 (`ans << 1`) and drop the new bit into the ones place (`| head.val`).
 
-```mermaid
-flowchart LR
-    A["Start: ans = 0"] --> B{"head is not None?"}
-    B -- "Yes" --> C["Shift & Append Bit<br/>ans = (ans << 1) | head.val"]
-    C --> D["Advance Pointer<br/>head = head.next"]
-    D --> B
-    B -- "No" --> E["Return ans"]
-```
+### Algorithm steps:
+* **1. Initialize accumulator:** Set `ans = 0`.
+* **2. Traverse the list:** While `head` is not None:
+  * Shift accumulator left and insert the current bit: `ans = (ans << 1) | head.val` (or `ans = ans * 2 + head.val`).
+* **3. Advance pointer:** Move `head = head.next`.
+* **4. Return result:** Once traversal reaches None, return `ans`.
 
 ## Step-by-step trace
 

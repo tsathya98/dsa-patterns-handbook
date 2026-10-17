@@ -20,14 +20,11 @@ Every backtracking problem follows the same loop:
 2. **Explore:** `backtrack(next_state)`
 3. **Un-choose (Undo):** `path.pop()`
 
-```mermaid
-flowchart TD
-    Enter["Enter backtrack(state)"] --> Goal{"Reached valid solution?"}
-    Goal -- "Yes" --> Save["Record copy: result.append(path[:])"]
-    Goal -- "No" --> Choose["1. Choose: path.append(choice)"]
-    Choose --> Explore["2. Explore: backtrack(next_state)"]
-    Explore --> Undo["3. Undo: path.pop() and try next choice"]
-```
+### Algorithm steps:
+* **1. Base condition check:** Test if current state reaches a terminal solution. If valid, save a shallow snapshot copy with `result.append(path[:])` and return.
+* **2. Candidate exploration:** Iterate through candidate choices. For valid options, make the choice by appending `path.append(choice)` and recursively explore `backtrack(next_state)`.
+* **3. State reversal (Backtrack):** Execute `path.pop()` upon unwinding to reset state before attempting subsequent branch alternatives.
+
 
 ```python
 def backtrack(state):

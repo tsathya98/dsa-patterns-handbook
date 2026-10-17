@@ -22,13 +22,11 @@ Symbol:   "M"  "CM"   "D"  "CD"   "C"  "XC"   "L"  "XL"   "X"  "IX"   "V"  "IV" 
 
 Iterate through the table from largest to smallest. For each `(val, sym)`, subtract `val` and append `sym` for as long as `num >= val` (or compute `count = num // val` and `num %= val`).
 
-```mermaid
-flowchart TD
-    Start["For each (val, sym) from 1000 down to 1"] --> Check{"num >= val?"}
-    Check -- "Yes" --> Take["Append sym to res<br/>num -= val"]
-    Take --> Check
-    Check -- "No" --> Next["Move to next smaller (val, sym)"]
-```
+### Algorithm steps:
+* **1. Define value-symbol mapping:** List roman values and symbols in descending order, including subtractive combinations (`1000: "M"`, `900: "CM"`, `500: "D"`, `400: "CD"`, ..., `1: "I"`).
+* **2. Greedily subtract largest values:** For each `(val, sym)` pair:
+  * While `num >= val`, append `sym` to the output list and subtract `num -= val`.
+* **3. Termination:** Join and return the accumulated symbols once `num == 0`.
 
 ## Step-by-step trace
 

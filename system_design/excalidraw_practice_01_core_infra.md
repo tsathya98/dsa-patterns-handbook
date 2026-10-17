@@ -32,15 +32,13 @@
 - [ ] Add a **message queue (SQS / Kafka)** triggered when a new object lands in S3.
 - [ ] Add **image processing workers** that pull jobs from the queue, generate thumbnails, write them back to S3, and update metadata in Postgres.
 
-```mermaid
-flowchart LR
-    C["Client"] --> EDGE["DNS + CDN + API Gateway"]
-    EDGE --> APP["L7 LB + Stateless App Tier"]
-    APP --> DATA["Redis Cache + Postgres<br/>(Primary & Read Replicas)"]
-    C -- "Pre-Signed Upload" --> S3["AWS S3 Object Storage"]
-    S3 -- "Upload Event" --> MQ["SQS / Kafka Queue"]
-    MQ --> W["Thumbnail Workers<br/>(Write Variants to S3 & DB)"]
-```
+* **End-to-end component flow:**
+  * **1. Ingress:** Client queries pass through DNS -> CDN edge -> API Gateway / L7 LB -> Stateless App Tier.
+  * **2. Data Tier:** App reads from Redis Cache (sub-ms) and writes to Postgres Primary DB (replicated to read replicas).
+  * **3. Media Upload:** Client requests pre-signed URL from App, uploads binary directly to AWS S3 Object Storage.
+  * **4. Event Queue:** S3 triggers an object-created event notification to SQS / Kafka queue.
+  * **5. Async Workers:** Thumbnail workers consume event, resize images to 3 resolutions, write variants to S3, and save metadata back to Postgres.
+
 
 ## 3. Self-critique questions
 

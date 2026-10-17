@@ -29,14 +29,12 @@ $$\mathcal{O}(1) < \mathcal{O}(\log N) < \mathcal{O}(\sqrt{N}) < \mathcal{O}(N) 
 | $N \le 10^6$ | $\mathcal{O}(N)$ | Two pointers, sliding window, hash map, prefix sum |
 | $N \ge 10^9$ | $\mathcal{O}(\sqrt{N})$ or $\mathcal{O}(\log N)$ | Binary search, math / factor pairs |
 
-```mermaid
-flowchart TD
-    CheckN{"Check max input size N"} -- "N <= 20" --> Exp["O(2^N) or O(N!): Backtracking / Bitmask"]
-    CheckN -- "N <= 2,000" --> Quad["O(N^2): Nested loops / 2D DP"]
-    CheckN -- "N <= 10^5" --> NLogN["O(N log N): Sorting / Heap / Divide & Conquer"]
-    CheckN -- "N <= 10^6" --> Lin["O(N): Two Pointers / Sliding Window / Hash Map"]
-    CheckN -- "N >= 10^9" --> Log["O(log N) or O(sqrt(N)): Binary Search / Math"]
-```
+### Decision rules:
+* **1. Tiny input boundaries ($N \le 20$):** Target $\mathcal{O}(2^N)$ or $\mathcal{O}(N!)$ algorithms utilizing complete recursion trees, backtracking, or bitmask states.
+* **2. Moderate constraints ($N \le 2,000$):** Target $\mathcal{O}(N^2)$ quadratic algorithms such as nested loops, 2D dynamic programming tables, or all-pairs evaluations.
+* **3. Standard collections ($N \le 10^5$ to $10^6$):** Target $\mathcal{O}(N \log N)$ (sorting, heaps, divide and conquer) or linear $\mathcal{O}(N)$ (two pointers, sliding window, hash maps, prefix sums).
+* **4. Massive scale ($N \ge 10^9$):** Target sublinear $\mathcal{O}(\log N)$ or $\mathcal{O}(\sqrt{N})$ algorithms relying on binary search, math factor pairs, or bitwise logic.
+
 
 ---
 

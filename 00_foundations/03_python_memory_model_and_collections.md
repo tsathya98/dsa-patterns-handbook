@@ -67,12 +67,11 @@ Tuple t (Immutable Slots):
     (1)       (2)     0x999: [ 100, 200 ]  (Mutable List Object)
 ```
 
-```mermaid
-flowchart TD
-    T["Tuple t (Immutable Slots)<br/>[0x001, 0x002, 0x999]"] --> OP{"Operation on t[2]"}
-    OP -- "t[2].append(300)" --> MUT["Mutate List at 0x999 in Place<br/>(Slot stays 0x999 -> Succeeds)"]
-    OP -- "t[2] = [100, 200, 300]" --> REB["Try to Change Slot 2 to 0x888<br/>(Raises TypeError)"]
-```
+### Decision rules:
+* **1. In-place mutation check:** If an operation modifies the mutable object in place (e.g. `t[2].append(300)`), the pointer address stored in the tuple slot remains identical (`0x999`), allowing the change to succeed.
+* **2. Reassignment check:** If an operation assigns a new object to a tuple index (e.g. `t[2] = [100, 200, 300]`), Python attempts to rebind the slot address to a new pointer (`0x888`), which immediately raises `TypeError`.
+* **3. Augmented assignment gotcha:** When running augmented assignment like `t[2] += [300]`, the mutable object mutates in place first, but the subsequent reference rebinding back to the tuple slot fails with `TypeError`.
+
 
 ### Case A: `t[2].append(300)` (succeeds)
 * Python follows pointer `0x999` to the list object and appends `300` inside that list.

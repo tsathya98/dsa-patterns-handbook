@@ -27,13 +27,12 @@ Compute `total` once up front and maintain a running `left_sum = 0`. At each ind
 
 $$\text{right\_sum} = \text{total} - \text{left\_sum} - \text{nums}[i]$$
 
-```mermaid
-flowchart TD
-    Init["total = sum(nums), left_sum = 0"] --> Loop["For each i, num in enumerate(nums)"]
-    Loop --> Check{"left_sum == total - left_sum - num?"}
-    Check -- "Yes" --> Found["Return i"]
-    Check -- "No" --> Add["left_sum += num<br/>Next i"]
-```
+### Algorithm steps:
+* **1. Compute total and initialize left sum:** Calculate `total = sum(nums)` and set `left_sum = 0`.
+* **2. Iterate through indices:** For each `i, num` in `enumerate(nums)`:
+  * Check equilibrium condition: if `left_sum == total - left_sum - num`, pivot found; return `i`.
+  * Update running left sum: `left_sum += num`.
+* **3. Termination:** If no index satisfies the condition, return `-1`.
 
 ## Step-by-step trace
 

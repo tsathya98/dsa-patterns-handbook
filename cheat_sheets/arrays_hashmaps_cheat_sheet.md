@@ -46,13 +46,11 @@ def twoSum(nums: list[int], target: int) -> list[int]:
     return []
 ```
 
-```mermaid
-flowchart TD
-    Step["Visit (i, num) in nums"] --> Comp["Compute complement: comp = target - num"]
-    Comp --> Check{"comp in seen?"}
-    Check -- "Yes" --> Found["Return [seen[comp], i]"]
-    Check -- "No" --> Store["Store seen[num] = i and move to next element"]
-```
+### Algorithm steps:
+* **1. Complement calculation:** For each element `num` at index `i`, compute required complement `comp = target - num`.
+* **2. Hash lookup branch:** Check if `comp` exists in `seen`. If present, immediately return pair indices `[seen[comp], i]`.
+* **3. State memoization:** If absent, save `seen[num] = i` and proceed to the next element, maintaining $\mathcal{O}(n)$ time and $\mathcal{O}(n)$ auxiliary space.
+
 
 ### Pattern 2: Canonical Signature Grouping (LC 49: Group Anagrams)
 Group items that share an underlying property by converting each item into a canonical immutable key (a sorted string or a 26-element character count `tuple`):

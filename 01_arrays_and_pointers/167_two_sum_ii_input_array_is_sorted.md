@@ -23,15 +23,14 @@ Place `l = 0` at the smallest element and `r = len(numbers) - 1` at the largest 
 [ 2,      7,      11,      15 ],   target = 9
 ```
 
-```mermaid
-flowchart TD
-    Start["l = 0, r = n - 1"] --> Check{"cur_sum = numbers[l] + numbers[r]"}
-    Check -- "cur_sum == target" --> Found["Return [l + 1, r + 1]"]
-    Check -- "cur_sum < target (too small)" --> MoveL["l += 1"]
-    Check -- "cur_sum > target (too big)" --> MoveR["r -= 1"]
-    MoveL --> Check
-    MoveR --> Check
-```
+### Algorithm steps:
+* **1. Initialize two pointers:** Set `l = 0` and `r = len(numbers) - 1`.
+* **2. Squeeze while l < r:**
+  * Compute `cur_sum = numbers[l] + numbers[r]`.
+  * If `cur_sum == target`, return 1-based indices `[l + 1, r + 1]`.
+  * If `cur_sum < target`, sum is too small; advance `l += 1`.
+  * If `cur_sum > target`, sum is too large; retreat `r -= 1`.
+* **3. Termination:** Guaranteed unique solution exists, terminating in $\mathcal{O}(n)$ time and $\mathcal{O}(1)$ space.
 
 ## Step-by-step trace
 

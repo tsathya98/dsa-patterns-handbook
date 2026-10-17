@@ -54,14 +54,11 @@ The window grows and shrinks as needed:
 2. While the window violates the rule (like having a duplicate character or exceeding a sum), advance `left` to kick elements out until the window is valid again.
 3. Update the best length (`right - left + 1`).
 
-```mermaid
-flowchart TD
-    Expand["1. Expand: Add s[right] to window state"] --> Valid{"Is window valid?"}
-    Valid -- "No (Rule broken)" --> Shrink["2. Shrink: Remove s[left], left += 1"]
-    Shrink --> Valid
-    Valid -- "Yes" --> Record["3. Update answer: max_len = max(max_len, right - left + 1)"]
-    Record --> Next["Advance right += 1"]
-```
+### Algorithm steps:
+* **1. Expand window:** Incorporate incoming character or item `s[right]` into current window frequency counts or running totals.
+* **2. Contract window on violation:** While invariant constraints are violated (e.g. duplicate keys or sum limit exceeded), remove `s[left]` from the window state and increment `left += 1`.
+* **3. Record valid configuration:** Update optimal window metric with `max_len = max(max_len, right - left + 1)` and continue expanding `right`, running in amortized $\mathcal{O}(n)$ time.
+
 
 ### Template ([LC 3: Longest Substring Without Repeating Characters](../01_arrays_and_pointers/3_longest_substring_without_repeating_characters.md))
 ```python

@@ -8,14 +8,12 @@ Binary search works whenever your search space has a **two-sided split** where o
 2. **Partially ordered or structural arrays** (rotated sorted arrays, adjacent slope comparisons for peaks/valleys, even/odd index parity).
 3. **Binary search on the answer** (any min/max question where feasibility flips monotonically from `False` to `True`).
 
-```mermaid
-flowchart TD
-    Root{"What are you searching?"} -- "Sorted or rotated array" --> Arr{"Duplicates or rotated?"}
-    Arr -- "Exact / First / Last" --> Bound["Standard lo <= hi<br/>Record ans = mid, steer left/right"]
-    Arr -- "Rotated array" --> Rot["Check if left half sorted (nums[lo] <= nums[mid])"]
-    Root -- "Unsorted peak / valley" --> Slope["Compare mid with mid + 1<br/>Follow rising or falling slope"]
-    Root -- "Min-Max or Max-Min value" --> Ans["Binary Search on Answer [lo, hi]<br/>Test greedy can_finish(mid)"]
-```
+### Decision rules:
+* **1. Sorted target lookup or boundaries:** Use standard `lo <= hi`. For exact matches, return on equality. For first or last occurrences, cache `ans = mid` and steer `hi = mid - 1` (to find earlier hits) or `lo = mid + 1` (to find later hits).
+* **2. Rotated sorted arrays:** Evaluate `nums[lo] <= nums[mid]`. At least one half is always strictly sorted. Check whether the target falls within that sorted half to pick which side to discard.
+* **3. Unsorted peak or local extrema:** Compare `nums[mid]` against `nums[mid + 1]`. Step toward the rising slope to guarantee hitting a local maximum.
+* **4. Monotonic optimization (Search on Answer):** When finding the minimum feasible capacity or speed, binary search the value space `[lo, hi]` using a greedy helper predicate `can_finish(mid)` in $\mathcal{O}(\log(\text{range}) \times \text{cost})$.
+
 
 ---
 

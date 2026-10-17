@@ -23,14 +23,13 @@ Walk a single pointer `cur` from `head` and compare `cur.val` with `cur.next.val
 
 Do you need a `dummy` node here? No. Even if the head value is duplicated (`[1, 1, 2]`), we always keep the first copy of `head` and delete the duplicates after it. Because `head` is never deleted, you can simply return `head` at the end.
 
-```mermaid
-flowchart TD
-    A["while cur and cur.next"] --> B{"cur.val == cur.next.val?"}
-    B -- "Yes (Duplicate)" --> C["Snip Neighbor<br/>cur.next = cur.next.next<br/>(Stay on cur)"]
-    B -- "No (Distinct)" --> D["Step Forward<br/>cur = cur.next"]
-    C --> A
-    D --> A
-```
+### Algorithm steps:
+* **1. Initialize walker:** Set `cur = head`.
+* **2. Compare adjacent nodes:** While `cur` is not None and `cur.next` is not None:
+  * If `cur.val == cur.next.val`: snip the duplicate neighbor with `cur.next = cur.next.next` (keep `cur` in place to test subsequent duplicates).
+  * Else: distinct values confirmed, advance `cur = cur.next`.
+* **3. Terminate traversal:** Loop finishes when `cur` or `cur.next` reaches None.
+* **4. Return head:** Return original `head`.
 
 ## Step-by-step trace
 

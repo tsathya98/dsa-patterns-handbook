@@ -30,13 +30,14 @@ Every palindrome has one of two center types ($2n$ centers in total):
        " c  [b  b]  d "
 ```
 
-```mermaid
-flowchart TD
-    Center["For each index i:<br/>Try odd (l=i, r=i) and even (l=i, r=i+1)"] --> Expand{"l >= 0 and r < n<br/>and s[l] == s[r]?"}
-    Expand -- "Yes" --> Step["l -= 1, r += 1"]
-    Step --> Expand
-    Expand -- "No" --> Slice["Valid bounds: [l + 1 : r]<br/>Update best_l, best_r if longer"]
-```
+### Algorithm steps (Expand around centers):
+* **1. Define expansion helper:** Given starting centers `l` and `r`, expand outward with `l -= 1` and `r += 1` while `l >= 0`, `r < len(s)`, and `s[l] == s[r]`. Return valid boundaries `(l + 1, r)`.
+* **2. Track longest palindrome:** Initialize `best_l = 0` and `best_r = 0`.
+* **3. Test all centers:** For each index `i` from `0` to `len(s) - 1`:
+  * Expand around odd center: `_expand(i, i)`.
+  * Expand around even center: `_expand(i, i + 1)`.
+  * If either candidate is longer than `best_r - best_l`, update `best_l, best_r`.
+* **4. Return:** `s[best_l:best_r]` in $\mathcal{O}(n^2)$ time and $\mathcal{O}(1)$ space.
 
 ## Boundary math: Why the valid slice is `s[l + 1 : r]`
 

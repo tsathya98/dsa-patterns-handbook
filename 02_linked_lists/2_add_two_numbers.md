@@ -24,13 +24,16 @@ To build the output list cleanly, use two pointers:
 
 If you only used `dummy` and moved it forward, you would lose the front of your result list. If you never moved `dummy` and kept writing `dummy.next = ListNode(val)`, you would overwrite the first node on every loop iteration.
 
-```mermaid
-flowchart LR
-    A["while l1 or l2 or carry"] --> B["Read Digits<br/>v1 = l1.val or 0<br/>v2 = l2.val or 0"]
-    B --> C["Compute Sum & Carry<br/>total = v1 + v2 + carry<br/>carry = total // 10"]
-    C --> D["Append Digit Node<br/>cur.next = ListNode(total % 10)<br/>Advance cur, l1, l2"]
-    D --> A
-```
+### Algorithm steps:
+* **1. Initialize dummy anchor and carry:** Set `dummy = ListNode(0)`, builder `cur = dummy`, and `carry = 0`.
+* **2. Iterate through lists and carry:** While `l1` is not None, `l2` is not None, or `carry > 0`:
+  * Extract digit values: `v1 = l1.val if l1 else 0` and `v2 = l2.val if l2 else 0`.
+  * Compute column sum: `total = v1 + v2 + carry`.
+  * Update carry: `carry = total // 10`.
+  * Append new digit: `cur.next = ListNode(total % 10)`.
+* **3. Advance pointers:** Advance `cur = cur.next`, and step `l1 = l1.next` if `l1` exists, `l2 = l2.next` if `l2` exists.
+* **4. Return result head:** Return `dummy.next` (skipping the dummy anchor).
+
 
 ## Step-by-step trace
 

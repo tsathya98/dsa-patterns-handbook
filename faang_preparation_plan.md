@@ -12,12 +12,12 @@
 | **Phase 3: Trees, Graphs & Heaps** | Weeks 7–9 | Tree DFS/BFS, Graph Flood-Fill & Topological Sort, Top-K Heaps, Tries | 120 $\to$ 180 |
 | **Phase 4: Backtracking & DP** | Weeks 10–12 | Subsets/Permutations, 1D/2D DP, Timed 45-Minute Mock Interviews | 180 $\to$ 210+ |
 
-```mermaid
-flowchart LR
-    P1["Phase 1 (W1-3)<br/>Arrays, Two Pointers,<br/>Sliding Window, Prefix"] --> P2["Phase 2 (W4-6)<br/>Linked Lists, Stacks,<br/>7 Binary Search Types"]
-    P2 --> P3["Phase 3 (W7-9)<br/>Trees, BFS/DFS,<br/>Graphs, Heaps"]
-    P3 --> P4["Phase 4 (W10-12)<br/>Backtracking, DP,<br/>System Design & Mocks"]
-```
+### 12-Week Roadmap Phases:
+* **Phase 1 (Weeks 1–3):** Arrays, Two Pointers, Sliding Window, Prefix Sums, Contribution Technique, and 2D Matrices.
+* **Phase 2 (Weeks 4–6):** Linked Lists (Fast/Slow, Reversal), Stacks, Queues, Elementary Sorting, and 7 Binary Search Patterns.
+* **Phase 3 (Weeks 7–9):** Binary Trees, Tree Traversals (BFS/DFS), BSTs, Graph General, Topological Sort, and Heaps.
+* **Phase 4 (Weeks 10–12):** Recursion & Backtracking, 1D/2D Dynamic Programming, System Design Deep Dives, and Full Mock Interviews.
+
 
 ---
 

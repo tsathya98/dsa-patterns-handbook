@@ -35,14 +35,15 @@ Split at second '-':
   Combine: 1 - 1 = 0
 ```
 
-```mermaid
-flowchart TD
-    Expr["diffWaysToCompute(expression)"] --> Scan{"Found operator at index i?"}
-    Scan -- "Yes (+, -, *)" --> Split["left = compute(expr[:i])<br/>right = compute(expr[i+1:])"]
-    Split --> Combine["For l in left, r in right:<br/>res.append(l op r)"]
-    Combine --> Return["Return res"]
-    Scan -- "No operators (pure number)" --> Base["Return [int(expression)]"]
-```
+### Algorithm steps:
+* **1. Check memoization and initialize results:** If `expression` is cached in `memo`, return `memo[expression]`. Initialize empty list `res = []`.
+* **2. Partition across operators:** For each character `(i, ch)` in `expression`:
+  * If `ch in "+-*"`:
+    * Recursively compute left results: `left = compute(expression[:i])`.
+    * Recursively compute right results: `right = compute(expression[i+1:])`.
+    * Combine pairs: For each `l` in `left` and `r` in `right`, append evaluated `l op r` to `res`.
+* **3. Base case (pure number):** If no operators exist in `expression` (`res` remains empty), return `[int(expression)]`.
+* **4. Cache and return:** Save `memo[expression] = res` and return `res`.
 
 <details>
 <summary>Spoiler: Solution Code</summary>

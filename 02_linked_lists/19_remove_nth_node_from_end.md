@@ -25,12 +25,11 @@ Think of `left` and `right` as the two ends of a rigid ruler of length $n$:
 
 Starting `left` on `dummy` handles the edge case where $n$ equals the length of the list (deleting the original `head`). When `right` hits `None`, `left` is still on `dummy`, so `left.next = left.next.next` cleanly unhooks the first node.
 
-```mermaid
-flowchart LR
-    A["1. Anchor dummy -> head<br/>left = dummy, right = head"] --> B["2. Advance right n steps<br/>(Create n-node gap)"]
-    B --> C["3. Slide left & right<br/>until right is None"]
-    C --> D["4. Bypass Target<br/>left.next = left.next.next"]
-```
+### Algorithm steps:
+* **1. Initialize sentinel and gap pointers:** Create `dummy = ListNode(0, head)`, set `left = dummy`, and set `right = head`.
+* **2. Establish fixed gap:** Advance `right` forward `n` steps.
+* **3. Slide window until right walks off list:** While `right` is not None, advance both `left = left.next` and `right = right.next`.
+* **4. Bypass target node and return:** Unlink the target node with `left.next = left.next.next`, then return `dummy.next`.
 
 ## Step-by-step trace
 

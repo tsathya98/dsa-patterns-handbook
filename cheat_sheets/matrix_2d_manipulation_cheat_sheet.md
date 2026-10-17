@@ -53,15 +53,15 @@ bottom ─► [ 9, 10, 11, 12 ]
            left       right
 ```
 
-```mermaid
-flowchart TD
-    Loop{"top <= bottom and left <= right?"} -- "No" --> Done["Return res"]
-    Loop -- "Yes" --> Top["1. Sweep Top row (left -> right), top += 1"]
-    Top --> Right["2. Sweep Right col (top -> bottom), right -= 1"]
-    Right --> Bot["3. If top <= bottom: Sweep Bottom row (right -> left), bottom -= 1"]
-    Bot --> Left["4. If left <= right: Sweep Left col (bottom -> top), left += 1"]
-    Left --> Loop
-```
+### Algorithm steps:
+* **1. Boundary setup:** Initialize four boundary pointers: `top = 0`, `bottom = m - 1`, `left = 0`, `right = n - 1`.
+* **2. Clockwise boundary sweep:** While `top <= bottom` and `left <= right`:
+  - Sweep `matrix[top][left..right]`, then increment `top += 1`.
+  - Sweep `matrix[top..bottom][right]`, then decrement `right -= 1`.
+  - If `top <= bottom`, sweep `matrix[bottom][right..left]`, then decrement `bottom -= 1`.
+  - If `left <= right`, sweep `matrix[bottom..top][left]`, then increment `left += 1`.
+* **3. Termination:** Conclude when boundaries cross, capturing all $m \times n$ values in $\mathcal{O}(m \cdot n)$ time and $\mathcal{O}(1)$ extra space.
+
 
 ```python
 def spiralOrder(matrix: list[list[int]]) -> list[int]:

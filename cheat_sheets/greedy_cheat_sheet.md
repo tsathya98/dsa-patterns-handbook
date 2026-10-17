@@ -45,10 +45,9 @@ When unlimited trades are allowed, harvesting every upward daily step (`prices[i
 | Scheduler | `prev_end` | Sort by end time; pick earliest finish | LC 435, LC 452 |
 | Accumulator | `profit` | Add every positive delta `nums[i] - nums[i-1]` | LC 122, LC 134 |
 
-```mermaid
-flowchart TD
-    Problem{"Which Greedy Archetype?"} -- "Convert number into canonical units" --> ATM["Cashier / ATM: Subtract largest unit that fits"]
-    Problem -- "Can you reach the end by jumping?" --> Horizon["Horizon: Track max_reach = max(max_reach, i + jump)"]
-    Problem -- "Max non-overlapping intervals" --> Sched["Scheduler: Sort by end time, pick earliest finish"]
-    Problem -- "Unlimited buy/sell stock trades" --> Micro["Accumulator: Sum every positive step prices[i] - prices[i - 1]"]
-```
+### Decision rules:
+* **1. Canonical unit reduction (Cashier / ATM):** Repeatedly subtract the largest denomination or symbol value that is less than or equal to the remaining balance.
+* **2. Reachability and minimum jumps (Horizon):** Continuously update `max_reach = max(max_reach, i + nums[i])`. If `i > max_reach`, the destination is unreachable.
+* **3. Non-overlapping interval scheduling (Scheduler):** Sort intervals strictly by their finish times (`end`) and greedily select the earliest finishing compatible task to leave maximum headroom.
+* **4. Continuous rate arbitrage (Accumulator):** Sum all positive incremental deltas `prices[i] - prices[i - 1] > 0` across the sequence to harvest maximum multi-trade profit without global search.
+

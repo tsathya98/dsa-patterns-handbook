@@ -23,14 +23,13 @@ Values:  1000   100   1000    10     100     1      5
 Sign:   +1000  -100  +1000   -10    +100    -1     +5  = 1994
 ```
 
-```mermaid
-flowchart TD
-    Start["For i in 0..n-1"] --> Check{"i < n - 1 and<br/>dct[s[i]] < dct[s[i + 1]]?"}
-    Check -- "Yes (subtractive pair)" --> Sub["total -= dct[s[i]]"]
-    Check -- "No (normal or last char)" --> Add["total += dct[s[i]]"]
-    Sub --> Next["Next i"]
-    Add --> Next
-```
+### Algorithm steps:
+* **1. Map symbols to values:** Define `dct = {"I": 1, "V": 5, "X": 10, "L": 50, "C": 100, "D": 500, "M": 1000}`. Initialize `total = 0`.
+* **2. Scan string left to right:** Loop `i` from `0` to `len(s) - 1`.
+* **3. Compare with next symbol:**
+  * If `i < len(s) - 1` and `dct[s[i]] < dct[s[i + 1]]`, this character forms a subtractive pair: `total -= dct[s[i]]`.
+  * Otherwise, add the value normally: `total += dct[s[i]]`.
+* **4. Return:** `total` after finishing the linear scan.
 
 ## Step-by-step trace
 

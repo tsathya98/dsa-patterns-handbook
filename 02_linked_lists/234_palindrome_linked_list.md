@@ -28,14 +28,13 @@ Since you cannot walk backward from the tail of a singly linked list, reverse th
 3. **Compare both halves inward:** Walk `first = head` and `second = prev` together while `second` is not `None`. If `first.val != second.val`, return `False`.
 4. **Optional cleanup:** If the caller still needs the input list intact after the check, reverse the second half a second time and reattach it to `slow.next`.
 
-```mermaid
-flowchart LR
-    A["1. Find End of 1st Half<br/>(slow +1, fast +2)"] --> B["2. Reverse 2nd Half<br/>(In-place from slow.next)"]
-    B --> C["3. Walk Inward & Compare<br/>(first = head, second = prev)"]
-    C --> D{"All values match?"}
-    D -- "Yes" --> E["Return True"]
-    D -- "No" --> F["Return False"]
-```
+### Algorithm steps:
+* **1. Find end of first half:** Advance `slow = head` and `fast = head` while `fast.next` and `fast.next.next` exist, leaving `slow` at the midpoint.
+* **2. Reverse second half in-place:** Reverse the sublist starting from `slow.next` using a 3-pointer flip (`prev = None`, `cur = slow.next`), yielding new head `prev`.
+* **3. Compare values inward:** Set `first = head` and `second = prev`. While `second` is not None:
+  * If `first.val != second.val`, return `False`.
+  * Advance `first = first.next` and `second = second.next`.
+* **4. Terminate and return:** When `second` reaches None without any mismatch, return `True` (optionally re-reverse the second half to restore original list structure).
 
 ## Step-by-step trace
 
