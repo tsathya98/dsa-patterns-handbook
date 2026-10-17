@@ -506,6 +506,7 @@ def build_html(default_view: str = "concepts") -> str:
   <title>DSA Visual Study Hub & Focus Tracker</title>
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
   <link rel="stylesheet" href="static/vendor/katex.min.css">
+  <link rel="stylesheet" href="static/vendor/codemirror/codemirror.min.css">
   <script src="static/vendor/marked.min.js"></script>
   <script src="static/vendor/highlight.min.js"></script>
   <script src="static/vendor/katex.min.js"></script>
@@ -513,6 +514,10 @@ def build_html(default_view: str = "concepts") -> str:
   <script src="static/vendor/mermaid.min.js"></script>
   <script src="static/vendor/skulpt.min.js"></script>
   <script src="static/vendor/skulpt-stdlib.js"></script>
+  <script src="static/vendor/codemirror/codemirror.min.js"></script>
+  <script src="static/vendor/codemirror/python.min.js"></script>
+  <script src="static/vendor/codemirror/matchbrackets.min.js"></script>
+  <script src="static/vendor/codemirror/closebrackets.min.js"></script>
   <style>
     {hl_css}
 
@@ -596,6 +601,144 @@ def build_html(default_view: str = "concepts") -> str:
     }}
     body.theme-dark .hljs-literal {{
       color: #569cd6 !important;
+    }}
+
+    /* CodeMirror LeetCode Theme */
+    .cm-s-leetcode.CodeMirror {{
+      height: 100% !important;
+      width: 100% !important;
+      background: #1e1e1e !important;
+      color: #eff2f6 !important;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+      font-size: 13px !important;
+      line-height: 1.6 !important;
+      padding: 0 !important;
+    }}
+    .cm-s-leetcode .CodeMirror-scroll {{
+      height: 100% !important;
+      padding: 12px 0 !important;
+      box-sizing: border-box !important;
+    }}
+    .cm-s-leetcode .CodeMirror-lines {{
+      padding: 0 !important;
+    }}
+    .cm-s-leetcode .CodeMirror-gutters {{
+      background: #1e1e1e !important;
+      border-right: 1px solid #333333 !important;
+      white-space: nowrap !important;
+      padding-right: 2px !important;
+    }}
+    .cm-s-leetcode .CodeMirror-linenumber {{
+      color: #858585 !important;
+      font-size: 12px !important;
+      min-width: 28px !important;
+      padding: 0 8px 0 6px !important;
+      text-align: right !important;
+    }}
+    .cm-s-leetcode .CodeMirror-cursor {{
+      border-left: 2px solid #ffa116 !important;
+    }}
+    .cm-s-leetcode .CodeMirror-selected,
+    .cm-s-leetcode.CodeMirror-focused .CodeMirror-selected {{
+      background: rgba(38, 79, 120, 0.75) !important;
+    }}
+    .cm-s-leetcode .CodeMirror-line::selection,
+    .cm-s-leetcode .CodeMirror-line > span::selection,
+    .cm-s-leetcode .CodeMirror-line > span > span::selection {{
+      background: rgba(38, 79, 120, 0.75) !important;
+    }}
+    .cm-s-leetcode .CodeMirror-matchingbracket {{
+      color: #ffa116 !important;
+      background: rgba(255, 161, 22, 0.25) !important;
+      text-decoration: underline !important;
+    }}
+
+    /* CodeMirror Python Syntax Tokens (LeetCode / Monaco Dark+) */
+    .cm-s-leetcode span.cm-keyword {{
+      color: #569cd6 !important;
+      font-weight: 600 !important;
+    }}
+    .cm-s-leetcode span.cm-def {{
+      color: #dcdcaa !important;
+      font-weight: 600 !important;
+    }}
+    .cm-s-leetcode span.cm-builtin {{
+      color: #4ec9b0 !important;
+    }}
+    .cm-s-leetcode span.cm-string,
+    .cm-s-leetcode span.cm-string-2 {{
+      color: #ce9178 !important;
+    }}
+    .cm-s-leetcode span.cm-number {{
+      color: #b5cea8 !important;
+    }}
+    .cm-s-leetcode span.cm-comment {{
+      color: #6a9955 !important;
+      font-style: italic !important;
+    }}
+    .cm-s-leetcode span.cm-variable,
+    .cm-s-leetcode span.cm-variable-2 {{
+      color: #9cdcfe !important;
+    }}
+    .cm-s-leetcode span.cm-variable-3 {{
+      color: #4ec9b0 !important;
+    }}
+    .cm-s-leetcode span.cm-property {{
+      color: #9cdcfe !important;
+    }}
+    .cm-s-leetcode span.cm-operator {{
+      color: #d4d4d4 !important;
+    }}
+    .cm-s-leetcode span.cm-atom,
+    .cm-s-leetcode span.cm-meta {{
+      color: #569cd6 !important;
+    }}
+
+    /* Light mode CodeMirror */
+    body.theme-light .cm-s-leetcode.CodeMirror {{
+      background: #ffffff !important;
+      color: #24292e !important;
+    }}
+    body.theme-light .cm-s-leetcode .CodeMirror-gutters {{
+      background: #fafbfc !important;
+      border-right: 1px solid #e1e4e8 !important;
+    }}
+    body.theme-light .cm-s-leetcode .CodeMirror-linenumber {{
+      color: #959da5 !important;
+    }}
+    body.theme-light .cm-s-leetcode .CodeMirror-cursor {{
+      border-left: 2px solid #0056b3 !important;
+    }}
+    body.theme-light .cm-s-leetcode .CodeMirror-selected,
+    body.theme-light .cm-s-leetcode.CodeMirror-focused .CodeMirror-selected {{
+      background: #c8e1ff !important;
+    }}
+    body.theme-light .cm-s-leetcode span.cm-keyword {{
+      color: #d73a49 !important;
+    }}
+    body.theme-light .cm-s-leetcode span.cm-def {{
+      color: #6f42c1 !important;
+    }}
+    body.theme-light .cm-s-leetcode span.cm-builtin {{
+      color: #005cc5 !important;
+    }}
+    body.theme-light .cm-s-leetcode span.cm-string,
+    body.theme-light .cm-s-leetcode span.cm-string-2 {{
+      color: #032f62 !important;
+    }}
+    body.theme-light .cm-s-leetcode span.cm-number {{
+      color: #005cc5 !important;
+    }}
+    body.theme-light .cm-s-leetcode span.cm-comment {{
+      color: #6a737d !important;
+      font-style: italic !important;
+    }}
+    body.theme-light .cm-s-leetcode span.cm-variable,
+    body.theme-light .cm-s-leetcode span.cm-property {{
+      color: #24292e !important;
+    }}
+    body.theme-light .cm-s-leetcode span.cm-operator {{
+      color: #d73a49 !important;
     }}
 
     html, body {{
@@ -1099,13 +1242,9 @@ def build_html(default_view: str = "concepts") -> str:
           <span class="text-[11px]">Auto-indent on ↵ • Tab 4 spaces</span>
         </div>
         
-        <!-- LeetCode Monaco Style Editor with Line Numbers Gutter -->
-        <div class="relative w-full h-[520px] rounded-2xl border ui-border overflow-hidden flex bg-[#1e1e1e] shadow-inner font-mono text-xs leading-relaxed focus-within:border-[var(--accent)] transition-colors">
-          <!-- Line Numbers Gutter -->
-          <div id="playground-line-numbers" class="w-11 py-4 px-1.5 text-right select-none font-mono text-xs leading-relaxed shrink-0 border-r border-[#333333] overflow-hidden whitespace-pre text-[#858585] bg-[#1e1e1e]" aria-hidden="true">1
-</div>
-          <!-- Code Textarea -->
-          <textarea id="playground-code-input" spellcheck="false" class="flex-1 h-full py-4 px-3 font-mono text-xs text-[#d4d4d4] bg-[#1e1e1e] border-0 focus:outline-none resize-none leading-relaxed tracking-normal whitespace-pre overflow-y-auto" style="tab-size: 4; -moz-tab-size: 4; caret-color: var(--accent);" placeholder="# Type Python code here..."></textarea>
+        <!-- LeetCode Monaco / CodeMirror Editor -->
+        <div id="playground-editor-wrapper" class="relative w-full h-[520px] rounded-2xl border ui-border overflow-hidden bg-[#1e1e1e] shadow-inner font-mono text-xs focus-within:border-[var(--accent)] transition-colors">
+          <textarea id="playground-code-input" spellcheck="false" class="hidden"></textarea>
         </div>
       </div>
 
@@ -2054,217 +2193,92 @@ print("Hello from Python 3 Playground!")
       return Sk.builtinFiles["files"][x];
     }}
 
-    function updatePlaygroundLineNumbers() {{
-      const input = document.getElementById('playground-code-input');
-      const gutter = document.getElementById('playground-line-numbers');
-      if (!input || !gutter) return;
-      const count = input.value.split('\\n').length;
-      let nums = '';
-      for (let i = 1; i <= count; i++) {{
-        nums += i + '\\n';
-      }}
-      gutter.textContent = nums;
-      gutter.scrollTop = input.scrollTop;
-    }}
-
     function updateEditorLineCol() {{
-      const input = document.getElementById('playground-code-input');
       const pill = document.getElementById('editor-line-col-pill');
-      if (!input || !pill) return;
-      const pos = input.selectionStart;
-      const upToPos = input.value.substring(0, pos);
-      const lines = upToPos.split('\\n');
-      const ln = lines.length;
-      const col = lines[lines.length - 1].length + 1;
-      pill.textContent = `Ln ${{ln}}, Col ${{col}}`;
+      if (!pill) return;
+      if (window.playgroundEditor) {{
+        const cursor = window.playgroundEditor.getCursor();
+        pill.textContent = 'Ln ' + (cursor.line + 1) + ', Col ' + (cursor.ch + 1);
+      }}
     }}
 
     let playgroundInitialized = false;
     function initPlayground() {{
       const input = document.getElementById('playground-code-input');
-      const gutter = document.getElementById('playground-line-numbers');
+      const pill = document.getElementById('editor-line-col-pill');
+
       if (!playgroundInitialized) {{
         playgroundInitialized = true;
-        if (input && !input.value.trim()) {{
-          input.value = PLAYGROUND_TEMPLATES['bubble_sort'];
+        let initialCode = input ? input.value : '';
+        if (!initialCode.trim()) {{
+          initialCode = PLAYGROUND_TEMPLATES['bubble_sort'];
         }}
-        if (input) {{
-          updatePlaygroundLineNumbers();
-          updateEditorLineCol();
 
-          input.addEventListener('scroll', () => {{
-            if (gutter) gutter.scrollTop = input.scrollTop;
+        if (typeof CodeMirror !== 'undefined' && input) {{
+          window.playgroundEditor = CodeMirror.fromTextArea(input, {{
+            mode: {{ name: 'python', version: 3, singleLineStringErrors: false }},
+            theme: 'leetcode',
+            lineNumbers: true,
+            indentUnit: 4,
+            tabSize: 4,
+            indentWithTabs: false,
+            smartIndent: true,
+            matchBrackets: true,
+            autoCloseBrackets: true,
+            lineWrapping: false,
+            extraKeys: {{
+              "Tab": function(cm) {{
+                if (cm.somethingSelected()) {{
+                  cm.indentSelection("add");
+                }} else {{
+                  cm.replaceSelection("    ", "end");
+                }}
+              }},
+              "Shift-Tab": function(cm) {{
+                cm.indentSelection("subtract");
+              }},
+              "Cmd-Enter": function(cm) {{
+                runPlaygroundCode();
+              }},
+              "Ctrl-Enter": function(cm) {{
+                runPlaygroundCode();
+              }}
+            }}
           }});
 
-          input.addEventListener('input', () => {{
-            updatePlaygroundLineNumbers();
-            updateEditorLineCol();
-          }});
+          window.playgroundEditor.setValue(initialCode);
 
-          input.addEventListener('click', updateEditorLineCol);
-          input.addEventListener('keyup', (e) => {{
-            if (!['Enter', 'Tab', 'Backspace'].includes(e.key)) {{
-              updateEditorLineCol();
+          window.playgroundEditor.on('cursorActivity', function(cm) {{
+            if (pill) {{
+              const cursor = cm.getCursor();
+              pill.textContent = 'Ln ' + (cursor.line + 1) + ', Col ' + (cursor.ch + 1);
             }}
           }});
 
-          input.addEventListener('keydown', (e) => {{
-            if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {{
-              e.preventDefault();
-              runPlaygroundCode();
-              return;
-            }}
-
-            const start = input.selectionStart;
-            const end = input.selectionEnd;
-            const val = input.value;
-
-            // 1. SMART AUTO-INDENT ON ENTER
-            if (e.key === 'Enter') {{
-              e.preventDefault();
-              const lastNl = val.lastIndexOf('\\n', start - 1);
-              const lineStart = lastNl === -1 ? 0 : lastNl + 1;
-              const curLine = val.substring(lineStart, start);
-
-              // Existing indent on current line
-              const indentMatch = curLine.match(/^[ \\t]*/);
-              let indent = indentMatch ? indentMatch[0] : '';
-
-              // Check if line ends with ':' (ignoring comments)
-              const codeNoComment = curLine.split('#')[0].trimEnd();
-              if (codeNoComment.endsWith(':')) {{
-                indent += '    ';
-              }}
-
-              // Check if cursor is between matching pair like {{ | }}, ( | ), [ | ]
-              const nextChar = val.charAt(start);
-              const isOpen = codeNoComment.endsWith('{{') || codeNoComment.endsWith('(') || codeNoComment.endsWith('[');
-              const isMatch = (codeNoComment.endsWith('{{') && nextChar === '}}') ||
-                              (codeNoComment.endsWith('(') && nextChar === ')') ||
-                              (codeNoComment.endsWith('[') && nextChar === ']');
-
-              if (isOpen && isMatch) {{
-                const insert = '\\n' + indent + '\\n' + (indentMatch ? indentMatch[0] : '');
-                if (document.queryCommandSupported && document.queryCommandSupported('insertText')) {{
-                  document.execCommand('insertText', false, insert);
-                }} else {{
-                  input.value = val.substring(0, start) + insert + val.substring(end);
-                }}
-                const newPos = start + 1 + indent.length;
-                input.selectionStart = input.selectionEnd = newPos;
-              }} else {{
-                const insert = '\\n' + indent;
-                if (document.queryCommandSupported && document.queryCommandSupported('insertText')) {{
-                  document.execCommand('insertText', false, insert);
-                }} else {{
-                  input.value = val.substring(0, start) + insert + val.substring(end);
-                  input.selectionStart = input.selectionEnd = start + insert.length;
-                }}
-              }}
-
-              updatePlaygroundLineNumbers();
-              updateEditorLineCol();
-              return;
-            }}
-
-            // 2. SMART TAB / SHIFT+TAB
-            if (e.key === 'Tab') {{
-              e.preventDefault();
-              if (start !== end) {{
-                // Multi-line block indent / unindent
-                const firstNl = val.lastIndexOf('\\n', start - 1);
-                const blockStart = firstNl === -1 ? 0 : firstNl + 1;
-                const blockEnd = end;
-                const blockText = val.substring(blockStart, blockEnd);
-                const lines = blockText.split('\\n');
-
-                if (e.shiftKey) {{
-                  const newLines = lines.map(line => line.startsWith('    ') ? line.substring(4) : (line.startsWith(' ') ? line.replace(/^ +/, '') : line));
-                  const newBlock = newLines.join('\\n');
-                  input.value = val.substring(0, blockStart) + newBlock + val.substring(blockEnd);
-                  input.selectionStart = blockStart;
-                  input.selectionEnd = blockStart + newBlock.length;
-                }} else {{
-                  const newLines = lines.map(line => '    ' + line);
-                  const newBlock = newLines.join('\\n');
-                  input.value = val.substring(0, blockStart) + newBlock + val.substring(blockEnd);
-                  input.selectionStart = blockStart;
-                  input.selectionEnd = blockStart + newBlock.length;
-                }}
-              }} else {{
-                if (e.shiftKey) {{
-                  const lastNl = val.lastIndexOf('\\n', start - 1);
-                  const lineStart = lastNl === -1 ? 0 : lastNl + 1;
-                  const line = val.substring(lineStart, start);
-                  if (line.startsWith('    ')) {{
-                    input.value = val.substring(0, lineStart) + val.substring(lineStart + 4);
-                    input.selectionStart = input.selectionEnd = Math.max(lineStart, start - 4);
-                  }}
-                }} else {{
-                  if (document.queryCommandSupported && document.queryCommandSupported('insertText')) {{
-                    document.execCommand('insertText', false, '    ');
-                  }} else {{
-                    input.value = val.substring(0, start) + '    ' + val.substring(end);
-                    input.selectionStart = input.selectionEnd = start + 4;
-                  }}
-                }}
-              }}
-              updatePlaygroundLineNumbers();
-              updateEditorLineCol();
-              return;
-            }}
-
-            // 3. SMART BACKSPACE (Dedent 4 spaces at indentation level)
-            if (e.key === 'Backspace' && start === end) {{
-              const lastNl = val.lastIndexOf('\\n', start - 1);
-              const lineStart = lastNl === -1 ? 0 : lastNl + 1;
-              const prefix = val.substring(lineStart, start);
-              if (/^ +$/.test(prefix) && prefix.length % 4 === 0 && prefix.length >= 4) {{
-                e.preventDefault();
-                input.value = val.substring(0, start - 4) + val.substring(start);
-                input.selectionStart = input.selectionEnd = start - 4;
-                updatePlaygroundLineNumbers();
-                updateEditorLineCol();
-                return;
-              }}
-            }}
-
-            // 4. AUTO-PAIR BRACKETS & QUOTES
-            const pairs = {{ '(': ')', '[': ']', '{{': '}}', '"': '"', "'": "'" }};
-            if (pairs[e.key] && start === end) {{
-              const nextChar = val.charAt(start);
-              if (Object.values(pairs).includes(e.key) && nextChar === e.key) {{
-                e.preventDefault();
-                input.selectionStart = input.selectionEnd = start + 1;
-                updateEditorLineCol();
-                return;
-              }}
-              e.preventDefault();
-              const openChar = e.key;
-              const closeChar = pairs[e.key];
-              if (document.queryCommandSupported && document.queryCommandSupported('insertText')) {{
-                document.execCommand('insertText', false, openChar + closeChar);
-              }} else {{
-                input.value = val.substring(0, start) + openChar + closeChar + val.substring(end);
-              }}
-              input.selectionStart = input.selectionEnd = start + 1;
-              updatePlaygroundLineNumbers();
-              updateEditorLineCol();
-              return;
-            }}
-          }});
+          setTimeout(() => {{
+            if (window.playgroundEditor) window.playgroundEditor.refresh();
+          }}, 50);
+        }}
+      }} else {{
+        if (window.playgroundEditor) {{
+          setTimeout(() => {{
+            window.playgroundEditor.refresh();
+          }}, 20);
         }}
       }}
     }}
 
     function onPlaygroundTemplateChange(val) {{
-      const input = document.getElementById('playground-code-input');
-      if (input && PLAYGROUND_TEMPLATES[val]) {{
-        input.value = PLAYGROUND_TEMPLATES[val];
-        updatePlaygroundLineNumbers();
-        updateEditorLineCol();
-        clearPlaygroundConsole();
+      const code = PLAYGROUND_TEMPLATES[val] || '';
+      if (window.playgroundEditor) {{
+        window.playgroundEditor.setValue(code);
+        setTimeout(() => window.playgroundEditor.refresh(), 10);
+      }} else {{
+        const input = document.getElementById('playground-code-input');
+        if (input) input.value = code;
       }}
+      updateEditorLineCol();
+      clearPlaygroundConsole();
     }}
 
     function resetPlaygroundCode() {{
@@ -2302,14 +2316,17 @@ print("Hello from Python 3 Playground!")
       const code = pyMatch ? pyMatch[1].trim() : `# Could not find python block in ${{doc.title}}\\nprint("Write code here...")`;
       
       switchView('playground');
-      const input = document.getElementById('playground-code-input');
-      if (input) {{
-        input.value = `# Loaded from: ${{doc.title}}\\n\\n` + code;
-        updatePlaygroundLineNumbers();
-        updateEditorLineCol();
+      const loadedCode = `# Loaded from: ${{doc.title}}\\n\\n` + code;
+      if (window.playgroundEditor) {{
+        window.playgroundEditor.setValue(loadedCode);
+        setTimeout(() => window.playgroundEditor.refresh(), 20);
+      }} else {{
+        const input = document.getElementById('playground-code-input');
+        if (input) input.value = loadedCode;
       }}
       const sel = document.getElementById('playground-template-select');
       if (sel) sel.value = 'blank';
+      updateEditorLineCol();
       clearPlaygroundConsole();
     }}
 
@@ -2318,7 +2335,7 @@ print("Hello from Python 3 Playground!")
       const outEl = document.getElementById('playground-output');
       const statusEl = document.getElementById('playground-status-pill');
       const timerEl = document.getElementById('playground-time-pill');
-      const code = input ? input.value : '';
+      const code = window.playgroundEditor ? window.playgroundEditor.getValue() : (input ? input.value : '');
 
       if (!code.trim()) {{
         outEl.textContent = 'Please enter some Python code to run.';
@@ -2452,6 +2469,9 @@ print("Hello from Python 3 Playground!")
       }} else if (view === 'playground') {{
         playEl.classList.remove('hidden');
         initPlayground();
+        if (window.playgroundEditor) {{
+          setTimeout(() => window.playgroundEditor.refresh(), 20);
+        }}
       }} else if (view === 'tracker') {{
         trkEl.classList.remove('hidden');
         renderTrackerTable();
