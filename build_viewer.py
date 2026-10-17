@@ -558,7 +558,12 @@ def build_html(default_view: str = "concepts") -> str:
       --heading-h2: #b85432;
     }}
 
-    body {{
+    html, body {{
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
       background-color: var(--bg);
       color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
@@ -661,13 +666,14 @@ def build_html(default_view: str = "concepts") -> str:
       font-weight: 500;
     }}
     .md-body table {{
+      display: block;
       width: 100%;
+      overflow-x: auto;
       border-collapse: collapse;
       margin-bottom: 1.25rem;
       font-size: 0.85rem;
       border: 1px solid var(--border);
       border-radius: 0.5rem;
-      overflow: hidden;
     }}
     .md-body th {{
       background: var(--surface);
@@ -794,10 +800,10 @@ def build_html(default_view: str = "concepts") -> str:
     }}
   </style>
 </head>
-<body class="theme-dark min-h-screen flex flex-col antialiased">
+<body class="theme-dark h-screen w-screen flex flex-col antialiased overflow-hidden">
 
   <!-- 1. UNIFIED TOP NAVIGATION BAR -->
-  <header class="sticky top-0 z-30 ui-surface border-b px-3 sm:px-5 py-2.5 flex items-center justify-between gap-2">
+  <header class="h-[53px] shrink-0 z-30 ui-surface border-b px-3 sm:px-5 flex items-center justify-between gap-2">
     <div class="flex items-center gap-2">
       <button type="button" id="toggle-left-sidebar-btn" onclick="toggleLeftSidebar()" class="p-1.5 rounded-lg ui-card border ui-text-muted hover:text-[var(--text)] transition-colors" title="Toggle Left Topic Sidebar (Shortcut: b)">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h10M4 18h16"/></svg>
@@ -857,10 +863,10 @@ def build_html(default_view: str = "concepts") -> str:
   <!-- ===================================================================== -->
   <!-- READER WORKSPACE (Used by both 📘 Concepts and 🧩 LeetCode Guides)    -->
   <!-- ===================================================================== -->
-  <main id="view-reader" class="flex-1 flex overflow-hidden">
+  <main id="view-reader" class="flex-1 min-h-0 flex overflow-hidden w-full">
     
-    <aside id="reader-sidebar" class="w-76 shrink-0 ui-surface border-r flex flex-col h-[calc(100vh-53px)] sticky top-[53px]">
-      <div class="p-3 border-b ui-border space-y-2.5">
+    <aside id="reader-sidebar" class="w-[280px] min-w-[280px] max-w-[280px] shrink-0 ui-surface border-r flex flex-col h-full overflow-hidden">
+      <div class="p-3 border-b ui-border space-y-2.5 shrink-0">
         <div class="flex items-center justify-between gap-2">
           <div class="grid grid-cols-3 gap-1 ui-card p-1 rounded-lg border text-xs flex-1" role="group" aria-label="Sidebar filter">
             <button type="button" onclick="setSidebarScope('concept')" id="sb-scope-concept" class="py-1 rounded font-semibold transition-colors">📘 Concepts</button>
@@ -882,12 +888,12 @@ def build_html(default_view: str = "concepts") -> str:
         </div>
       </div>
 
-      <div id="sidebar-tree" class="flex-1 overflow-y-auto p-2.5 space-y-2">
+      <div id="sidebar-tree" class="flex-1 min-h-0 overflow-y-auto p-2.5 space-y-2">
       </div>
     </aside>
 
-    <div id="reader-scroll-container" class="flex-1 overflow-y-auto h-[calc(100vh-53px)] px-4 sm:px-8 py-6">
-      <div id="reader-inner-wrap" class="max-w-3xl mx-auto space-y-5 pb-16 transition-all">
+    <div id="reader-scroll-container" class="flex-1 min-w-0 overflow-y-auto h-full px-4 sm:px-8 py-6">
+      <div id="reader-inner-wrap" class="max-w-4xl mx-auto space-y-5 pb-16 transition-all">
 
         <div class="ui-card border rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-3 shadow-sm">
           <div class="flex items-center gap-2 flex-wrap">
@@ -950,7 +956,7 @@ def build_html(default_view: str = "concepts") -> str:
       </div>
     </div>
 
-    <aside id="reader-toc-sidebar" class="w-64 shrink-0 ui-surface border-l p-4 h-[calc(100vh-53px)] sticky top-[53px] flex flex-col justify-between overflow-y-auto">
+    <aside id="reader-toc-sidebar" class="w-[240px] min-w-[240px] max-w-[240px] shrink-0 ui-surface border-l p-4 h-full flex flex-col justify-between overflow-y-auto">
       <div class="space-y-3">
         <div class="flex items-center justify-between">
           <span class="text-xs font-bold uppercase tracking-wider ui-text-muted">On This Page</span>
@@ -975,7 +981,7 @@ def build_html(default_view: str = "concepts") -> str:
   <!-- ===================================================================== -->
   <!-- VIEW 2: CHEAT SHEETS DECK (21 Quick-Reference Cards)                  -->
   <!-- ===================================================================== -->
-  <section id="view-cheatsheets" class="hidden flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 space-y-5">
+  <section id="view-cheatsheets" class="hidden flex-1 min-h-0 overflow-y-auto h-full max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 space-y-5">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b ui-border pb-4">
       <div>
         <h1 class="text-xl sm:text-2xl font-bold ui-accent-text">⚡ Pattern Cheat Sheets Deck (21)</h1>
@@ -993,7 +999,7 @@ def build_html(default_view: str = "concepts") -> str:
   <!-- ===================================================================== -->
   <!-- VIEW: INTERACTIVE PYTHON 3 PLAYGROUND                                 -->
   <!-- ===================================================================== -->
-  <section id="view-playground" class="hidden flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 space-y-4">
+  <section id="view-playground" class="hidden flex-1 min-h-0 overflow-y-auto h-full max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 space-y-4">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b ui-border pb-4">
       <div>
         <h1 class="text-xl sm:text-2xl font-bold ui-accent-text flex items-center gap-2">
@@ -1067,7 +1073,7 @@ def build_html(default_view: str = "concepts") -> str:
   <!-- ===================================================================== -->
   <!-- VIEW 3: TOP INTERVIEW 150 & LEETCODE 75 PROBLEM TRACKER               -->
   <!-- ===================================================================== -->
-  <section id="view-tracker" class="hidden flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 space-y-5">
+  <section id="view-tracker" class="hidden flex-1 min-h-0 overflow-y-auto h-full max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 space-y-5">
     
     <!-- Top Study Plan Progress Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
@@ -1194,7 +1200,7 @@ def build_html(default_view: str = "concepts") -> str:
   <!-- ===================================================================== -->
   <!-- VIEW 4: POMODORO FOCUS TRACKER (With Smooth Harmonic Chime Alarm)     -->
   <!-- ===================================================================== -->
-  <section id="view-pomodoro" class="hidden flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-8 space-y-6">
+  <section id="view-pomodoro" class="hidden flex-1 min-h-0 overflow-y-auto h-full max-w-4xl w-full mx-auto px-4 sm:px-6 py-8 space-y-6">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b ui-border pb-4">
       <div>
         <h1 class="text-xl sm:text-2xl font-bold ui-accent-text">⏱️ Pomodoro & Interview Sprint Timer</h1>
@@ -1293,7 +1299,7 @@ def build_html(default_view: str = "concepts") -> str:
   <!-- ===================================================================== -->
   <!-- VIEW 5: 12-WEEK FAANG ROADMAP (With hidden="until-found" support)     -->
   <!-- ===================================================================== -->
-  <section id="view-roadmap" class="hidden flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 space-y-5">
+  <section id="view-roadmap" class="hidden flex-1 min-h-0 overflow-y-auto h-full max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 space-y-5">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b ui-border pb-4">
       <div>
         <h1 class="text-xl sm:text-2xl font-bold ui-accent-text">🗺️ 12-Week FAANG Preparation Roadmap</h1>
@@ -1477,9 +1483,11 @@ def build_html(default_view: str = "concepts") -> str:
 
         const savedLeft = localStorage.getItem(LEFT_SB_KEY);
         if (savedLeft !== null) isLeftSidebarOpen = savedLeft === 'true';
+        else isLeftSidebarOpen = window.innerWidth >= 900;
 
         const savedRight = localStorage.getItem(RIGHT_SB_KEY);
         if (savedRight !== null) isRightSidebarOpen = savedRight === 'true';
+        else isRightSidebarOpen = window.innerWidth >= 1280;
       }} catch (e) {{
         console.warn(e);
       }}
