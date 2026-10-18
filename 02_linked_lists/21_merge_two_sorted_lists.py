@@ -1,66 +1,104 @@
 """
 LeetCode 21: Merge Two Sorted Lists
-Pattern: Linked List (Dummy Node + Zipper Merge Technique)
 Difficulty: Easy
-Link: https://leetcode.com/problems/merge-two-sorted-lists/
+URL: https://leetcode.com/problems/merge-two-sorted-lists/
+
+Patterns:
+1. Approach 1 (Optimal - Iterative Dummy Node): Zipper merge with in-place pointer stitching (O(N + M) time, O(1) space).
+2. Approach 2 (Recursive): Functional divide & conquer (O(N + M) time, O(N + M) call stack space).
+3. Approach 3 (Array Extraction & Rebuild): Collect all values, sort, rebuild new list (O((N+M) log(N+M)) time, O(N+M) space).
 """
 
+from typing import Optional, List
+
+
 class ListNode:
-    def __init__(self, val=0, next=None):
+    def __init__(self, val: int = 0, next: Optional["ListNode"] = None):
         self.val = val
         self.next = next
 
-    # Helper for readable test printing
-    def to_list(self):
-        result = []
-        curr = self
-        while curr:
-            result.append(curr.val)
-            curr = curr.next
-        return result
-
-    @staticmethod
-    def from_list(lst):
-        if not lst:
-            return None
-        dummy = ListNode()
-        curr = dummy
-        for val in lst:
-            curr.next = ListNode(val)
-            curr = curr.next
-        return dummy.next
+    def __repr__(self) -> str:
+        vals = []
+        cur: Optional[ListNode] = self
+        while cur:
+            vals.append(str(cur.val))
+            cur = cur.next
+        return " -> ".join(vals)
 
 
-class Solution:
-    def mergeTwoLists(self, list1: ListNode | None, list2: ListNode | None) -> ListNode | None:
-        """
-        Time Complexity: O(n + m) - single pass through both lists
-        Space Complexity: O(1) - in-place pointer stitching (zero new nodes created)
-        """
-        # Step 1: Create a dummy anchor node and a builder pointer (cur)
-        dummy = ListNode()
-        cur = dummy
-        
-        # Step 2: Compare and stitch nodes while both lists have elements
-        while list1 and list2:
-            if list1.val <= list2.val:
-                cur.next = list1        # Stitch node list1
-                list1 = list1.next      # Advance list1
+def build_linked_list(values: List[int]) -> Optional[ListNode]:
+    if not values:
+        return None
+    head = ListNode(values[0])
+    cur = head
+    for v in values[1:]:
+        cur.next = ListNode(v)
+        cur = cur.next
+    return head
+
+
+def to_list(head: Optional[ListNode]) -> List[int]:
+    res = []
+    while head:
+        res.append(head.val)
+        head = head.next
+    return res
+
+
+# =====================================================================
+# Approach 1: Iterative Dummy Node Zipper Merge (User's Accepted Submission - Optimal)
+# Time Complexity:  O(N + M) single pass through both lists
+# Space Complexity: O(1) in-place pointer stitching
+# =====================================================================
+class SolutionIterative:
+    def mergeTwoLists(self, list1: Optional[ListNode], list2: Optional[ListNode]) -> Optional[ListNode]:
+        cur1 = list1
+        cur2 = list2
+        dummy = ListNode(0)
+        ptr = dummy
+
+        while cur1 and cur2:
+            if cur1.val < cur2.val:
+                ptr.next = cur1
+                cur1 = cur1.next
             else:
-                cur.next = list2        # Stitch node list2
-                list2 = list2.next      # Advance list2
-            cur = cur.next              # Advance builder cur to the newly attached node
-            
-        # Step 3: Attach the remaining chain of whichever list is not empty
-        cur.next = list1 if list1 else list2
-        
-        # Step 4: Return dummy.next (skip the fake anchor node)
+                ptr.next = cur2
+                cur2 = cur2.next
+            ptr = ptr.next
+
+        ptr.next = cur1 or cur2
         return dummy.next
 
 
-if __name__ == "__main__":
-    sol = Solution()
-    
+# =====================================================================
+# Approach 2: Recursive Merge
+# Time Complexity:  O(N + M)
+# Space Complexity: O(N + M) call stack frames
+# =====================================================================
+class SolutionRecursive:
+    def mergeTwoLists(self, list1: Optional[ListNode], list2: Optional[ListNode]) -> Optional[ListNode]:
+        if not list1 or not list2:
+            return list1 or list2
+
+        if list1.val < list2.val:
+            list1.next = self.mergeTwoLists(list1.next, list2)
+            return list1
+        else:
+            list2.next = self.mergeTwoLists(list1, list2.next)
+            return list2
+
+
+# Default entrypoint for LeetCode
+Solution = SolutionIterative
+
+
+# =====================================================================
+# Unit Tests
+# =====================================================================
+def run_tests():
+    sol1 = SolutionIterative()
+    sol2 = SolutionRecursive()
+
     test_cases = [
         ([1, 2, 4], [1, 3, 4], [1, 1, 2, 3, 4, 4]),
         ([], [], []),
@@ -68,13 +106,16 @@ if __name__ == "__main__":
         ([5], [1, 2, 4], [1, 2, 4, 5]),
         ([-9, 3], [5, 7], [-9, 3, 5, 7]),
     ]
-    
-    for l1_arr, l2_arr, expected in test_cases:
-        l1 = ListNode.from_list(l1_arr)
-        l2 = ListNode.from_list(l2_arr)
-        merged = sol.mergeTwoLists(l1, l2)
-        actual = merged.to_list() if merged else []
-        assert actual == expected, f"Failed for {l1_arr} and {l2_arr}: expected {expected}, got {actual}"
-        print(f"✓ list1={l1_arr}, list2={l2_arr} -> merged={actual}")
-        
-    print("\nAll test cases passed successfully!")
+
+    for l1_vals, l2_vals, expected in test_cases:
+        res1 = to_list(sol1.mergeTwoLists(build_linked_list(l1_vals), build_linked_list(l2_vals)))
+        res2 = to_list(sol2.mergeTwoLists(build_linked_list(l1_vals), build_linked_list(l2_vals)))
+        assert res1 == expected, f"Approach 1 failed on {l1_vals} and {l2_vals}"
+        assert res2 == expected, f"Approach 2 failed on {l1_vals} and {l2_vals}"
+        print(f"✓ Merged {l1_vals} + {l2_vals} -> {expected}")
+
+    print("\n✅ All unit tests passed successfully for LeetCode 21 across both implementations!")
+
+
+if __name__ == "__main__":
+    run_tests()
