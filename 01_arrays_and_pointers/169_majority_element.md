@@ -54,10 +54,21 @@ Input: `nums = [2, 2, 1, 1, 1, 2, 2]`
 | 7 | 2 | 0 | Reset candidate to 2 | 2 | 1 |
 
 <details>
-<summary>Spoiler: Solution Code</summary>
+<summary>Spoiler: Solution Code (Both Approaches)</summary>
 
 ```python
-class Solution:
+# Approach 1: Frequency Hash Map / Counter (Intuitive, O(N) space)
+from collections import Counter
+
+
+class SolutionHashMap:
+    def majorityElement(self, nums: list[int]) -> int:
+        counts = Counter(nums)
+        return max(counts.keys(), key=counts.get)
+
+
+# Approach 2: Boyer-Moore Voting Algorithm (Optimal, O(1) space)
+class SolutionBoyerMoore:
     def majorityElement(self, nums: list[int]) -> int:
         candidate = None
         count = 0

@@ -1,4 +1,15 @@
+"""
+LeetCode 238: Product of Array Except Self
+Difficulty: Medium
+URL: https://leetcode.com/problems/product-of-array-except-self/
+
+Patterns:
+1. Approach 1 (Accepted Submission): Explicit Prefix & Suffix Arrays (O(N) time, O(N) space).
+2. Approach 2 (Optimal / In-Place): Two Passes Directly Inside Output Array (O(N) time, O(1) space).
+"""
+
 from typing import List
+
 
 class Solution:
     def productExceptSelf_user_approach(self, nums: List[int]) -> List[int]:

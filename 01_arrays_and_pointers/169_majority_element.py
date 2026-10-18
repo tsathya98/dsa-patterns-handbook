@@ -1,10 +1,11 @@
 """
 LeetCode 169: Majority Element
+Difficulty: Easy
 URL: https://leetcode.com/problems/majority-element/
 
-Pattern: Boyer-Moore Voting Algorithm (Mutual Cancellation Pattern)
-Time Complexity: O(n)
-Space Complexity: O(1) in-place auxiliary space
+Patterns:
+1. Approach 1 (Baseline): Frequency Hash Map / Counter (O(N) time, O(N) space).
+2. Approach 2 (Optimal): Boyer-Moore Voting Algorithm (O(N) time, O(1) space).
 """
 
 from collections import Counter

@@ -54,13 +54,28 @@ Allocating separate `prefix` and `suffix` arrays works in $\mathcal{O}(n)$ space
 ## Solution
 
 <details>
-<summary>Spoiler: Solution Code</summary>
+<summary>Spoiler: Solution Code (Both Approaches)</summary>
 
 ```python
-from typing import List
+# Approach 1: Explicit Prefix and Suffix Arrays (Intuitive, O(N) space)
+class SolutionPrefixSuffix:
+    def productExceptSelf(self, nums: list[int]) -> list[int]:
+        n = len(nums)
+        prefix = [1] * n
+        suffix = [1] * n
 
-class Solution:
-    def productExceptSelf(self, nums: List[int]) -> List[int]:
+        for i in range(1, n):
+            prefix[i] = prefix[i - 1] * nums[i - 1]
+
+        for i in range(n - 2, -1, -1):
+            suffix[i] = suffix[i + 1] * nums[i + 1]
+
+        return [prefix[i] * suffix[i] for i in range(n)]
+
+
+# Approach 2: Direct In-Place Accumulation in Output Array (Optimal, O(1) space)
+class SolutionOptimal:
+    def productExceptSelf(self, nums: list[int]) -> list[int]:
         n = len(nums)
         res = [1] * n
 

@@ -40,10 +40,18 @@ Input: `nums = [1, 2, 3, 4, 5, 6, 7]`, `k = 3` (`n = 7`, `k %= 7 -> 3`)
 | `reverse_sub(3, 6)` | `3..6` (last $n - k$) | `[5, 6, 7, 1, 2, 3, 4]` |
 
 <details>
-<summary>Spoiler: Solution Code</summary>
+<summary>Spoiler: Solution Code (Both Approaches)</summary>
 
 ```python
-class Solution:
+# Approach 1: Slicing with in-place mutation (Intuitive, O(N) space)
+class SolutionSlice:
+    def rotate(self, nums: list[int], k: int) -> None:
+        k %= len(nums)
+        nums[:] = nums[len(nums) - k :] + nums[: len(nums) - k]
+
+
+# Approach 2: Triple Reversal Algorithm (Optimal, O(1) space)
+class SolutionOptimal:
     def rotate(self, nums: list[int], k: int) -> None:
         n = len(nums)
         k %= n
@@ -54,8 +62,11 @@ class Solution:
                 start += 1
                 end -= 1
 
+        # 1. Reverse entire array
         reverse_sub(0, n - 1)
+        # 2. Reverse first k elements
         reverse_sub(0, k - 1)
+        # 3. Reverse remaining n - k elements
         reverse_sub(k, n - 1)
 ```
 
