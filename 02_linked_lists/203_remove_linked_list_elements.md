@@ -23,12 +23,12 @@ Output: []
 
 ## Why this problem feels tricky
 
-In a singly linked list, **a node cannot delete itself**. 
+In a singly linked list, **a node cannot delete itself**.
 
-If you are standing on `cur`, you have no backward pointer. You cannot reach behind yourself to tell the previous node to skip you. To delete a node, **you must be standing on the node right before it**. That is why linked list deletion always checks `cur.next.val == val` instead of `cur.val == val`.
+If you are standing on `cur`, you have no backward pointer. You cannot reach behind yourself to tell the previous node to skip you. To delete a node, **you must stand on the node right before it**. That is why linked list deletion always inspects `cur.next.val == val` instead of `cur.val == val`.
 
 ```text
-To delete [ 6 ]: your pointer MUST be standing on [ 2 ]!
+To delete [ 6 ]: your pointer MUST stand on [ 2 ]!
 [ 1 ] ──► [ 2 ] ──► [ 6 ] ──► [ 3 ]
             ▲
            cur
@@ -43,42 +43,85 @@ The problem is: **what if the head itself needs to be deleted?** If `head.val ==
 
 ### Method 1: Sentinel Dummy Node (The gold standard)
 
-Instead of writing special checks for the head, hammer a fake anchor node `dummy = ListNode(0, head)` in front of the list.
+Instead of writing special checks for the head, attach a fake anchor node `dummy = ListNode(0, head)` in front of the list.
 
-Now **every single node in the list (including the original head) has a predecessor standing behind it**. The exact same loop deletes nodes anywhere in the list without a single edge-case `if` statement.
+Now **every single node in the list (including the original head) has a predecessor standing behind it**. The exact same loop deletes nodes anywhere in the list without special cases.
+
+#### Step-by-step trace on `[ 1, 2, 6, 3 ]`, `val = 6`:
 
 ```text
-Input: [ 7, 7, 7, 7 ], val = 7
+Setup:
+dummy    head
+  │       │
+  ▼       ▼
+[ 0 ] ──► [ 1 ] ──► [ 2 ] ──► [ 6 ] ──► [ 3 ] ──► null
+  ▲
+ cur
 
-Start:
-[ dummy (0) ] ──► [ 7 ] ──► [ 7 ] ──► [ 7 ] ──► [ 7 ] ──► null
-      ▲
-     cur
+Iteration 1:
+Inspect cur.next ([ 1 ]). Value 1 != 6. Safe to keep!
+Action: cur = cur.next
+dummy    head
+[ 0 ] ──► [ 1 ] ──► [ 2 ] ──► [ 6 ] ──► [ 3 ] ──► null
+            ▲
+           cur
 
-Turn 1: cur.next is 7. Snip! cur.next = cur.next.next. Do NOT move cur!
-[ dummy (0) ] ────────────► [ 7 ] ──► [ 7 ] ──► [ 7 ] ──► null
-      ▲
-     cur
+Iteration 2:
+Inspect cur.next ([ 2 ]). Value 2 != 6. Safe to keep!
+Action: cur = cur.next
+dummy    head
+[ 0 ] ──► [ 1 ] ──► [ 2 ] ──► [ 6 ] ──► [ 3 ] ──► null
+                      ▲
+                     cur
 
-Turn 2: cur.next is still 7! Snip again!
-[ dummy (0) ] ──────────────────────► [ 7 ] ──► [ 7 ] ──► null
-      ▲
-     cur
+Iteration 3 (The Delete Step!):
+Inspect cur.next ([ 6 ]). Value 6 == 6. MATCH FOUND!
+Action: cur.next = cur.next.next (wire [ 2 ] directly to [ 3 ]).
+IMPORTANT: Do NOT move cur! Stay on [ 2 ] to check the newly attached node.
 
-Turn 3 & 4: Snip remaining 7s.
-[ dummy (0) ] ──────────────────────────────────────────► null
-      ▲
-     cur
+After Snip:
+dummy    head
+[ 0 ] ──► [ 1 ] ──► [ 2 ] ────────► [ 3 ] ──► null
+                      ▲
+                     cur
 
-Return dummy.next -> null (clean empty list!)
+Iteration 4:
+Inspect cur.next ([ 3 ]). Value 3 != 6. Safe to keep!
+Action: cur = cur.next
+dummy    head
+[ 0 ] ──► [ 1 ] ──► [ 2 ] ────────► [ 3 ] ──► null
+                                      ▲
+                                     cur
+
+Loop ends: cur.next is null!
+Return dummy.next -> skips fake [ 0 ] and returns real clean head [ 1 ].
 ```
 
-```playthrough
-{
-  "algorithm": "remove_elements",
-  "initial": [1, 2, 6, 3, 4, 5, 6],
-  "target": 6
-}
+#### What happens on `[ 7, 7, 7, 7 ]`, `val = 7`:
+
+```text
+Start:
+dummy   head
+[ 0 ] ──► [ 7 ] ──► [ 7 ] ──► [ 7 ] ──► [ 7 ] ──► null
+  ▲
+ cur
+
+Round 1: cur.next is 7. Snip! cur.next = cur.next.next. Do NOT move cur!
+[ 0 ] ────────────► [ 7 ] ──► [ 7 ] ──► [ 7 ] ──► null
+  ▲
+ cur
+
+Round 2: cur.next is still 7! Snip again!
+[ 0 ] ──────────────────────► [ 7 ] ──► [ 7 ] ──► null
+  ▲
+ cur
+
+Round 3 & 4: Snip remaining 7s.
+[ 0 ] ──────────────────────────────────────────► null
+  ▲
+ cur
+
+Return dummy.next -> null (clean empty list in 1 uniform loop!)
 ```
 
 #### Algorithm steps:
@@ -90,32 +133,10 @@ Return dummy.next -> null (clean empty list!)
 
 ---
 
-### Method 2: Without dummy node (Leading head trimming)
+### Method 2: Without dummy node (Why the copied code worked)
 
-If you do not want to use a dummy node, you must handle the head in two separate passes:
+Here is the exact code you copied from LeetCode:
 
-1. **Trim the front:** Use a `while` loop to advance `head` as long as `head.val == val`.
-2. **Trim the rest:** Walk a pointer `cur = head` and delete from `cur.next` onward.
-
-```python
-def removeElements_no_dummy(head, val):
-    # Pass 1: Chop off all matching heads from the front
-    while head and head.val == val:
-        head = head.next
-
-    # Pass 2: Clean up the rest
-    cur = head
-    while cur and cur.next:
-        if cur.next.val == val:
-            cur.next = cur.next.next
-        else:
-            cur = cur.next
-
-    return head
-```
-
-#### Why the code you copied worked (and why it felt weird):
-In the solution you copied:
 ```python
 node = head
 while node and node.next:
@@ -125,8 +146,51 @@ while node and node.next:
         node = node.next
 if head.val == val:
     head = head.next
+return head
 ```
-That code started walking from `head` without trimming the front first. So on `[7, 7, 7, 7]`, `node` held onto the first `7` while the while loop deleted all the 7s *after* it. That left a single `[7]`. Then the trailing line `if head.val == val: head = head.next` finally chopped off that last remaining 7. It worked, but it is much easier to make a mistake with that ordering than with Method 1's dummy node.
+
+#### Why this code felt weird and confusing:
+
+In a singly linked list, `node` can only delete `node.next`. Because this code set `node = head` without a dummy in front, **the while loop only looked at nodes after the head**.
+
+#### Step-by-step trace of that code on `[ 7, 7, 7, 7 ]`, `val = 7`:
+
+```text
+Start:
+head, node
+  │     │
+  ▼     ▼
+[ 7 ] ──► [ 7 ] ──► [ 7 ] ──► [ 7 ] ──► null
+
+Iteration 1:
+node is on the first [ 7 ]. node.next is [ 7 ] == 7.
+Action: node.next = node.next.next (snip out 2nd node)
+head, node
+[ 7 ] ────────► [ 7 ] ──► [ 7 ] ──► null
+
+Iteration 2:
+node is STILL on first [ 7 ]. node.next is [ 7 ] == 7.
+Action: node.next = node.next.next (snip out 3rd node)
+head, node
+[ 7 ] ──────────────────► [ 7 ] ──► null
+
+Iteration 3:
+Action: node.next = node.next.next (snip out 4th node)
+head, node
+[ 7 ] ────────────────────────────► null
+
+The while loop ENDS here because node.next is now null!
+Look at what is left in memory:
+head
+[ 7 ] ──► null
+
+The first node was NEVER checked by the while loop!
+That is why the author had to add this awkward trailing check:
+if head.val == val:
+    head = head.next   <-- chops off the last remaining 7!
+```
+
+This works, but having a trailing `if head.val == val` outside the loop is easy to forget in an interview. That is why **Method 1 (Sentinel Dummy)** is preferred.
 
 ---
 
@@ -139,10 +203,10 @@ def removeElements_recursive(head, val):
     if not head:
         return None
 
-    # Clean up everything downstream first
+    # 1. Clean up everything downstream first
     head.next = removeElements_recursive(head.next, val)
 
-    # If current node matches, skip it by returning head.next
+    # 2. If current node matches, skip it by returning head.next
     return head.next if head.val == val else head
 ```
 
@@ -155,7 +219,7 @@ The call stack dives to the end of the list and cleans nodes on the way back up.
 | Method | Time | Space | Cleanliness & Traps |
 | :--- | :--- | :--- | :--- |
 | **1. Sentinel Dummy** | $\mathcal{O}(n)$ | $\mathcal{O}(1)$ | **Best for interviews.** 1 loop, zero special cases for `head`. |
-| **2. Two-Pass Trim** | $\mathcal{O}(n)$ | $\mathcal{O}(1)$ | Requires two separate loops; easy to forget the leading `while` check. |
+| **2. Two-Pass / Head Check** | $\mathcal{O}(n)$ | $\mathcal{O}(1)$ | Loop only checks `node.next`; requires trailing `if head.val == val`. |
 | **3. Recursive** | $\mathcal{O}(n)$ | $\mathcal{O}(n)$ | Clean 3-liner, but risks stack overflow on lists with $> 1000$ nodes. |
 
 ---
@@ -163,7 +227,7 @@ The call stack dives to the end of the list and cleans nodes on the way back up.
 ## Traps to watch for
 
 * **Advancing `cur` after deleting:** Never write `cur = cur.next` inside the deletion branch. If you delete node 6 from `[2, 6, 6, 3]` and advance `cur`, you land on `3` and skip checking the second `6`!
-* **Using `while head.val == val:` without checking `head`:** In Method 2, always write `while head and head.val == val:`. If all nodes match, `head` becomes `None` and `head.val` crashes with an `AttributeError`.
+* **Empty list check:** In Method 2, always check `if not head: return None` upfront, otherwise `node.next` crashes on empty inputs.
 
 ---
 
@@ -174,7 +238,7 @@ The call stack dives to the end of the list and cleans nodes on the way back up.
 
 ```python
 class Solution:
-    def removeElements(self, head: ListNode | None, val: int) -> ListNode | None:
+    def removeElements(self, head: Optional[ListNode], val: int) -> Optional[ListNode]:
         dummy = ListNode(0, head)
         cur = dummy
 
@@ -194,16 +258,19 @@ class Solution:
 
 ```python
 class Solution:
-    def removeElements(self, head: ListNode | None, val: int) -> ListNode | None:
-        while head and head.val == val:
-            head = head.next
+    def removeElements(self, head: Optional[ListNode], val: int) -> Optional[ListNode]:
+        if not head:
+            return None
 
-        cur = head
-        while cur and cur.next:
-            if cur.next.val == val:
-                cur.next = cur.next.next
+        node = head
+        while node and node.next:
+            if node.next.val == val:
+                node.next = node.next.next
             else:
-                cur = cur.next
+                node = node.next
+
+        if head.val == val:
+            head = head.next
 
         return head
 ```
@@ -215,7 +282,7 @@ class Solution:
 
 ```python
 class Solution:
-    def removeElements(self, head: ListNode | None, val: int) -> ListNode | None:
+    def removeElements(self, head: Optional[ListNode], val: int) -> Optional[ListNode]:
         if not head:
             return None
         head.next = self.removeElements(head.next, val)
