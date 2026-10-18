@@ -4,9 +4,8 @@ Difficulty: Easy (with Medium O(1) Space Follow-Up)
 URL: https://leetcode.com/problems/palindrome-linked-list/
 
 Patterns:
-1. Approach 1 (Accepted Submission): Array Conversion + Two-Pointer Squeeze (O(N) time, O(N) space).
-2. Approach 2 (Optimal Interview Standard): Fast/Slow Midpoint + In-Place Reversal (O(N) time, O(1) space).
-3. Approach 3 (Optimal with Restoration): O(1) Space + Restore Original List Structure (O(N) time, O(1) space).
+1. Approach 1 (Array Conversion): Collect node values into a list + Two-pointer squeeze (O(N) time, O(N) space).
+2. Approach 2 (User's Accepted Optimal Solution): Fast/Slow Midpoint + In-Place Second Half Reversal (O(N) time, O(1) space).
 """
 
 from typing import Optional, List
@@ -38,9 +37,9 @@ def build_linked_list(values: List[int]) -> Optional[ListNode]:
 
 
 # =====================================================================
-# Approach 1: Array Conversion + Two-Pointer Squeeze (User's Accepted Submission)
-# Time Complexity:  O(N) single pass to copy + O(N/2) pointer comparison
-# Space Complexity: O(N) array storage
+# Approach 1: Array Conversion + Two-Pointer Squeeze (Intuitive Baseline)
+# Time Complexity:  O(N)
+# Space Complexity: O(N) array allocation
 # =====================================================================
 class SolutionArray:
     def isPalindrome(self, head: Optional[ListNode]) -> bool:
@@ -60,33 +59,34 @@ class SolutionArray:
 
 
 # =====================================================================
-# Approach 2: Fast/Slow Midpoint + In-Place Reversal (Optimal O(1) Space)
-# Time Complexity:  O(N) total (O(N/2) find mid + O(N/2) reverse + O(N/2) compare)
-# Space Complexity: O(1) auxiliary space
+# Approach 2: Fast/Slow Midpoint + In-Place Reversal (User's Accepted Optimal)
+# Time Complexity:  O(N) single pass through the list
+# Space Complexity: O(1) strictly in-place auxiliary space
 # =====================================================================
 class SolutionOptimal:
     def isPalindrome(self, head: Optional[ListNode]) -> bool:
         if not head or not head.next:
             return True
 
-        # 1. Stop slow at the end of the first half
+        # 1. Find midpoint (slow stops at end of first half)
         slow = fast = head
         while fast.next and fast.next.next:
             slow = slow.next
             fast = fast.next.next
 
-        # 2. Reverse second half in-place starting at slow.next
+        # 2. Reverse second half in-place
         prev = None
         cur = slow.next
         while cur:
-            nxt = cur.next
+            nn = cur.next
             cur.next = prev
             prev = cur
-            cur = nxt
+            cur = nn
 
-        # 3. Compare both halves inward
-        first, second = head, prev
-        while second:
+        # 3. Compare first half and reversed second half inward
+        first = head
+        second = prev
+        while first and second:
             if first.val != second.val:
                 return False
             first = first.next
@@ -96,7 +96,7 @@ class SolutionOptimal:
 
 
 # Default entrypoint for LeetCode
-Solution = SolutionArray
+Solution = SolutionOptimal
 
 
 # =====================================================================
@@ -118,8 +118,8 @@ def run_tests():
     for vals, expected in test_cases:
         res1 = sol1.isPalindrome(build_linked_list(vals))
         res2 = sol2.isPalindrome(build_linked_list(vals))
-        assert res1 == expected, f"Approach 1 failed on {vals}: got {res1}, expected {expected}"
-        assert res2 == expected, f"Approach 2 failed on {vals}: got {res2}, expected {expected}"
+        assert res1 == expected, f"Approach 1 failed on {vals}"
+        assert res2 == expected, f"Approach 2 failed on {vals}"
         print(f"✓ Input: {vals} -> isPalindrome: {expected}")
 
     print("\n✅ All unit tests passed successfully for LeetCode 234 across both implementations!")
