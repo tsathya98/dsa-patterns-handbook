@@ -1209,6 +1209,9 @@ def build_html(default_view: str = "concepts") -> str:
             <option value="repeated_substring">🔁 LC 459 Repeated Substring Pattern</option>
             <option value="container_water">💧 LC 11 Container With Most Water</option>
           </optgroup>
+          <optgroup label="Linked Lists">
+            <option value="reverse_first_k">🔗 Reverse First K Nodes (Step Trace)</option>
+          </optgroup>
           <optgroup label="Recursion &amp; Backtracking">
             <option value="subsets">🌳 LC 78 Subsets (Backtracking)</option>
             <option value="n_queens">👑 LC 51 N-Queens (4x4 Board)</option>
@@ -2384,6 +2387,64 @@ expr = "2*3-4*5"
 print("All parenthesizations of '" + expr + "':")
 print(sorted(diff_ways(expr)))
 `,
+      reverse_first_k: `# 🔗 Reverse First K Nodes of a Linked List (In-Place Step Trace)
+class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+def reverse_first_k(head, k):
+    print("Initial Linked List:", to_list(head))
+    print("Goal: reverse the first", k, "nodes in-place\\n")
+    if not head or k <= 1:
+        return head
+        
+    prev = None
+    cur = head
+    
+    # 1. Reverse first k nodes
+    count = k
+    while count > 0 and cur:
+        nxt = cur.next
+        cur.next = prev
+        prev = cur
+        cur = nxt
+        count -= 1
+        print("Flipped Node " + str(prev.val) + " -> prev is at Node(" + str(prev.val) + "), cur is at Node(" + str(cur.val if cur else 'null') + ")")
+        
+    print("\\nWhile loop finished!")
+    print("  prev is at Node(" + str(prev.val) + ")  <-- FRONT of reversed chunk!")
+    print("  head is at Node(" + str(head.val) + ")  <-- TAIL of reversed chunk!")
+    print("  cur is at Node(" + str(cur.val if cur else 'null') + ")   <-- START of remaining list")
+    
+    # 2. The Bridge
+    head.next = cur
+    print("\\nBridge executed: head.next = cur")
+    print("  Node(" + str(head.val) + ") is now glued to Node(" + str(cur.val if cur else 'null') + ")")
+    
+    # 3. Return prev
+    print("Returning prev: the new head of the whole list is Node(" + str(prev.val) + ")!")
+    return prev
+
+def from_list(vals):
+    dummy = ListNode(0)
+    curr = dummy
+    for v in vals:
+        curr.next = ListNode(v)
+        curr = curr.next
+    return dummy.next
+
+def to_list(head):
+    res, curr = [], head
+    while curr:
+        res.append(curr.val)
+        curr = curr.next
+    return res
+
+head = from_list([1, 2, 3, 4, 5, 6])
+new_head = reverse_first_k(head, k=4)
+print("\\nFinal Result:", to_list(new_head))
+`,
       blank: `# Python 3 Interactive Playground
 # Sourced from your local DSA Hub
 
@@ -2726,10 +2787,16 @@ print("Hello from Python 3 Playground!")
       '01_arrays_and_pointers/75_sort_colors.md': {{ algorithm: 'sort_colors', initial: [2, 0, 2, 1, 1, 0] }},
       '01_arrays_and_pointers/11_container_with_most_water.md': {{ algorithm: 'container_with_most_water', initial: [1, 8, 6, 2, 5, 4, 8, 3, 7] }},
       '01_arrays_and_pointers/53_maximum_subarray.md': {{ algorithm: 'kadanes', initial: [-2, 1, -3, 4, -1, 2, 1, -5, 4] }},
-      '02_linked_lists/206_reverse_linked_list.md': {{ algorithm: 'reverse_linked_list', initial: [1, 2, 3, 4, 5] }}
+      '02_linked_lists/206_reverse_linked_list.md': {{ algorithm: 'reverse_linked_list', initial: [1, 2, 3, 4, 5] }},
+      '02_linked_lists/02_reverse_first_k_nodes.md': {{ algorithm: 'reverse_first_k', initial: [1, 2, 3, 4, 5, 6], k: 4 }}
     }};
 
     const PLAYTHROUGH_PRESETS = {{
+      reverse_first_k: [
+        {{ label: 'Notebook Example [1..6] (k=4)', val: [1, 2, 3, 4, 5, 6], k: 4 }},
+        {{ label: 'Full Reversal [1, 2, 3, 4] (k=4)', val: [1, 2, 3, 4], k: 4 }},
+        {{ label: 'First 2 of 5 [10, 20, 30, 40, 50] (k=2)', val: [10, 20, 30, 40, 50], k: 2 }}
+      ],
       bubble_sort: [
         {{ label: 'Default [5, 1, 4, 2, 8]', val: [5, 1, 4, 2, 8] }},
         {{ label: 'Reversed [5, 4, 3, 2, 1]', val: [5, 4, 3, 2, 1] }},
@@ -3528,6 +3595,118 @@ print("Hello from Python 3 Playground!")
       return steps;
     }}
 
+    function generateReverseFirstKSteps(initialArr, kVal) {{
+      const vals = [...initialArr];
+      const k = Math.min(kVal || 4, vals.length);
+      const steps = [];
+
+      // Step 0: Setup
+      steps.push({{
+        type: 'linked_list',
+        chains: [
+          {{
+            title: 'Initial Linked List (head = Node ' + vals[0] + ', target: reverse first k = ' + k + ' nodes)',
+            nodes: vals.map((v, i) => ({{
+              val: v,
+              ptrs: i === 0 ? ['head', 'cur'] : [],
+              highlight: i < k
+            }})).concat([{{ val: 'null', ptrs: [] }}])
+          }}
+        ],
+        tag: 'Step 0: Setup',
+        badge: 'k = ' + k,
+        badgeColor: 'blue',
+        desc: `Target: reverse the first k = ${{k}} nodes of [${{vals.join(' -> ')}} -> null]. Initialize prev = null, cur = head (Node ${{vals[0]}}). Highlighted nodes will be reversed.`,
+        vars: {{ head: `Node(${{vals[0]}})`, cur: `Node(${{vals[0]}})`, prev: 'null', k }}
+      }});
+
+      let prevVals = [];
+      for (let i = 0; i < k; i++) {{
+        const flippedVal = vals[i];
+        prevVals.unshift(flippedVal);
+        const remVals = vals.slice(i + 1);
+
+        const revNodes = prevVals.map((v, idx) => {{
+          const p = [];
+          if (idx === 0) p.push('prev');
+          if (v === vals[0]) p.push('head');
+          return {{ val: v, ptrs: p, highlight: idx === 0 }};
+        }}).concat([{{ val: 'null', ptrs: [] }}]);
+
+        const remNodes = remVals.map((v, idx) => {{
+          return {{ val: v, ptrs: idx === 0 ? ['cur'] : [] }};
+        }}).concat([{{ val: 'null', ptrs: [] }}]);
+
+        const isLast = (i === k - 1);
+        const curTarget = remVals.length ? ('Node ' + remVals[0]) : 'null';
+
+        steps.push({{
+          type: 'linked_list',
+          chains: [
+            {{
+              title: 'Reversed Piece (' + (i + 1) + ' of ' + k + ' nodes) - starts at prev = Node ' + prevVals[0],
+              nodes: revNodes
+            }},
+            {{
+              title: 'Remaining Piece (' + remVals.length + ' nodes left) - starts at cur = ' + curTarget,
+              nodes: remNodes
+            }}
+          ],
+          tag: 'Loop ' + (i + 1) + ' of ' + k + ': Flip Node(' + flippedVal + ')',
+          badge: 'Flipped Node ' + flippedVal,
+          badgeColor: isLast ? 'rose' : 'amber',
+          desc: '1. Bookmark: nxt = cur.next. 2. Flip arrow: cur.next = prev. 3. Slide prev to Node(' + prevVals[0] + '). 4. Slide cur to ' + curTarget + '. ' + (isLast ? 'WHILE LOOP FINISHES! Notice: prev sits on Node(' + prevVals[0] + '), the FRONT of the reversed piece! But notice the list is in TWO DISCONNECTED PIECES.' : 'Reversed piece grows from the left.'),
+          vars: {{ prev: 'Node(' + prevVals[0] + ')', cur: curTarget, head: 'Node(' + vals[0] + ')' }}
+        }});
+      }}
+
+      // Step: The Bridge
+      const bridgedVals = [...prevVals, ...vals.slice(k)];
+      const nextTarget = vals[k] !== undefined ? ('Node ' + vals[k]) : 'null';
+      steps.push({{
+        type: 'linked_list',
+        chains: [
+          {{
+            title: 'The Bridge: head.next = cur (Node ' + vals[0] + ' glues to ' + nextTarget + ')',
+            nodes: bridgedVals.map((v) => {{
+              const p = [];
+              if (v === prevVals[0]) p.push('prev');
+              if (v === vals[0]) p.push('head');
+              if (vals[k] !== undefined && v === vals[k]) p.push('cur');
+              return {{ val: v, ptrs: p, highlight: v === vals[0] || (vals[k] !== undefined && v === vals[k]) }};
+            }}).concat([{{ val: 'null', ptrs: [] }}])
+          }}
+        ],
+        tag: 'The Bridge: head.next = cur',
+        badge: 'Reconnected!',
+        badgeColor: 'emerald',
+        desc: 'Execute the bridge line: head.next = cur. Variable head was STILL holding Node(' + vals[0] + '), so head.next = cur connects Node(' + vals[0] + ') directly to ' + nextTarget + '! The two detached pieces are now one single continuous chain!',
+        vars: {{ bridge: 'Node(' + vals[0] + ').next = ' + nextTarget, status: 'Reconnected' }}
+      }});
+
+      // Step: Return prev
+      steps.push({{
+        type: 'linked_list',
+        chains: [
+          {{
+            title: `Final Answer: Return prev (starts at Node ${{prevVals[0]}})`,
+            nodes: bridgedVals.map((v, idx) => {{
+              const p = [];
+              if (idx === 0) p.push('RETURN PREV (Head)');
+              return {{ val: v, ptrs: p, highlight: idx === 0 }};
+            }}).concat([{{ val: 'null', ptrs: [] }}])
+          }}
+        ],
+        tag: 'Final Step: Return prev',
+        badge: 'Complete!',
+        badgeColor: 'emerald',
+        desc: `return prev! Look at the front of the chain: it is Node(${{prevVals[0]}}). When the caller iterates through the returned head, they visit [${{bridgedVals.join(' -> ')}} -> null]. That is why we return prev!`,
+        vars: {{ return_value: `prev (Node ${{prevVals[0]}})`, final_list: bridgedVals.join(' -> ') + ' -> null' }}
+      }});
+
+      return steps;
+    }}
+
     function generateMergeSortSteps(initialArr) {{
       const arr = [...initialArr];
       return [
@@ -3711,6 +3890,8 @@ print("Hello from Python 3 Playground!")
           steps = generateKadanesSteps(currentArr);
         }} else if (algo === 'reverse_linked_list') {{
           steps = generateReverseLinkedListSteps(currentArr);
+        }} else if (algo === 'reverse_first_k') {{
+          steps = generateReverseFirstKSteps(currentArr, spec.k || 4);
         }} else if (algo === 'merge_sort') {{
           steps = generateMergeSortSteps(currentArr);
         }} else if (algo === 'quick_sort') {{
@@ -3782,6 +3963,7 @@ print("Hello from Python 3 Playground!")
           const chosen = presets[parseInt(select.value)];
           currentArr = [...chosen.val];
           if (chosen.target !== undefined) targetVal = chosen.target;
+          if (chosen.k !== undefined) spec.k = chosen.k;
           computeSteps();
           stepIdx = 0;
           widget.querySelector('.pt-slider').max = Math.max(0, steps.length - 1);
@@ -3840,32 +4022,60 @@ print("Hello from Python 3 Playground!")
 
         // Render Stage
         if (step.type === 'linked_list') {{
-          const nodes = step.nodes || [];
-          const ptrs = step.pointers || {{}};
-          let html = `<div class="flex items-center justify-center flex-wrap gap-2 py-3 overflow-x-auto w-full">`;
-          nodes.forEach((n, idx) => {{
-            const activePtrs = Object.entries(ptrs).filter(([_, v]) => v === idx).map(([k]) => k);
-            html += `
-              <div class="flex items-center gap-2">
-                <div class="flex flex-col items-center">
-                  ${{activePtrs.length ? `<span class="pt-ptr-pill mb-1">${{activePtrs.join(', ')}} ↓</span>` : '<span class="h-4"></span>'}}
-                  <div class="px-3.5 py-2.5 rounded-xl border ui-card font-mono font-bold text-base flex items-center gap-2 shadow-sm ${{step.active && step.active.includes(idx) ? 'ring-2 ring-amber-400' : ''}}">
-                    <span>${{n.val}}</span>
-                    <span class="text-xs ui-text-muted">•</span>
+          if (step.chains && step.chains.length) {{
+            let html = `<div class="flex flex-col gap-3 py-2 w-full items-center">`;
+            step.chains.forEach(ch => {{
+              html += `
+                <div class="flex flex-col items-center w-full max-w-3xl bg-slate-500/5 dark:bg-slate-400/5 px-3 py-2.5 rounded-xl border ui-border shadow-xs">
+                  <span class="text-[11px] font-bold ui-accent-text tracking-wide mb-1.5 flex items-center gap-1.5">
+                    <span>🔗</span> ${{ch.title}}
+                  </span>
+                  <div class="flex items-center justify-center flex-wrap gap-2">
+                    ${{ch.nodes.map((n, i) => `
+                      <div class="flex items-center gap-2">
+                        <div class="flex flex-col items-center">
+                          ${{n.ptrs && n.ptrs.length ? `<span class="pt-ptr-pill mb-1 font-bold shadow-sm">${{n.ptrs.join(', ')}} ↓</span>` : '<span class="h-4"></span>'}}
+                          <div class="px-3.5 py-2 rounded-xl border ui-card font-mono font-bold text-base flex items-center gap-1.5 shadow-sm ${{n.highlight ? 'ring-2 ring-amber-400 bg-amber-400/15' : ''}}">
+                            <span>${{n.val}}</span>
+                          </div>
+                        </div>
+                        ${{i < ch.nodes.length - 1 ? '<span class="font-mono text-sm ui-accent-text font-bold">──►</span>' : ''}}
+                      </div>
+                    `).join('')}}
                   </div>
-                  <span class="text-[10px] font-mono ui-text-muted mt-1">idx ${{idx}}</span>
                 </div>
-                <span class="font-mono text-xs ui-text-muted">──►</span>
+              `;
+            }});
+            html += `</div>`;
+            stageEl.innerHTML = html;
+          }} else {{
+            const nodes = step.nodes || [];
+            const ptrs = step.pointers || {{}};
+            let html = `<div class="flex items-center justify-center flex-wrap gap-2 py-3 overflow-x-auto w-full">`;
+            nodes.forEach((n, idx) => {{
+              const activePtrs = Object.entries(ptrs).filter(([_, v]) => v === idx).map(([k]) => k);
+              html += `
+                <div class="flex items-center gap-2">
+                  <div class="flex flex-col items-center">
+                    ${{activePtrs.length ? `<span class="pt-ptr-pill mb-1">${{activePtrs.join(', ')}} ↓</span>` : '<span class="h-4"></span>'}}
+                    <div class="px-3.5 py-2.5 rounded-xl border ui-card font-mono font-bold text-base flex items-center gap-2 shadow-sm ${{step.active && step.active.includes(idx) ? 'ring-2 ring-amber-400' : ''}}">
+                      <span>${{n.val}}</span>
+                      <span class="text-xs ui-text-muted">•</span>
+                    </div>
+                    <span class="text-[10px] font-mono ui-text-muted mt-1">idx ${{idx}}</span>
+                  </div>
+                  <span class="font-mono text-xs ui-text-muted">──►</span>
+                </div>
+              `;
+            }});
+            html += `
+              <div class="flex flex-col items-center">
+                <span class="h-4"></span>
+                <span class="font-mono text-xs font-semibold px-2.5 py-1.5 rounded-lg ui-surface border ui-text-muted">null</span>
               </div>
-            `;
-          }});
-          html += `
-            <div class="flex flex-col items-center">
-              <span class="h-4"></span>
-              <span class="font-mono text-xs font-semibold px-2.5 py-1.5 rounded-lg ui-surface border ui-text-muted">null</span>
-            </div>
-          </div>`;
-          stageEl.innerHTML = html;
+            </div>`;
+            stageEl.innerHTML = html;
+          }}
         }} else {{
           // Array Stage
           const arr = step.array || [];
