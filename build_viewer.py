@@ -313,6 +313,44 @@ LC_75_RAW = [
     (901, "Online Stock Span", "Medium", "Monotonic Stack", "online-stock-span"),
 ]
 
+# CodeKerdos Course Homework Problems (500+ Target Curriculum — Homework assigned to date)
+COURSE_HW_RAW = [
+    # Class 3: Factors & Math (O(sqrt N))
+    (9001, "Sum of All Factors of N (O(sqrt N))", "Easy", "Foundations / Math", "", "HW-1", "00_foundations/04_factors_primes_and_iteration_counting.md"),
+    (9002, "Print All Factors in Sorted Order (O(sqrt N))", "Easy", "Foundations / Math", "", "HW-2", "00_foundations/04_factors_primes_and_iteration_counting.md"),
+    # Arrays, Hash Set & Prefix Sums
+    (9003, "Two Sum - Return All Unique Pairs", "Medium", "Hashmap / Set", "", "HW-3", "01_arrays_and_pointers/01_two_sum_all_unique_pairs.md"),
+    (238, "Product of Array Except Self", "Medium", "Prefix Sum", "product-of-array-except-self", None, None),
+    (304, "Range Sum Query 2D - Immutable", "Medium", "Prefix Sum", "range-sum-query-2d-immutable", None, None),
+    (53, "Maximum Subarray", "Medium", "Kadane's Algorithm", "maximum-subarray", None, None),
+    (152, "Maximum Product Subarray", "Medium", "Kadane's Algorithm", "maximum-product-subarray", None, None),
+    (560, "Subarray Sum Equals K", "Medium", "Prefix Sum", "subarray-sum-equals-k", None, None),
+    # 2D Matrix
+    (1572, "Matrix Diagonal Sum", "Easy", "Matrix", "matrix-diagonal-sum", None, None),
+    (54, "Spiral Matrix", "Medium", "Matrix", "spiral-matrix", None, None),
+    (73, "Set Matrix Zeroes", "Medium", "Matrix", "set-matrix-zeroes", None, None),
+    # Binary Search
+    (704, "Binary Search", "Easy", "Binary Search", "binary-search", None, None),
+    (35, "Search Insert Position", "Easy", "Binary Search", "search-insert-position", None, None),
+    (34, "Find First and Last Position of Element in Sorted Array", "Medium", "Binary Search", "find-first-and-last-position-of-element-in-sorted-array", None, None),
+    (162, "Find Peak Element", "Medium", "Binary Search", "find-peak-element", None, None),
+    (69, "Sqrt(x)", "Easy", "Binary Search", "sqrtx", None, None),
+    (875, "Koko Eating Bananas", "Medium", "Binary Search", "koko-eating-bananas", None, None),
+    (1482, "Minimum Number of Days to Make m Bouquets", "Medium", "Binary Search", "minimum-number-of-days-to-make-m-bouquets", None, None),
+    (540, "Single Element in a Sorted Array", "Medium", "Binary Search", "single-element-in-a-sorted-array", None, None),
+    # Linked Lists
+    (707, "Design Linked List", "Medium", "Linked List", "design-linked-list", None, None),
+    (203, "Remove Linked List Elements", "Easy", "Linked List", "remove-linked-list-elements", None, None),
+    (1290, "Convert Binary Number in a Linked List to Integer", "Easy", "Linked List", "convert-binary-number-in-a-linked-list-to-integer", None, None),
+    (206, "Reverse Linked List", "Easy", "Linked List", "reverse-linked-list", None, None),
+    (876, "Middle of the Linked List", "Easy", "Linked List", "middle-of-the-linked-list", None, None),
+    (21, "Merge Two Sorted Lists", "Easy", "Linked List", "merge-two-sorted-lists", None, None),
+    (141, "Linked List Cycle", "Easy", "Linked List", "linked-list-cycle", None, None),
+    (142, "Linked List Cycle II", "Medium", "Linked List", "linked-list-cycle-ii", None, None),
+    (92, "Reverse Linked List II", "Medium", "Linked List", "reverse-linked-list-ii", None, None),
+    (234, "Palindrome Linked List", "Easy", "Linked List", "palindrome-linked-list", None, None),
+]
+
 
 def parse_doc_metadata(rel_path: str, filename: str, content: str) -> dict:
     cat_raw = rel_path.split("/")[0] if "/" in rel_path else "Root"
@@ -412,18 +450,18 @@ for idx, d in enumerate(raw_docs):
 # Also map concepts that cover specific LeetCode problems (e.g. LC 48, LC 54 in 00_matrix, LC 704/34 in 01_binary_search)
 EXTRA_CONCEPT_DOC_MAP = {
     48: "01_arrays_and_pointers/00_matrix_2d_arrays_and_rotations.md",
-    54: "01_arrays_and_pointers/00_matrix_2d_arrays_and_rotations.md",
-    34: "05_binary_search/01_binary_search_fundamentals_and_occurrences.md",
-    162: "05_binary_search/02_local_minima_and_peak_finding.md",
+    54: "01_arrays_and_pointers/54_spiral_matrix.md",
+    34: "05_binary_search/34_find_first_and_last_position_of_element_in_sorted_array.md",
+    162: "05_binary_search/162_find_peak_element.md",
     33: "05_binary_search/04_search_in_rotated_sorted_array.md",
     153: "05_binary_search/04_search_in_rotated_sorted_array.md",
-    875: "05_binary_search/06_binary_search_on_answer_greedy_predicates.md",
+    875: "05_binary_search/875_koko_eating_bananas.md",
 }
 for lc_num, c_path in EXTRA_CONCEPT_DOC_MAP.items():
     if lc_num not in lc_to_doc_path and c_path in docs:
         lc_to_doc_path[lc_num] = c_path
 
-# Build the Unified Problem Catalog (Top Interview 150 + LeetCode 75 + Repo Problems)
+# Build the Unified Problem Catalog (Top Interview 150 + LeetCode 75 + Course Homework + Repo Problems)
 catalog_by_num = {}
 
 for num, title, diff, topic, slug in TOP_150_RAW:
@@ -431,6 +469,7 @@ for num, title, diff, topic, slug in TOP_150_RAW:
     doc_obj = docs.get(doc_path)
     catalog_by_num[num] = {
         "number": num,
+        "displayNum": f"#{num}",
         "title": title,
         "difficulty": diff,
         "topic": topic,
@@ -440,6 +479,7 @@ for num, title, diff, topic, slug in TOP_150_RAW:
         "summary": doc_obj["summary"] if doc_obj else "",
         "in150": True,
         "in75": False,
+        "inHW": False,
         "defaultSolved": num in DEFAULT_SOLVED_NUMBERS,
     }
 
@@ -451,6 +491,7 @@ for num, title, diff, topic, slug in LC_75_RAW:
         doc_obj = docs.get(doc_path)
         catalog_by_num[num] = {
             "number": num,
+            "displayNum": f"#{num}",
             "title": title,
             "difficulty": diff,
             "topic": topic,
@@ -460,15 +501,39 @@ for num, title, diff, topic, slug in LC_75_RAW:
             "summary": doc_obj["summary"] if doc_obj else "",
             "in150": False,
             "in75": True,
+            "inHW": False,
             "defaultSolved": num in DEFAULT_SOLVED_NUMBERS,
         }
 
-# Add any remaining Repo LeetCode problems not in Top 150 or LC 75 (e.g., LC 83, 678, 1290, 1721)
+for num, title, diff, topic, slug, disp_num, explicit_doc in COURSE_HW_RAW:
+    if num in catalog_by_num:
+        catalog_by_num[num]["inHW"] = True
+    else:
+        doc_path = explicit_doc or lc_to_doc_path.get(num, "")
+        doc_obj = docs.get(doc_path)
+        catalog_by_num[num] = {
+            "number": num,
+            "displayNum": disp_num or f"#{num}",
+            "title": title,
+            "difficulty": diff,
+            "topic": topic,
+            "pattern": doc_obj["pattern"] if doc_obj else topic,
+            "url": f"https://leetcode.com/problems/{slug}/" if slug else "",
+            "docPath": doc_path,
+            "summary": doc_obj["summary"] if doc_obj else "",
+            "in150": False,
+            "in75": False,
+            "inHW": True,
+            "defaultSolved": num in DEFAULT_SOLVED_NUMBERS,
+        }
+
+# Add any remaining Repo LeetCode problems not in Top 150, LC 75, or Course HW
 for path, d in docs.items():
     num = d["lcNumber"]
     if num is not None and num not in catalog_by_num:
         catalog_by_num[num] = {
             "number": num,
+            "displayNum": f"#{num}",
             "title": d["shortTitle"],
             "difficulty": d["difficulty"],
             "topic": d["categoryLabel"],
@@ -478,13 +543,15 @@ for path, d in docs.items():
             "summary": d["summary"],
             "in150": False,
             "in75": False,
+            "inHW": False,
             "defaultSolved": num in DEFAULT_SOLVED_NUMBERS,
         }
 
 curated_problems = [catalog_by_num[k] for k in sorted(catalog_by_num.keys())]
 c150 = sum(1 for p in curated_problems if p["in150"])
 c75 = sum(1 for p in curated_problems if p["in75"])
-print(f"Bundled {len(docs)} markdown documents and {len(curated_problems)} unique LeetCode problems (Top 150: {c150}, LC 75: {c75}).")
+chw = sum(1 for p in curated_problems if p["inHW"])
+print(f"Bundled {len(docs)} markdown documents and {len(curated_problems)} tracked problems (Course HW: {chw}, Top 150: {c150}, LC 75: {c75}).")
 
 hl_css_path = os.path.join(ROOT_DIR, "static/vendor/highlight-github-dark.min.css")
 hl_css = open(hl_css_path, "r", encoding="utf-8").read() if os.path.exists(hl_css_path) else ""
@@ -1180,7 +1247,19 @@ def build_html(default_view: str = "concepts") -> str:
   <section id="view-tracker" class="hidden flex-1 min-h-0 overflow-y-auto h-full max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 space-y-5">
     
     <!-- Top Study Plan Progress Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+      <!-- Card 0: Course Homework (CodeKerdos) -->
+      <div class="ui-card border rounded-2xl p-4 space-y-2">
+        <div class="flex items-center justify-between text-xs">
+          <span class="font-bold uppercase tracking-wider text-emerald-400">🎓 Course Homework</span>
+          <span id="stat-hw-pct" class="font-mono ui-text-muted">0%</span>
+        </div>
+        <div class="text-2xl font-black" id="stat-hw-count">0 / 27</div>
+        <div class="w-full ui-surface rounded-full h-2 overflow-hidden border">
+          <div id="stat-hw-bar" class="bg-emerald-400 h-full transition-all duration-500" style="width: 0%;"></div>
+        </div>
+      </div>
+
       <!-- Card 1: Top Interview 150 -->
       <div class="ui-card border rounded-2xl p-4 space-y-2">
         <div class="flex items-center justify-between text-xs">
@@ -1222,8 +1301,8 @@ def build_html(default_view: str = "concepts") -> str:
       <!-- Card 4: Quick Actions -->
       <div class="ui-card border rounded-2xl p-4 flex flex-col justify-between">
         <div>
-          <div class="text-xs font-bold uppercase tracking-wider ui-text-muted">Custom Problem Log</div>
-          <p class="text-xs ui-text-muted mt-1">Solved an extra company-tagged problem?</p>
+          <div class="text-xs font-bold uppercase tracking-wider ui-text-muted">500+ Course Log</div>
+          <p class="text-xs ui-text-muted mt-1">Add new homework or playground problems</p>
         </div>
         <button type="button" id="open-log-dialog-btn" class="mt-2 w-full py-2 px-3 rounded-xl ui-accent-btn font-semibold text-xs transition-all hover:opacity-90">
           + Log Custom Problem
@@ -1237,7 +1316,10 @@ def build_html(default_view: str = "concepts") -> str:
       <div class="flex flex-wrap items-center justify-between gap-2 border-b ui-border pb-3">
         <div class="flex flex-wrap items-center gap-1.5 text-xs" role="group" aria-label="Study plan filter">
           <button type="button" onclick="setTrackerPlanFilter('ALL')" data-plan="ALL" class="trk-plan-btn px-3 py-1.5 rounded-xl font-semibold ui-accent-btn">
-            All Curated (212)
+            All Tracked
+          </button>
+          <button type="button" onclick="setTrackerPlanFilter('HW')" data-plan="HW" class="trk-plan-btn px-3 py-1.5 rounded-xl font-medium ui-surface border ui-text-muted hover:text-[var(--text)]">
+            🎓 Course Homework (27)
           </button>
           <button type="button" onclick="setTrackerPlanFilter('150')" data-plan="150" class="trk-plan-btn px-3 py-1.5 rounded-xl font-medium ui-surface border ui-text-muted hover:text-[var(--text)]">
             🔥 Top Interview 150 (150)
@@ -1250,7 +1332,7 @@ def build_html(default_view: str = "concepts") -> str:
           </button>
         </div>
 
-        <span id="tracker-showing-count" class="text-xs font-mono ui-text-muted">Showing 212 problems</span>
+        <span id="tracker-showing-count" class="text-xs font-mono ui-text-muted">Showing problems</span>
       </div>
 
       <!-- Row 2: Search Input + Topic Dropdown + Status Filter -->
@@ -1648,10 +1730,12 @@ def build_html(default_view: str = "concepts") -> str:
     }}
 
     function updateGlobalProgressPill() {{
+      const listHW = CURATED_CATALOG.filter(p => p.inHW);
+      const solvedHW = listHW.filter(p => getProbStatus(p.number) === 'solved').length;
       const solved150 = CURATED_CATALOG.filter(p => p.in150 && getProbStatus(p.number) === 'solved').length;
       const solved75 = CURATED_CATALOG.filter(p => p.in75 && getProbStatus(p.number) === 'solved').length;
       const pill = document.getElementById('global-progress-pill');
-      if (pill) pill.textContent = `🔥 Top 150: ${{solved150}}/150 • ⚡ LC 75: ${{solved75}}/75`;
+      if (pill) pill.textContent = `🎓 HW: ${{solvedHW}}/${{listHW.length}} • 🔥 150: ${{solved150}}/150 • ⚡ 75: ${{solved75}}/75`;
     }}
 
     // 2. Collapsible Left & Right Sidebars
@@ -3059,7 +3143,17 @@ print("Hello from Python 3 Playground!")
       const topicFilter = document.getElementById('tracker-topic-filter')?.value || 'ALL';
       const diffFilter = document.getElementById('tracker-diff-filter')?.value || 'ALL';
 
-      // Top Progress Cards (Top 150 & LC 75)
+      // Top Progress Cards (Course HW, Top 150 & LC 75)
+      const listHW = CURATED_CATALOG.filter(p => p.inHW);
+      const solvedHW = listHW.filter(p => getProbStatus(p.number) === 'solved').length;
+      const pctHW = listHW.length ? Math.round((solvedHW / listHW.length) * 100) : 0;
+      const elHwCount = document.getElementById('stat-hw-count');
+      if (elHwCount) {{
+        elHwCount.textContent = `${{solvedHW}} / ${{listHW.length}}`;
+        document.getElementById('stat-hw-pct').textContent = `${{pctHW}}%`;
+        document.getElementById('stat-hw-bar').style.width = `${{pctHW}}%`;
+      }}
+
       const list150 = CURATED_CATALOG.filter(p => p.in150);
       const solved150 = list150.filter(p => getProbStatus(p.number) === 'solved').length;
       const pct150 = Math.round((solved150 / list150.length) * 100);
@@ -3088,6 +3182,7 @@ print("Hello from Python 3 Playground!")
 
       // Filter rows
       const rows = CURATED_CATALOG.filter(p => {{
+        if (trackerPlanFilter === 'HW' && !p.inHW) return false;
         if (trackerPlanFilter === '150' && !p.in150) return false;
         if (trackerPlanFilter === '75' && !p.in75) return false;
         if (trackerPlanFilter === 'WITH_DOC' && !p.docPath) return false;
@@ -3097,10 +3192,12 @@ print("Hello from Python 3 Playground!")
         if (trackerStatusFilter !== 'ALL' && st !== trackerStatusFilter) return false;
         if (q) {{
           const note = (p.docPath && docNotesMap[p.docPath]) || docNotesMap['lc-' + p.number] || p.summary || '';
+          const disp = (p.displayNum || ('#' + p.number)).toLowerCase();
           return p.title.toLowerCase().includes(q) ||
                  p.topic.toLowerCase().includes(q) ||
                  p.pattern.toLowerCase().includes(q) ||
                  p.number.toString().includes(q) ||
+                 disp.includes(q) ||
                  note.toLowerCase().includes(q);
         }}
         return true;
@@ -3118,8 +3215,10 @@ print("Hello from Python 3 Playground!")
 
         const diffColor = p.difficulty === 'Easy' ? 'text-sky-400' : (p.difficulty === 'Medium' ? 'text-amber-400' : 'text-rose-400');
         const noteText = (p.docPath && docNotesMap[p.docPath]) || docNotesMap['lc-' + p.number] || p.summary || 'Click Study or LeetCode ↗ to solve';
+        const dispNum = p.displayNum || ('#' + p.number);
 
         const planBadges = [
+          p.inHW ? '<span class="px-1.5 py-0.5 rounded text-xs bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">🎓 Course HW</span>' : '',
           p.in150 ? '<span class="px-1.5 py-0.5 rounded text-xs ui-accent-soft border">🔥 150</span>' : '',
           p.in75 ? '<span class="px-1.5 py-0.5 rounded text-xs bg-sky-500/15 text-sky-400 border border-sky-500/30">⚡ 75</span>' : '',
         ].filter(Boolean).join(' ');
@@ -3133,7 +3232,7 @@ print("Hello from Python 3 Playground!")
             </td>
             <td class="py-3 px-3">
               <div class="font-semibold text-sm flex items-center gap-2">
-                <span class="font-mono text-xs px-1.5 py-0.5 rounded ui-surface border ui-accent-text">#${{p.number}}</span>
+                <span class="font-mono text-xs px-1.5 py-0.5 rounded ui-surface border ui-accent-text">${{dispNum}}</span>
                 ${{p.docPath
                   ? `<button type="button" onclick="openPeekDialog('${{p.docPath}}')" class="text-left hover:underline transition-colors">${{p.title}}</button>`
                   : `<a href="${{p.url}}" target="_blank" rel="noopener noreferrer" class="hover:underline transition-colors">${{p.title}}</a>`
@@ -3151,9 +3250,11 @@ print("Hello from Python 3 Playground!")
               <p class="text-xs ui-text-muted line-clamp-2">${{noteText}}</p>
             </td>
             <td class="py-3 px-3 text-right whitespace-nowrap space-x-1.5">
-              <a href="${{p.url}}" target="_blank" rel="noopener noreferrer" class="inline-block px-2.5 py-1 rounded-lg ui-surface border text-xs ui-text-muted hover:text-[var(--text)]">
-                LC ↗
-              </a>
+              ${{p.url ? `
+                <a href="${{p.url}}" target="_blank" rel="noopener noreferrer" class="inline-block px-2.5 py-1 rounded-lg ui-surface border text-xs ui-text-muted hover:text-[var(--text)]">
+                  LC ↗
+                </a>
+              ` : ''}}
               ${{p.docPath ? `
                 <button type="button" onclick="openPeekDialog('${{p.docPath}}')" class="px-2 py-1 rounded-lg ui-surface border text-xs hover:opacity-80">
                   Peek
