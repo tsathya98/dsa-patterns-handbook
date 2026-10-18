@@ -326,9 +326,6 @@ def parse_doc_metadata(rel_path: str, filename: str, content: str) -> dict:
 
     m_lc_title = re.search(r"LeetCode\s+(\d+)", title, re.IGNORECASE)
     lc_number = int(m_lc_title.group(1)) if m_lc_title else None
-    if lc_number is None and cat_raw in ("01_arrays_and_pointers", "02_linked_lists", "03_stacks_and_queues", "06_recursion_and_backtracking"):
-        if prefix_num > 0 and not filename.startswith("00_") and not filename.startswith("01_"):
-            lc_number = prefix_num
 
     short_title = re.sub(r"^(?:LeetCode\s+\d+\s*[:\-–]\s*|\d+\.\s*)", "", title, flags=re.IGNORECASE).strip()
 
