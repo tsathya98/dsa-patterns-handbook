@@ -38,27 +38,71 @@ Since you cannot walk backward from the tail of a singly linked list, reverse th
 
 ## Step-by-step trace
 
+### 1. Find midpoint (`while fast.next and fast.next.next:`):
 ```text
 Original: [ 1 ] ──► [ 2 ] ──► [ 2 ] ──► [ 1 ] ──► None
+                      ▲         ▲
+                     slow      fast
+```
+* `slow` stops on the first middle node `[ 2 ]`.
+* The sublist to reverse is `cur = slow.next` (`[ 2 ] -> [ 1 ] -> None`).
 
-1. Find midpoint (while fast.next and fast.next.next):
-   [ 1 ] ──► [ 2 ] ──► [ 2 ] ──► [ 1 ] ──► None
-               ▲         ▲
-              slow      fast
+### 2. Frame-by-frame second half reversal (`while cur:`):
 
-2. Reverse second half starting at slow.next:
-   First half:          [ 1 ] ──► [ 2 ]
-   Reversed 2nd half:   None ◄── [ 2 ] ◄── [ 1 ]
-                                             ▲
-                                            prev (second)
-
-3. Walk inward while second is not None:
-   first (1) == second (1) -> step both
-   first (2) == second (2) -> step both
-   second is None -> return True
+**Frame 0: Initial setup**
+```text
+First half:          [ 1 ] ──► [ 2 ] (slow)
+Second half:                   [ 2 ] ──────► [ 1 ] ──────► None
+                                 ▲
+                                cur
+prev = None
 ```
 
-On an odd list like `[1, 2, 3, 2, 1]`, `slow` stops on `3`, and `slow.next` (`[2, 1]`) reverses to `1 -> 2 -> None`. Driving the comparison loop with `while second:` compares the two outer pairs and stops right before the shared middle node `3`.
+**Frame 1: Iteration 1 (reversing the first node of second half)**
+```text
+Step 1 (nn = cur.next):       [ 2 ] ──────► [ 1 ] ──────► None
+                                ▲             ▲
+                               cur            nn
+
+Step 2 (cur.next = prev):    None ◄──── [ 2 ]        [ 1 ] ──────► None
+                               ▲          ▲            ▲
+                              prev       cur           nn
+
+Steps 3 & 4 (slide forward): None ◄──── [ 2 ]        [ 1 ] ──────► None
+                                          ▲            ▲
+                                         prev         cur
+```
+
+**Frame 2: Iteration 2 (reversing the last node)**
+```text
+Step 1 (nn = cur.next):      None ◄──── [ 2 ]        [ 1 ] ──────► None
+                                          ▲            ▲             ▲
+                                         prev         cur            nn
+
+Step 2 (cur.next = prev):    None ◄──── [ 2 ] ◄────── [ 1 ]
+                                          ▲             ▲
+                                         prev          cur
+
+Steps 3 & 4 (slide forward): None ◄──── [ 2 ] ◄────── [ 1 ]       (cur = None -> loop ends)
+                                                        ▲
+                                                       prev
+```
+
+### 3. Comparison inward (`first = head, second = prev`):
+```text
+First half:                 [ 1 ] ──► [ 2 ]
+                             ▲
+                            first
+
+Reversed second half:       None ◄── [ 2 ] ◄── [ 1 ]
+                                                ▲
+                                              second
+```
+* **Step 1:** `first.val` (1) == `second.val` (1). Advance `first = first.next`, `second = second.next`.
+* **Step 2:** `first.val` (2) == `second.val` (2). Advance both.
+* **Step 3:** `second` is `None` -> All paired nodes matched! Return `True`.
+
+*(On odd lists like `[1, 2, 3, 2, 1]`, `slow` stops on `3`, and `slow.next` (`[2, 1]`) reverses to `None <- 2 <- 1`. Driving the comparison loop with `while second:` compares the two outer pairs and stops right before the shared middle node `3`.)*
 
 ## Traps to watch for
 

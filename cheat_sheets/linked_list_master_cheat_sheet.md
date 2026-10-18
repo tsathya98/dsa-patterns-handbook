@@ -89,27 +89,45 @@ def reverseList(head):
 - Writing `while cur and cur.next:` stops one node early and leaves the last node disconnected. Use `while cur:`.
 - Returning `cur` returns `None`. Always return `prev`.
 
-### Pattern 3: Tortoise & Hare / Fast & Slow ([LC 141](../02_linked_lists/141_linked_list_cycle.md), LC 876)
+### Pattern 3: Tortoise & Hare / Midpoint Rule of Thumb ([LC 141](../02_linked_lists/141_linked_list_cycle.md), [LC 876](../02_linked_lists/876_middle_of_the_linked_list.md))
 `slow` moves 1 step; `fast` moves 2 steps.
-- If they meet (`slow is fast`), there is a cycle.
-- If `fast` hits the end (`None`), `slow` is sitting at the middle node.
+- **Cycle detection:** If `slow == fast`, list has a cycle. If `fast` or `fast.next` is None, no cycle.
+- **Which midpoint condition to choose on an even list `[1, 2, 3, 4]`:**
+
+| Condition | Where `slow` stops | Use Case |
+| :--- | :--- | :--- |
+| `while fast and fast.next:` | **Second middle (`3`)** | **LC 876** (Middle of list prompt asks for 2nd middle) |
+| `while fast.next and fast.next.next:` | **First middle (`2`)** | **LC 234** (Palindrome), **LC 143** (Reorder), **LC 148** (Split list in half) |
 
 ```python
-def findMiddle(head):
-    slow = fast = head
-    while fast and fast.next:
-        slow = slow.next
-        fast = fast.next.next
-    return slow
+# To get second middle (LC 876):
+while fast and fast.next:
+    slow = slow.next
+    fast = fast.next.next
+
+# To get end of first half (LC 234, LC 143):
+while fast.next and fast.next.next:
+    slow = slow.next
+    fast = fast.next.next
 ```
 
 ### Pattern 4: Half-Reversal ("Triple Crown") ([LC 234](../02_linked_lists/234_palindrome_linked_list.md), [LC 143](../02_linked_lists/143_reorder_list.md))
 Solves palindrome checking or list folding in $\mathcal{O}(n)$ time and $\mathcal{O}(1)$ space:
-1. Find the end of the first half (`while fast.next and fast.next.next`).
-2. Reverse the second half (`slow.next`) in place.
-3. Walk two pointers inward from `head` and `second_half`.
+1. Stop `slow` at first half: `while fast.next and fast.next.next:`.
+2. Reverse `slow.next` using the 4-step pointer flip:
 
-*(Note: Dumping values into a Python list and running a two-pointer squeeze `l < r` is a fine $\mathcal{O}(n)$ space starting point in interviews, and beats `lst == lst[::-1]` because it exits early on mismatches without copying the array. Follow up with the in-place reversal for $\mathcal{O}(1)$ space.)*
+```text
+First half:                 [ 1 ] ──► [ 2 ] (slow)
+                             ▲
+                            first
+
+Reversed second half:       None ◄── [ 2 ] ◄── [ 1 ]
+                                                ▲
+                                            second (prev)
+```
+3. Walk inward: `first = head`, `second = prev`. While `second` is not None, compare `first.val == second.val` and step both forward!
+
+*(Note: Dumping values into an array and running two-pointer squeeze `l < r` is a great $\mathcal{O}(n)$ space starting point in interviews; follow up with this in-place reversal for $\mathcal{O}(1)$ space.)*
 
 ### Pattern 5: Fixed-Gap Measuring Stick ([LC 19](../02_linked_lists/19_remove_nth_node_from_end.md), [LC 1721](../02_linked_lists/1721_swapping_nodes_in_a_linked_list.md))
 To find the $k$-th node from the end in one pass:
