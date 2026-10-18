@@ -37,19 +37,20 @@ Instead of treating every linked list question as a new puzzle, map it to one of
 ## 0. Linked list fundamentals
 
 - [Guide: Linked List Fundamentals](./01_linked_list_fundamentals.md)
-- [ ] [LC 707: Design Linked List](https://leetcode.com/problems/design-linked-list/)
-  - **Tip:** In doubly linked lists, initialize sentinel `head` and `tail` dummy nodes (`head.next = tail`, `tail.prev = head`) so insertions and deletions never hit null-boundary edge cases.
+- [Guide: Class 12 Advanced Linked List Operations & Fast-Slow Runners](./03_advanced_linked_list_operations_fast_slow_pointers.md)
+- [x] [LC 707: Design Linked List [Free]](./707_design_linked_list.md)
+  - **Technique:** In doubly linked lists, initialize sentinel `head` and `tail` dummy nodes (`head.next = tail`, `tail.prev = head`) so insertions and deletions never hit null-boundary edge cases.
 
 ## I. Given 1 linked list
 
 ### 1. Single-pass and simple recursion
 Nodes are inspected or accumulated without changing the list's structure or node count.
 
-- [x] [LC 1721: Swapping Nodes in a Linked List](./1721_swapping_nodes_in_a_linked_list.md)
+- [x] [LC 1721: Swapping Nodes in a Linked List [Free]](./1721_swapping_nodes_in_a_linked_list.md)
   - **Technique:** Fixed-gap pointers. Walk `first` `k - 1` steps, then slide `fast` (from `first`) and `second` (from `head`) until `fast.next` is `None`.
-- [ ] [LC 369: Plus One Linked List](https://leetcode.com/problems/plus-one-linked-list/) (Array cousin: [LC 66](../01_arrays_and_pointers/66_plus_one.md))
+- [ ] [LC 369: Plus One Linked List [Paid / Premium]](https://leetcode.com/problems/plus-one-linked-list/) (Array cousin: [LC 66](../01_arrays_and_pointers/66_plus_one.md))
   - **Technique:** Post-order recursion bubbles the carry backward from the tail (`carry = add_carry(node.next)`).
-- [x] [LC 1290: Convert Binary Number in a Linked List to Integer](./1290_convert_binary_number_in_a_linked_list_to_integer.md)
+- [x] [LC 1290: Convert Binary Number in a Linked List to Integer [Free]](./1290_convert_binary_number_in_a_linked_list_to_integer.md)
   - **Technique:** Horner's rule stream accumulator: `ans = (ans << 1) | head.val` in $\mathcal{O}(1)$ space.
 
 ### 2. Modifying the list (node count stays the same)
@@ -57,57 +58,57 @@ Nodes are inspected or accumulated without changing the list's structure or node
 #### A. Reversing a linked list
 Flips pointer directions in-place in $\mathcal{O}(n)$ time and $\mathcal{O}(1)$ space.
 
-- [x] [LC 206: Reverse Linked List](./206_reverse_linked_list.md)
+- [x] [LC 206: Reverse Linked List [Free]](./206_reverse_linked_list.md)
   - **Technique:** 4-step pointer flip (`nxt = cur.next`, `cur.next = prev`, `prev = cur`, `cur = nxt`).
-- [ ] [LC 92: Reverse Linked List II](https://leetcode.com/problems/reverse-linked-list-ii/)
+- [x] [LC 92: Reverse Linked List II [Free]](./92_reverse_linked_list_ii.md)
   - **Technique:** Walk to `left - 1`, reverse the sub-segment of length `right - left + 1`, and stitch both ends.
-- [x] [LC 234: Palindrome Linked List](./234_palindrome_linked_list.md)
+- [x] [LC 234: Palindrome Linked List [Free]](./234_palindrome_linked_list.md)
   - **Technique:** Tortoise and hare midpoint, reverse the second half in-place, and compare pointers inward.
-- [ ] [LC 25: Reverse Nodes in k-Group](https://leetcode.com/problems/reverse-nodes-in-k-group/)
+- [ ] [LC 25: Reverse Nodes in k-Group [Free]](https://leetcode.com/problems/reverse-nodes-in-k-group/)
   - **Technique:** Verify $k$ nodes remain, reverse those $k$ nodes, and connect the tail to the next group.
-- [ ] [LC 1265: Print Immutable Linked List in Reverse](https://leetcode.com/problems/print-immutable-linked-list-in-reverse/)
+- [ ] [LC 1265: Print Immutable Linked List in Reverse [Paid / Premium]](https://leetcode.com/problems/print-immutable-linked-list-in-reverse/)
   - **Technique:** Recurse to the end first, then print as the call stack unwinds.
 
 #### B. Reordering nodes
 Rearranges existing nodes without allocating or deleting nodes.
 
-- [ ] [LC 86: Partition List](https://leetcode.com/problems/partition-list/)
+- [ ] [LC 86: Partition List [Free]](https://leetcode.com/problems/partition-list/)
   - **Technique:** Two dummy heads (`small` for $< x$, `large` for $\ge x$). Walk the list, append each node to its belt, cap `large.next = None`, and stitch `small.next = large_dummy.next`.
-- [x] [LC 143: Reorder List](./143_reorder_list.md)
+- [x] [LC 143: Reorder List [Free]](./143_reorder_list.md)
   - **Technique:** Split at middle (`slow.next = None`), reverse second half, and zipper merge alternately.
-- [ ] [LC 24: Swap Nodes in Pairs](https://leetcode.com/problems/swap-nodes-in-pairs/)
+- [ ] [LC 24: Swap Nodes in Pairs [Free]](https://leetcode.com/problems/swap-nodes-in-pairs/)
   - **Technique:** Dummy anchor + local pair swap (`first = cur.next`, `second = cur.next.next`).
-- [ ] [LC 61: Rotate List](https://leetcode.com/problems/rotate-list/)
+- [ ] [LC 61: Rotate List [Free]](https://leetcode.com/problems/rotate-list/)
   - **Technique:** Count length $n$, link tail to head into a ring, and break the ring at $n - (k \bmod n)$.
-- [ ] [LC 328: Odd Even Linked List](https://leetcode.com/problems/odd-even-linked-list/)
+- [ ] [LC 328: Odd Even Linked List [Free]](https://leetcode.com/problems/odd-even-linked-list/)
   - **Technique:** Maintain `odd` and `even` tails, leapfrog both forward, then attach `odd.next = even_head`.
 
 ### 3. Deleting nodes
 Bypass unwanted nodes by rewiring `cur.next = cur.next.next`.
 
-- [x] [LC 19: Remove Nth Node From End of List](./19_remove_nth_node_from_end.md)
+- [x] [LC 19: Remove Nth Node From End of List [Free]](./19_remove_nth_node_from_end.md)
   - **Technique:** Start `left` at `dummy` and `right` $n$ steps ahead of `head`. When `right` hits `None`, `left` sits right before the target node.
-- [x] [LC 83: Remove Duplicates from Sorted List](./83_remove_duplicates_from_sorted_list.md)
+- [x] [LC 83: Remove Duplicates from Sorted List [Free]](./83_remove_duplicates_from_sorted_list.md)
   - **Technique:** Since the list is sorted, duplicates are adjacent. If `cur.val == cur.next.val`, snip `cur.next = cur.next.next` without advancing `cur`.
-- [ ] [LC 82: Remove Duplicates from Sorted List II](https://leetcode.com/problems/remove-duplicates-from-sorted-list-ii/)
+- [ ] [LC 82: Remove Duplicates from Sorted List II [Free]](https://leetcode.com/problems/remove-duplicates-from-sorted-list-ii/)
   - **Technique:** Dummy head + inner loop skipping all copies of a duplicated value before reconnecting `prev.next`.
-- [ ] [LC 203: Remove Linked List Elements](https://leetcode.com/problems/remove-linked-list-elements/)
+- [x] [LC 203: Remove Linked List Elements [Free]](./203_remove_linked_list_elements.md)
   - **Technique:** Dummy head + `if cur.next.val == val: cur.next = cur.next.next else: cur = cur.next`.
 
 ### 4. Inserting a node
-- [ ] [LC 708: Insert into a Sorted Circular Linked List](https://leetcode.com/problems/insert-into-a-sorted-circular-linked-list/)
+- [ ] [LC 708: Insert into a Sorted Circular Linked List [Paid / Premium]](https://leetcode.com/problems/insert-into-a-sorted-circular-linked-list/)
   - **Technique:** Handle 3 cases: normal sorted gap (`prev <= val <= cur`), wrap-around cliff (`prev > cur` where `val >= prev` or `val <= cur`), or uniform ring (full loop completed).
 
 ### 5. Fast and slow pointers (cycles and midpoints)
 Two pointers moving at 1x and 2x speed.
 
-- [x] [LC 141: Linked List Cycle](./141_linked_list_cycle.md)
+- [x] [LC 141: Linked List Cycle [Free]](./141_linked_list_cycle.md)
   - **Technique:** Floyd's tortoise and hare. If `slow == fast`, a cycle exists.
-- [x] [LC 142: Linked List Cycle II](./141_linked_list_cycle.md)
+- [x] [LC 142: Linked List Cycle II [Free]](./142_linked_list_cycle_ii.md)
   - **Technique:** After `slow == fast`, start `slow2 = head` and step both by 1 until they meet at the cycle entrance.
-- [ ] [LC 876: Middle of the Linked List](https://leetcode.com/problems/middle-of-the-linked-list/)
+- [x] [LC 876: Middle of the Linked List [Free]](./876_middle_of_the_linked_list.md)
   - **Technique:** While `fast and fast.next`, step `slow` by 1 and `fast` by 2.
-- [ ] [LC 2095: Delete the Middle Node of a Linked List](https://leetcode.com/problems/delete-the-middle-node-of-a-linked-list/)
+- [ ] [LC 2095: Delete the Middle Node of a Linked List [Free]](https://leetcode.com/problems/delete-the-middle-node-of-a-linked-list/)
   - **Technique:** Start `fast = head.next.next` so `slow` stops one node before the middle, then snip `slow.next = slow.next.next`.
 
 ## II. Given 2 or more linked lists
