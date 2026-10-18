@@ -1208,6 +1208,7 @@ def build_html(default_view: str = "concepts") -> str:
           </optgroup>
           <optgroup label="Linked Lists">
             <option value="reverse_first_k">🔗 Reverse First K Nodes (Step Trace)</option>
+            <option value="remove_elements">🗑️ LC 203 Remove Elements (3 Methods Compared)</option>
           </optgroup>
           <optgroup label="Recursion &amp; Backtracking">
             <option value="subsets">🌳 LC 78 Subsets (Backtracking)</option>
@@ -2460,6 +2461,86 @@ new_head = reverse_first_k(head, k=4)
 print()
 print("Final Result:", to_list(new_head))
 `,
+      remove_elements: `# 🗑️ LC 203: Remove Linked List Elements (3 Methods Compared)
+class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+def build_list(vals):
+    dummy = ListNode(0)
+    cur = dummy
+    for v in vals:
+        cur.next = ListNode(v)
+        cur = cur.next
+    return dummy.next
+
+def to_list(head):
+    res, cur = [], head
+    while cur:
+        res.append(cur.val)
+        cur = cur.next
+    return res
+
+# Method 1: Sentinel Dummy Node (The Gold Standard)
+def remove_elements_dummy(head, val):
+    dummy = ListNode(0, head)
+    cur = dummy
+    while cur.next:
+        if cur.next.val == val:
+            cur.next = cur.next.next  # Snip! Do NOT advance cur
+        else:
+            cur = cur.next            # Safe to advance cur
+    return dummy.next
+
+# Method 2: Without Dummy Node (Leading Head Trimming)
+def remove_elements_no_dummy(head, val):
+    # Step 1: Trim all matching nodes from the front
+    while head and head.val == val:
+        head = head.next
+    
+    # Step 2: Delete from the rest of the list
+    cur = head
+    while cur and cur.next:
+        if cur.next.val == val:
+            cur.next = cur.next.next
+        else:
+            cur = cur.next
+    return head
+
+# Method 3: Recursion (3-Line Functional Elegance)
+def remove_elements_recursive(head, val):
+    if not head:
+        return None
+    head.next = remove_elements_recursive(head.next, val)
+    return head.next if head.val == val else head
+
+# Testcase 1: All elements match (the user edge case: [7, 7, 7, 7], val = 7)
+print("=== Testcase 1: [7, 7, 7, 7], target val = 7 ===")
+t1_vals = [7, 7, 7, 7]
+print("Input:          ", t1_vals)
+print("Method 1 (Dummy):", to_list(remove_elements_dummy(build_list(t1_vals), 7)))
+print("Method 2 (Trim): ", to_list(remove_elements_no_dummy(build_list(t1_vals), 7)))
+print("Method 3 (Recur):", to_list(remove_elements_recursive(build_list(t1_vals), 7)))
+print()
+
+# Testcase 2: Multiple scattered matches [1, 2, 6, 3, 4, 5, 6], val = 6
+print("=== Testcase 2: [1, 2, 6, 3, 4, 5, 6], target val = 6 ===")
+t2_vals = [1, 2, 6, 3, 4, 5, 6]
+print("Input:          ", t2_vals)
+print("Method 1 (Dummy):", to_list(remove_elements_dummy(build_list(t2_vals), 6)))
+print("Method 2 (Trim): ", to_list(remove_elements_no_dummy(build_list(t2_vals), 6)))
+print("Method 3 (Recur):", to_list(remove_elements_recursive(build_list(t2_vals), 6)))
+print()
+
+# Testcase 3: Consecutive duplicates [1, 2, 2, 1], val = 2
+print("=== Testcase 3: Consecutive matches [1, 2, 2, 1], target val = 2 ===")
+t3_vals = [1, 2, 2, 1]
+print("Input:          ", t3_vals)
+print("Method 1 (Dummy):", to_list(remove_elements_dummy(build_list(t3_vals), 2)))
+print("Method 2 (Trim): ", to_list(remove_elements_no_dummy(build_list(t3_vals), 2)))
+print("Method 3 (Recur):", to_list(remove_elements_recursive(build_list(t3_vals), 2)))
+`,
       blank: `# Python 3 Interactive Playground
 # Sourced from your local DSA Hub
 
@@ -2803,10 +2884,18 @@ print("Hello from Python 3 Playground!")
       '01_arrays_and_pointers/11_container_with_most_water.md': {{ algorithm: 'container_with_most_water', initial: [1, 8, 6, 2, 5, 4, 8, 3, 7] }},
       '01_arrays_and_pointers/53_maximum_subarray.md': {{ algorithm: 'kadanes', initial: [-2, 1, -3, 4, -1, 2, 1, -5, 4] }},
       '02_linked_lists/206_reverse_linked_list.md': {{ algorithm: 'reverse_linked_list', initial: [1, 2, 3, 4, 5] }},
-      '02_linked_lists/02_reverse_first_k_nodes.md': {{ algorithm: 'reverse_first_k', initial: [1, 2, 3, 4, 5, 6], k: 4 }}
+      '02_linked_lists/02_reverse_first_k_nodes.md': {{ algorithm: 'reverse_first_k', initial: [1, 2, 3, 4, 5, 6], k: 4 }},
+      '02_linked_lists/203_remove_linked_list_elements.md': {{ algorithm: 'remove_elements', initial: [1, 2, 6, 3, 4, 5, 6], target: 6 }}
     }};
 
     const PLAYTHROUGH_PRESETS = {{
+      remove_elements: [
+        {{ label: 'Default Example [1, 2, 6, 3, 4, 5, 6] (val=6)', val: [1, 2, 6, 3, 4, 5, 6], target: 6 }},
+        {{ label: 'All Elements Match [7, 7, 7, 7] (val=7)', val: [7, 7, 7, 7], target: 7 }},
+        {{ label: 'Consecutive Duplicates [1, 2, 2, 1] (val=2)', val: [1, 2, 2, 1], target: 2 }},
+        {{ label: 'Target at Head [6, 1, 2, 3] (val=6)', val: [6, 1, 2, 3], target: 6 }},
+        {{ label: 'Target at Tail [1, 2, 3, 6] (val=6)', val: [1, 2, 3, 6], target: 6 }}
+      ],
       reverse_first_k: [
         {{ label: 'Notebook Example [1..6] (k=4)', val: [1, 2, 3, 4, 5, 6], k: 4 }},
         {{ label: 'Full Reversal [1, 2, 3, 4] (k=4)', val: [1, 2, 3, 4], k: 4 }},
@@ -3722,6 +3811,136 @@ print("Hello from Python 3 Playground!")
       return steps;
     }}
 
+    function generateRemoveElementsSteps(initialArr, targetVal) {{
+      const target = (targetVal !== undefined) ? targetVal : 6;
+      const vals = [...initialArr];
+      const steps = [];
+
+      steps.push({{
+        type: 'linked_list',
+        chains: [
+          {{
+            title: 'Initial List with Sentinel Dummy Node (Target val = ' + target + ')',
+            nodes: [
+              {{ val: 'dummy(0)', ptrs: ['dummy', 'cur'], highlight: false }}
+            ].concat(vals.map((v, i) => ({{
+              val: v,
+              ptrs: i === 0 ? ['head'] : [],
+              highlight: v === target
+            }}))).concat([{{ val: 'null', ptrs: [] }}])
+          }}
+        ],
+        tag: 'Step 0: Setup Dummy Anchor',
+        badge: 'Sentinel Setup',
+        badgeColor: 'blue',
+        desc: `Created sentinel dummy = ListNode(0, head) and cur = dummy. Target to delete: ${{target}}. In singly linked lists, a node cannot delete itself; you must stand on the predecessor. A dummy node gives even the first node a predecessor!`,
+        vars: {{ dummy: 'Node(0)', cur: 'dummy', target }}
+      }});
+
+      let currentList = ['dummy(0)', ...vals];
+      let curPos = 0;
+      let stepNum = 1;
+
+      while (curPos < currentList.length - 1) {{
+        const nextVal = currentList[curPos + 1];
+        const isMatch = (nextVal === target);
+
+        steps.push({{
+          type: 'linked_list',
+          chains: [
+            {{
+              title: `Step ${{stepNum}}: Inspecting cur.next`,
+              nodes: currentList.map((v, idx) => {{
+                const p = [];
+                if (idx === curPos) p.push('cur');
+                if (idx === curPos + 1) p.push('cur.next');
+                return {{ val: v, ptrs: p, highlight: idx === curPos + 1 }};
+              }}).concat([{{ val: 'null', ptrs: [] }}])
+            }}
+          ],
+          tag: `Check: cur.next.val (${{nextVal}}) == ${{target}}?`,
+          badge: isMatch ? 'Match Found!' : 'Keep Node',
+          badgeColor: isMatch ? 'rose' : 'emerald',
+          desc: isMatch
+            ? `cur.next.val is ${{nextVal}}, which matches target ${{target}}! We must delete this node by rewiring cur.next = cur.next.next.`
+            : `cur.next.val is ${{nextVal}}, which does not match target ${{target}}. Keep this node and advance cur forward.`,
+          vars: {{ cur: String(currentList[curPos]), 'cur.next': String(nextVal), target }}
+        }});
+
+        if (isMatch) {{
+          const removedVal = currentList.splice(curPos + 1, 1)[0];
+
+          steps.push({{
+            type: 'linked_list',
+            chains: [
+              {{
+                title: 'Active List after Bypass (cur.next = cur.next.next)',
+                nodes: currentList.map((v, idx) => {{
+                  const p = [];
+                  if (idx === curPos) p.push('cur');
+                  if (idx === curPos + 1) p.push('cur.next');
+                  return {{ val: v, ptrs: p, highlight: idx === curPos }};
+                }}).concat([{{ val: 'null', ptrs: [] }}])
+              }},
+              {{
+                title: `🗑️ Bypassed / Deleted Node: Node(${{removedVal}})`,
+                nodes: [{{ val: removedVal, ptrs: ['deleted'], highlight: true }}].concat([{{ val: 'null', ptrs: [] }}])
+              }}
+            ],
+            tag: `Bypass: Snip out Node(${{removedVal}})`,
+            badge: 'Do NOT advance cur!',
+            badgeColor: 'amber',
+            desc: `Rewired cur.next = cur.next.next! Node(${{removedVal}}) is bypassed. IMPORTANT: We do NOT advance cur here! Why? Because the newly pulled-in cur.next might ALSO equal ${{target}} (like consecutive duplicates). We stay on cur to check the next node!`,
+            vars: {{ cur: String(currentList[curPos]), bypassed: `Node(${{removedVal}})`, target }}
+          }});
+        }} else {{
+          curPos += 1;
+          steps.push({{
+            type: 'linked_list',
+            chains: [
+              {{
+                title: 'Advanced cur: cur = cur.next',
+                nodes: currentList.map((v, idx) => {{
+                  const p = [];
+                  if (idx === curPos) p.push('cur');
+                  if (idx === curPos + 1) p.push('cur.next');
+                  return {{ val: v, ptrs: p, highlight: idx === curPos }};
+                }}).concat([{{ val: 'null', ptrs: [] }}])
+              }}
+            ],
+            tag: `Advance: cur = cur.next`,
+            badge: 'Slide Forward',
+            badgeColor: 'blue',
+            desc: `Safe to move forward: cur = cur.next. cur is now sitting on Node(${{currentList[curPos]}}).`,
+            vars: {{ cur: String(currentList[curPos]), target }}
+          }});
+        }}
+        stepNum++;
+      }}
+
+      const finalSurviving = currentList.slice(1);
+      steps.push({{
+        type: 'linked_list',
+        chains: [
+          {{
+            title: `Final Clean List: Return dummy.next (${{finalSurviving.length ? finalSurviving.join(' -> ') : 'Empty List'}})`,
+            nodes: (finalSurviving.length ? finalSurviving.map((v, i) => ({{
+              val: v,
+              ptrs: i === 0 ? ['return head'] : [],
+              highlight: false
+            }})) : []).concat([{{ val: 'null', ptrs: [] }}])
+          }}
+        ],
+        tag: 'Complete!',
+        badge: 'Finished',
+        badgeColor: 'emerald',
+        desc: `cur.next reached null! Loop terminates. return dummy.next skips the fake dummy(0) placeholder and returns the real surviving head: [${{finalSurviving.join(' -> ') || 'null'}}].`,
+        vars: {{ result: finalSurviving.length ? `Node(${{finalSurviving[0]}})` : 'null' }}
+      }});
+
+      return steps;
+    }}
+
     function generateMergeSortSteps(initialArr) {{
       const arr = [...initialArr];
       return [
@@ -3907,6 +4126,8 @@ print("Hello from Python 3 Playground!")
           steps = generateReverseLinkedListSteps(currentArr);
         }} else if (algo === 'reverse_first_k') {{
           steps = generateReverseFirstKSteps(currentArr, spec.k || 4);
+        }} else if (algo === 'remove_elements') {{
+          steps = generateRemoveElementsSteps(currentArr, targetVal !== undefined ? targetVal : (spec.target !== undefined ? spec.target : 6));
         }} else if (algo === 'merge_sort') {{
           steps = generateMergeSortSteps(currentArr);
         }} else if (algo === 'quick_sort') {{
