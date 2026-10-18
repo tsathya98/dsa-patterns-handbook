@@ -1532,7 +1532,8 @@
       bubble_sort: `# 🫧 Bubble Sort with Live Step Trace
 def bubble_sort(arr):
     n = len(arr)
-    print("Initial array:", arr, "\n")
+    print("Initial array:", arr)
+    print()
     for i in range(n - 1):
         swapped = False
         for j in range(n - 1 - i):
@@ -1551,7 +1552,8 @@ print("Final Sorted:", bubble_sort(nums))
       selection_sort: `# 🎯 Selection Sort
 def selection_sort(arr):
     n = len(arr)
-    print("Initial array:", arr, "\n")
+    print("Initial array:", arr)
+    print()
     for i in range(n - 1):
         min_idx = i
         for j in range(i + 1, n):
@@ -1596,9 +1598,11 @@ def merge(left, right):
     return res
 
 nums = [38, 27, 43, 3, 9, 82, 10]
-print("Initial array:", nums, "\n")
+print("Initial array:", nums)
+print()
 sorted_nums = merge_sort(nums)
-print("\nFinal Sorted Array:", sorted_nums)
+print()
+print("Final Sorted Array:", sorted_nums)
 `,
       quick_sort: `# ⚡ Quick Sort (Lomuto In-Place Partition Trace)
 def quick_sort(arr, low=0, high=None):
@@ -1621,11 +1625,13 @@ def partition(arr, low, high):
             if i != j:
                 print("  Swap arr[" + str(i) + "] with arr[" + str(j) + "] ->", arr)
     arr[i + 1], arr[high] = arr[high], arr[i + 1]
-    print("  Lock Pivot", pivot, "at index", i + 1, "->", arr, "\n")
+    print("  Lock Pivot", pivot, "at index", i + 1, "->", arr)
+    print()
     return i + 1
 
 nums = [10, 80, 30, 90, 40, 50, 70]
-print("Initial array:", nums, "\n")
+print("Initial array:", nums)
+print()
 quick_sort(nums)
 print("Final Sorted Array:", nums)
 `,
@@ -1653,12 +1659,14 @@ def find_kth_largest(nums, k):
             print("  Target is to the LEFT (searching [" + str(left) + ".." + str(i - 1) + "])")
             return quickselect(left, i - 1)
 
-    print("Finding " + str(k) + "-th largest in " + str(nums) + " (Target sorted index: " + str(target_idx) + ")\n")
+    print("Finding " + str(k) + "-th largest in " + str(nums) + " (Target sorted index: " + str(target_idx) + ")")
+    print()
     return quickselect(0, len(nums) - 1)
 
 arr = [3, 2, 1, 5, 6, 4]
 ans = find_kth_largest(arr, k=2)
-print("\nResult: 2nd Largest Element is:", ans)
+print()
+print("Result: 2nd Largest Element is:", ans)
 `,
       bucket_sort: `# 🪣 Bucket Sort: O(N) Linear Time (LC 347 Top K Frequent - Google/Meta Favorite)
 def top_k_frequent(nums, k):
@@ -1697,7 +1705,8 @@ print("Result:", top_k_frequent(nums, k))
 def first_missing_positive(nums):
     # Rule: Value x belongs at index x - 1
     n = len(nums)
-    print("Initial array:", nums, "\n")
+    print("Initial array:", nums)
+    print()
     
     i = 0
     while i < n:
@@ -1710,7 +1719,8 @@ def first_missing_positive(nums):
         else:
             i += 1
             
-    print("\nArray after cyclic placement:", nums)
+    print()
+    print("Array after cyclic placement:", nums)
     
     # First index where nums[i] != i + 1 is our missing answer
     for i in range(n):
@@ -1725,12 +1735,14 @@ print("First Missing Positive:", ans)
       heap_sort: `# 🏔️ In-Place Heap Sort (O(N log N) Time, O(1) Space)
 def heap_sort(arr):
     n = len(arr)
-    print("Initial array:", arr, "\n")
+    print("Initial array:", arr)
+    print()
 
     # Step 1: Build max heap (sift down from last parent to root)
     for i in range(n // 2 - 1, -1, -1):
         sift_down(arr, n, i)
-    print("Max Heap built:", arr, "\n")
+    print("Max Heap built:", arr)
+    print()
 
     # Step 2: Extract elements one by one from end to front
     for i in range(n - 1, 0, -1):
@@ -1797,7 +1809,8 @@ def repeated_substring_pattern(s: str) -> bool:
 
 tests = ["abab", "aba", "abcabcabcabc"]
 for t in tests:
-    print("'" + t + "' ->", repeated_substring_pattern(t), "\n")
+    print("'" + t + "' ->", repeated_substring_pattern(t))
+    print()
 `,
       container_water: `# 💧 LeetCode 11: Container With Most Water
 def max_area(height):
@@ -1841,7 +1854,8 @@ def solve_n_queens(n):
     return res
 
 solutions = solve_n_queens(4)
-print("Found", len(solutions), "solutions for 4-Queens:\n")
+print("Found", len(solutions), "solutions for 4-Queens:")
+print()
 for i, sol in enumerate(solutions, 1):
     print("Solution #" + str(i) + ":")
     for row in sol:
@@ -1904,7 +1918,8 @@ class ListNode:
 
 def reverse_first_k(head, k):
     print("Initial Linked List:", to_list(head))
-    print("Goal: reverse the first", k, "nodes in-place\n")
+    print("Goal: reverse the first", k, "nodes in-place")
+    print()
     if not head or k <= 1:
         return head
         
@@ -1921,14 +1936,16 @@ def reverse_first_k(head, k):
         count -= 1
         print("Flipped Node " + str(prev.val) + " -> prev is at Node(" + str(prev.val) + "), cur is at Node(" + str(cur.val if cur else 'null') + ")")
         
-    print("\nWhile loop finished!")
+    print()
+    print("While loop finished!")
     print("  prev is at Node(" + str(prev.val) + ")  <-- FRONT of reversed chunk!")
     print("  head is at Node(" + str(head.val) + ")  <-- TAIL of reversed chunk!")
     print("  cur is at Node(" + str(cur.val if cur else 'null') + ")   <-- START of remaining list")
     
     # 2. The Bridge
     head.next = cur
-    print("\nBridge executed: head.next = cur")
+    print()
+    print("Bridge executed: head.next = cur")
     print("  Node(" + str(head.val) + ") is now glued to Node(" + str(cur.val if cur else 'null') + ")")
     
     # 3. Return prev
@@ -1952,7 +1969,8 @@ def to_list(head):
 
 head = from_list([1, 2, 3, 4, 5, 6])
 new_head = reverse_first_k(head, k=4)
-print("\nFinal Result:", to_list(new_head))
+print()
+print("Final Result:", to_list(new_head))
 `,
       blank: `# Python 3 Interactive Playground
 # Sourced from your local DSA Hub
