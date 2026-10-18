@@ -37,7 +37,7 @@ Instead of treating every linked list question as a new puzzle, map it to one of
 ## 0. Linked list fundamentals
 
 - [Guide: Linked List Fundamentals](./01_linked_list_fundamentals.md)
-- [Guide: Class 12 Advanced Linked List Operations & Fast-Slow Runners](./03_advanced_linked_list_operations_fast_slow_pointers.md)
+- [Guide: Fast & Slow Pointers (Cycles, Midpoints & Reversals)](./03_fast_and_slow_pointers_cycle_detection_midpoints.md)
 - [x] [LC 707: Design Linked List [Free]](./707_design_linked_list.md)
   - **Technique:** In doubly linked lists, initialize sentinel `head` and `tail` dummy nodes (`head.next = tail`, `tail.prev = head`) so insertions and deletions never hit null-boundary edge cases.
 
