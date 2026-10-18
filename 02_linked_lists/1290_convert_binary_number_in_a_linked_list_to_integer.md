@@ -57,16 +57,31 @@ Node 3 (val = 1):  ans = (2 * 2) + 1 = 5  (binary 101)
 ## Solution
 
 <details>
-<summary>Spoiler: Solution Code</summary>
+<summary>Spoiler: Solution Code (Both Approaches)</summary>
 
 ```python
+# Approach 1: Array conversion + reverse indexing (Intuitive, O(N) space)
 class Solution:
     def getDecimalValue(self, head: ListNode | None) -> int:
-        ans = 0
+        lst = []
+        cur = head
+        while cur:
+            lst.append(cur.val)
+            cur = cur.next
+        tot = 0
+        for i in range(len(lst) - 1, -1, -1):
+            tot += lst[len(lst) - i - 1] * (2 ** i)
+        return tot
+
+
+# Approach 2: Stream accumulation / Horner's rule (Optimal, O(1) space)
+class SolutionOptimal:
+    def getDecimalValue(self, head: ListNode | None) -> int:
+        total = 0
         while head:
-            ans = (ans << 1) | head.val  # Equivalent to: ans = ans * 2 + head.val
+            total = total * 2 + head.val  # Or: (total << 1) | head.val
             head = head.next
-        return ans
+        return total
 ```
 
 </details>

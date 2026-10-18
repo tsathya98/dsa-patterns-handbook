@@ -68,10 +68,29 @@ On an odd list like `[1, 2, 3, 2, 1]`, `slow` stops on `3`, and `slow.next` (`[2
 ## Solution
 
 <details>
-<summary>Spoiler: Solution Code</summary>
+<summary>Spoiler: Solution Code (Both Approaches)</summary>
 
 ```python
+# Approach 1: Array conversion + Two-pointer squeeze (Intuitive, O(N) space)
 class Solution:
+    def isPalindrome(self, head: ListNode | None) -> bool:
+        lst = []
+        cur = head
+        while cur:
+            lst.append(cur.val)
+            cur = cur.next
+
+        l, r = 0, len(lst) - 1
+        while l < r:
+            if lst[l] != lst[r]:
+                return False
+            l += 1
+            r -= 1
+        return True
+
+
+# Approach 2: Fast/slow midpoint + In-place reversal (Optimal follow-up, O(1) space)
+class SolutionOptimal:
     def isPalindrome(self, head: ListNode | None) -> bool:
         if not head or not head.next:
             return True
