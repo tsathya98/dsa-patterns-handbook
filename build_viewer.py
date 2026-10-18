@@ -2129,7 +2129,7 @@ print("Final Sorted Array:", nums)
       quickselect: `# 🎯 Quickselect: O(N) Average K-th Largest Element (LC 215 - MAANG Staple)
 def find_kth_largest(nums, k):
     target_idx = len(nums) - k
-    
+
     def quickselect(left, right):
         pivot = nums[right]
         i = left
@@ -2138,9 +2138,9 @@ def find_kth_largest(nums, k):
                 nums[i], nums[j] = nums[j], nums[i]
                 i += 1
         nums[i], nums[right] = nums[right], nums[i]
-        
+
         print("Pivot " + str(pivot) + " locked at index " + str(i) + " | Array: " + str(nums))
-        
+
         if i == target_idx:
             return nums[i]
         elif i < target_idx:
@@ -2172,7 +2172,7 @@ def top_k_frequent(nums, k):
     buckets = [[] for _ in range(len(nums) + 1)]
     for num, freq in counts.items():
         buckets[freq].append(num)
-    
+
     print("Frequency Buckets (idx = count):")
     for freq in range(len(buckets)):
         if buckets[freq]:
@@ -2198,7 +2198,7 @@ def first_missing_positive(nums):
     n = len(nums)
     print("Initial array:", nums)
     print()
-    
+
     i = 0
     while i < n:
         correct_idx = nums[i] - 1
@@ -2209,10 +2209,10 @@ def first_missing_positive(nums):
             print("Swapped " + str(val) + " to index " + str(correct_idx) + " ->", nums)
         else:
             i += 1
-            
+
     print()
     print("Array after cyclic placement:", nums)
-    
+
     # First index where nums[i] != i + 1 is our missing answer
     for i in range(n):
         if nums[i] != i + 1:
@@ -2413,10 +2413,10 @@ def reverse_first_k(head, k):
     print()
     if not head or k <= 1:
         return head
-        
+
     prev = None
     cur = head
-    
+
     # 1. Reverse first k nodes
     count = k
     while count > 0 and cur:
@@ -2426,19 +2426,19 @@ def reverse_first_k(head, k):
         cur = nxt
         count -= 1
         print("Flipped Node " + str(prev.val) + " -> prev is at Node(" + str(prev.val) + "), cur is at Node(" + str(cur.val if cur else 'null') + ")")
-        
+
     print()
     print("While loop finished!")
     print("  prev is at Node(" + str(prev.val) + ")  <-- FRONT of reversed chunk!")
     print("  head is at Node(" + str(head.val) + ")  <-- TAIL of reversed chunk!")
     print("  cur is at Node(" + str(cur.val if cur else 'null') + ")   <-- START of remaining list")
-    
+
     # 2. The Bridge
     head.next = cur
     print()
     print("Bridge executed: head.next = cur")
     print("  Node(" + str(head.val) + ") is now glued to Node(" + str(cur.val if cur else 'null') + ")")
-    
+
     # 3. Return prev
     print("Returning prev: the new head of the whole list is Node(" + str(prev.val) + ")!")
     return prev
