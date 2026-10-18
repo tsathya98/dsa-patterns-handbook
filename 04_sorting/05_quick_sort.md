@@ -24,12 +24,38 @@ Quick sort is an in-place divide-and-conquer sorting algorithm:
 ## 2. Lomuto partition trace
 
 Array: `[10, 80, 30, 90, 40, 50, 70]`, pivot = `70` (last element)
-* Pointer `i` tracks the end of the region containing elements $\le 70$ (starts at `low - 1`).
-* Pointer `j` scans from `low` to `high - 1`:
-  * `10 <= 70`: increment `i`, swap `arr[i]` with `arr[j]`.
-  * `80 > 70`: skip.
-  * `30 <= 70`: increment `i`, swap `80` and `30`.
-  * Continue until `j` reaches `high - 1`, then swap the pivot `70` into `arr[i + 1]`.
+
+```text
+Start (i = -1, j = 0, pivot = 70):
+      [ 10 , 80 , 30 , 90 , 40 , 50 , 70 ]
+   ▲     ▲                             ▲
+   i     j                           pivot
+
+Iteration 1 (j = 0): arr[0] = 10 <= 70 -> i += 1 (0), swap(arr[0], arr[0])
+      [ 10 , 80 , 30 , 90 , 40 , 50 , 70 ]
+         ▲    ▲                        ▲
+         i    j                      pivot
+
+Iteration 2 (j = 1): arr[1] = 80 > 70 -> skip! i stays at 0
+      [ 10 , 80 , 30 , 90 , 40 , 50 , 70 ]
+         ▲         ▲                   ▲
+         i         j                 pivot
+
+Iteration 3 (j = 2): arr[2] = 30 <= 70 -> i += 1 (1), swap(80, 30)
+      [ 10 , 30 , 80 , 90 , 40 , 50 , 70 ]
+              ▲         ▲              ▲
+              i         j            pivot
+
+Iterations 4-6 (j = 3..5): 90 skipped; 40 and 50 swapped into i = 2, 3
+      [ 10 , 30 , 40 , 50 , 80 , 90 , 70 ]
+                        ▲              ▲
+                        i            pivot
+
+Final Step: Swap pivot (70) with arr[i + 1] (80):
+      [ 10 , 30 , 40 , 50 , 70 , 90 , 80 ]
+                             ▲
+                      Locked Pivot (pi = 4)
+```
 
 ## 3. Python 3 implementation
 

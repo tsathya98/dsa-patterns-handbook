@@ -380,7 +380,6 @@ def parse_doc_metadata(rel_path: str, filename: str, content: str) -> dict:
         "lcUrl": lc_url,
         "summary": summary,
         "docType": doc_type,
-        "hasMermaid": "```mermaid" in content,
         "defaultSolved": lc_number in DEFAULT_SOLVED_NUMBERS,
         "sortOrder": sort_key,
         "content": content,
@@ -508,7 +507,6 @@ def build_html(default_view: str = "concepts") -> str:
   <script src="static/vendor/highlight.min.js"></script>
   <script src="static/vendor/katex.min.js"></script>
   <script src="static/vendor/auto-render.min.js"></script>
-  <script src="static/vendor/mermaid.min.js"></script>
   <script src="static/vendor/skulpt.min.js"></script>
   <script src="static/vendor/skulpt-stdlib.js"></script>
   <script src="static/vendor/codemirror/codemirror.min.js"></script>
@@ -890,15 +888,6 @@ def build_html(default_view: str = "concepts") -> str:
       border-bottom: 1px solid var(--border);
     }}
 
-    .md-body.visual-focus-mode > p,
-    .md-body.visual-focus-mode > ul,
-    .md-body.visual-focus-mode > ol {{
-      display: none;
-    }}
-    .md-body.hide-flowcharts-mode .mermaid-figure {{
-      display: none;
-    }}
-
     dialog::backdrop {{
       background: rgba(8, 10, 18, 0.75);
       backdrop-filter: blur(4px);
@@ -1011,15 +1000,6 @@ def build_html(default_view: str = "concepts") -> str:
           </div>
 
           <div class="flex items-center gap-2 flex-wrap">
-            <div class="flex items-center ui-surface rounded-lg p-0.5 border text-xs" role="group" aria-label="Reading mode">
-              <button type="button" onclick="setReaderMode('full')" id="mode-btn-full" class="px-2.5 py-1 rounded font-semibold ui-accent-soft border">
-                Text + Diagrams
-              </button>
-              <button type="button" onclick="setReaderMode('visual')" id="mode-btn-visual" class="px-2.5 py-1 rounded font-medium ui-text-muted" title="Hide paragraphs and show only flowcharts, arrow traces, tables, and code">
-                ⚡ Diagrams Only
-              </button>
-            </div>
-
             <button type="button" onclick="loadCurrentDocIntoPlayground()" id="btn-open-in-playground" class="px-2.5 py-1 rounded-lg border ui-surface text-xs font-semibold hover:ui-accent-soft transition-colors" title="Open and execute this guide's Python code in the browser playground">
               🐍 Run Code
             </button>
@@ -1564,8 +1544,6 @@ def build_html(default_view: str = "concepts") -> str:
     let currentView = DEFAULT_INITIAL_VIEW;
     let sidebarScope = 'concept';
     let currentDocPath = "00_foundations/01_algorithms_correctness_efficiency.md";
-    let readerMode = 'full';
-    let showFlowcharts = true;
     let trackerPlanFilter = 'ALL'; // 'ALL' | '150' | '75' | 'WITH_DOC'
     let trackerStatusFilter = 'ALL';
     let isLeftSidebarOpen = true;
@@ -2684,18 +2662,6 @@ print("Hello from Python 3 Playground!")
           btn.className = 'px-2 py-1 rounded font-medium transition-all ui-text-muted hover:opacity-100';
         }}
       }});
-
-      if (typeof mermaid !== 'undefined') {{
-        mermaid.initialize({{
-          startOnLoad: false,
-          theme: theme === 'light' ? 'neutral' : 'dark',
-          flowchart: {{ curve: 'basis', padding: 12 }},
-          securityLevel: 'loose'
-        }});
-        if ((currentView === 'concepts' || currentView === 'problems') && currentDocPath) {{
-          renderMermaidDiagrams(document.getElementById('rendered-content'));
-        }}
-      }}
     }}
 
     function setSidebarScope(scope) {{
@@ -2788,28 +2754,13 @@ print("Hello from Python 3 Playground!")
     }}
 
 
-    // 6. Markdown + KaTeX + Mermaid Pipeline
+    // 6. Markdown + KaTeX Pipeline
     function renderMarkdownInto(containerEl, markdownText, basePath) {{
       if (typeof marked !== 'undefined') {{
         containerEl.innerHTML = marked.parse(markdownText, {{ breaks: true, gfm: true }});
       }} else {{
         containerEl.innerHTML = '<pre><code>' + markdownText + '</code></pre>';
       }}
-
-      containerEl.querySelectorAll('pre code.language-mermaid').forEach((codeEl) => {{
-        const pre = codeEl.parentElement;
-        const graphDef = codeEl.textContent;
-        const fig = document.createElement('figure');
-        fig.className = 'mermaid-figure my-4 ui-surface border rounded-xl p-4 overflow-x-auto';
-        fig.innerHTML = `
-          <figcaption class="flex items-center justify-between text-xs ui-text-muted mb-2 pb-1.5 border-b ui-border">
-            <span class="font-semibold ui-accent-text flex items-center gap-1.5">📊 Decision Flowchart</span>
-            <span>Follow arrows step-by-step</span>
-          </figcaption>
-          <div class="mermaid-render flex justify-center py-1" data-graph="${{encodeURIComponent(graphDef)}}"></div>
-        `;
-        pre.replaceWith(fig);
-      }});
 
       containerEl.querySelectorAll('pre').forEach(pre => {{
         pre.setAttribute('tabindex', '0');
@@ -2833,8 +2784,6 @@ print("Hello from Python 3 Playground!")
         }} catch (e) {{}}
       }}
 
-      renderMermaidDiagrams(containerEl);
-
       containerEl.querySelectorAll('a').forEach(anchor => {{
         const href = anchor.getAttribute('href');
         if (href && (href.endsWith('.md') || href.includes('.md#'))) {{
@@ -2853,23 +2802,6 @@ print("Hello from Python 3 Playground!")
           }});
         }}
       }});
-    }}
-
-    async function renderMermaidDiagrams(containerEl) {{
-      if (typeof mermaid === 'undefined' || !containerEl) return;
-      const nodes = containerEl.querySelectorAll('.mermaid-render');
-      for (let i = 0; i < nodes.length; i++) {{
-        const el = nodes[i];
-        const rawGraph = decodeURIComponent(el.dataset.graph || '');
-        if (!rawGraph.trim()) continue;
-        try {{
-          const id = 'mmd-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7);
-          const {{ svg }} = await mermaid.render(id, rawGraph);
-          el.innerHTML = svg;
-        }} catch (err) {{
-          el.innerHTML = `<pre class="text-xs p-2 rounded ui-card border"><code>${{rawGraph}}</code></pre>`;
-        }}
-      }}
     }}
 
     // 7. Render Active Document in Reader
@@ -2974,38 +2906,6 @@ print("Hello from Python 3 Playground!")
       }});
     }}
 
-    function setReaderMode(mode) {{
-      readerMode = mode;
-      const contentEl = document.getElementById('rendered-content');
-      const btnFull = document.getElementById('mode-btn-full');
-      const btnVis = document.getElementById('mode-btn-visual');
-
-      if (mode === 'visual') {{
-        contentEl.classList.add('visual-focus-mode');
-        btnVis.className = 'px-2.5 py-1 rounded font-semibold ui-accent-soft border';
-        btnFull.className = 'px-2.5 py-1 rounded font-medium ui-text-muted';
-      }} else {{
-        contentEl.classList.remove('visual-focus-mode');
-        btnFull.className = 'px-2.5 py-1 rounded font-semibold ui-accent-soft border';
-        btnVis.className = 'px-2.5 py-1 rounded font-medium ui-text-muted';
-      }}
-    }}
-
-    function toggleFlowcharts() {{
-      showFlowcharts = !showFlowcharts;
-      const contentEl = document.getElementById('rendered-content');
-      const btn = document.getElementById('btn-toggle-flowcharts');
-      if (showFlowcharts) {{
-        contentEl.classList.remove('hide-flowcharts-mode');
-        btn.textContent = '📊 Flowcharts: ON';
-        btn.className = 'px-2.5 py-1 rounded-lg border ui-accent-soft text-xs font-semibold';
-      }} else {{
-        contentEl.classList.add('hide-flowcharts-mode');
-        btn.textContent = '📊 Flowcharts: OFF';
-        btn.className = 'px-2.5 py-1 rounded-lg border ui-surface text-xs font-medium ui-text-muted';
-      }}
-    }}
-
     function updateReaderStatusButtons() {{
       const st = getDocStatus(currentDocPath);
       const map = {{
@@ -3108,7 +3008,6 @@ print("Hello from Python 3 Playground!")
           <div class="space-y-2">
             <div class="flex items-center justify-between gap-2">
               <span class="text-xs font-mono px-2 py-0.5 rounded ui-surface border ui-accent-text">${{d.categoryIcon}} ${{d.categoryLabel}}</span>
-              ${{d.hasMermaid ? '<span class="text-xs px-2 py-0.5 rounded ui-accent-soft border">📊 Flowchart</span>' : ''}}
             </div>
             <h2 class="text-base font-bold">${{d.title}}</h2>
             <p class="text-xs ui-text-muted leading-relaxed">${{d.summary || 'Complete pattern triggers, visual arrows, and Python templates.'}}</p>
@@ -3379,7 +3278,6 @@ print("Hello from Python 3 Playground!")
       }} else if ((currentView === 'concepts' || currentView === 'problems') && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) {{
         if (e.key === '[') document.getElementById('prev-doc-btn').click();
         if (e.key === ']') document.getElementById('next-doc-btn').click();
-        if (e.key === 'v') setReaderMode(readerMode === 'full' ? 'visual' : 'full');
         if (e.key === 'b') toggleLeftSidebar();
         if (e.key === 'o') toggleRightSidebar();
       }}

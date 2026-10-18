@@ -16,11 +16,20 @@ Setting $\frac{N}{2^k} = 1 \implies k = \log_2 N$.
 For $N = 1,000,000$, binary search finishes in at most $20$ comparisons.
 
 ```text
-Indices:  0    1    2    3    4    5    6
-Array:  [ 2 ,  5 ,  8 , 12 , 16 , 23 , 38 ]   Target = 23
-          ▲              ▲              ▲
-         lo             mid            hi
-1. arr[mid] = 12 < 23 -> Target must be to the right -> lo = mid + 1
+Indices:   0    1    2    3    4    5    6
+Array:   [ 2 ,  5 ,  8 , 12 , 16 , 23 , 38 ]   Target = 23
+
+Iteration 1 (lo = 0, hi = 6, mid = 3):
+         [ 2 ,  5 ,  8 , 12 , 16 , 23 , 38 ]
+           ▲              ▲              ▲
+          lo             mid            hi
+Check: arr[3] = 12 < 23 -> Eliminate left half! Set lo = mid + 1 = 4.
+
+Iteration 2 (lo = 4, hi = 6, mid = 5):
+         [ . ,  . ,  . ,  . , 16 , 23 , 38 ]
+                               ▲    ▲    ▲
+                              lo   mid  hi
+Check: arr[5] = 23 == 23 -> Target found! Return 5.
 ```
 
 ### Algorithm steps:
