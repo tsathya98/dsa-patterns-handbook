@@ -44,25 +44,19 @@ class SolutionHashSet:
 
 
 # ---------------------------------------------------------------------------
-# Approach 2: Floyd's Cycle Detection (User's Accepted Solution)
-# ---------------------------------------------------------------------------
-
-class Solution:
+class SolutionGuardCheck:
     def detectCycle(self, head: Optional[ListNode]) -> Optional[ListNode]:
         fast = slow = head
 
-        # Phase 1: Detect cycle and find meeting point
         while fast and fast.next:
             slow = slow.next
             fast = fast.next.next
             if slow == fast:
                 break
 
-        # Guard: If fast hit the boundary, no cycle exists
         if not fast or not fast.next:
             return None
 
-        # Phase 2: Find cycle entrance
         p1 = head
         p2 = slow
         while p1 != p2:
@@ -72,6 +66,28 @@ class Solution:
         return p1
 
 
+class Solution:
+    """Optimal Pythonic solution with while...else and pointer reuse."""
+    def detectCycle(self, head: Optional[ListNode]) -> Optional[ListNode]:
+        fast = slow = head
+
+        # Phase 1: Detect cycle and find meeting point
+        while fast and fast.next:
+            slow = slow.next
+            fast = fast.next.next
+            if slow == fast:
+                break
+        else:
+            return None
+
+        # Phase 2: Find cycle entrance
+        while head != slow:
+            head = head.next
+            slow = slow.next
+
+        return head
+
+
 # ---------------------------------------------------------------------------
 # Automated Unit Tests
 # ---------------------------------------------------------------------------
@@ -79,7 +95,7 @@ class Solution:
 def run_tests():
     print("Testing LeetCode 142: Linked List Cycle II...")
 
-    for name, sol in [("HashSet", SolutionHashSet()), ("TortoiseHare", Solution())]:
+    for name, sol in [("HashSet", SolutionHashSet()), ("GuardCheck", SolutionGuardCheck()), ("WhileElseOptimal", Solution())]:
         # Test 1: Empty list
         assert sol.detectCycle(None) is None, f"{name} failed on empty list"
 
