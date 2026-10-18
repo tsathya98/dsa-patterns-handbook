@@ -1254,7 +1254,7 @@ def build_html(default_view: str = "concepts") -> str:
           <span class="font-bold uppercase tracking-wider text-emerald-400">🎓 Course Homework</span>
           <span id="stat-hw-pct" class="font-mono ui-text-muted">0%</span>
         </div>
-        <div class="text-2xl font-black" id="stat-hw-count">0 / 27</div>
+        <div class="text-2xl font-black" id="stat-hw-count">0 / {chw}</div>
         <div class="w-full ui-surface rounded-full h-2 overflow-hidden border">
           <div id="stat-hw-bar" class="bg-emerald-400 h-full transition-all duration-500" style="width: 0%;"></div>
         </div>
@@ -1316,10 +1316,10 @@ def build_html(default_view: str = "concepts") -> str:
       <div class="flex flex-wrap items-center justify-between gap-2 border-b ui-border pb-3">
         <div class="flex flex-wrap items-center gap-1.5 text-xs" role="group" aria-label="Study plan filter">
           <button type="button" onclick="setTrackerPlanFilter('ALL')" data-plan="ALL" class="trk-plan-btn px-3 py-1.5 rounded-xl font-semibold ui-accent-btn">
-            All Tracked
+            All Tracked ({len(curated_problems)})
           </button>
           <button type="button" onclick="setTrackerPlanFilter('HW')" data-plan="HW" class="trk-plan-btn px-3 py-1.5 rounded-xl font-medium ui-surface border ui-text-muted hover:text-[var(--text)]">
-            🎓 Course Homework (27)
+            🎓 Course Homework ({chw})
           </button>
           <button type="button" onclick="setTrackerPlanFilter('150')" data-plan="150" class="trk-plan-btn px-3 py-1.5 rounded-xl font-medium ui-surface border ui-text-muted hover:text-[var(--text)]">
             🔥 Top Interview 150 (150)
