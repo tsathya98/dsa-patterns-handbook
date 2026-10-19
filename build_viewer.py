@@ -559,6 +559,46 @@ for path, d in docs.items():
             "defaultSolved": num in DEFAULT_SOLVED_NUMBERS,
         }
 
+# Map LeetCode slugs to top FAANG & Big Tech companies and frequency
+TOP_COMPANIES = ["meta", "google", "amazon", "microsoft", "apple", "bloomberg", "uber", "netflix"]
+slug_to_companies = {}
+
+for comp in TOP_COMPANIES:
+    comp_path = os.path.join(ROOT_DIR, f"companies/{comp}.md")
+    if not os.path.exists(comp_path):
+        continue
+    c_name = comp.capitalize()
+    if comp == "meta": c_name = "Meta"
+    elif comp == "uber": c_name = "Uber"
+    elif comp == "bloomberg": c_name = "Bloomberg"
+    
+    with open(comp_path, "r", encoding="utf-8", errors="ignore") as f:
+        for line in f:
+            parts = [p.strip() for p in line.split("|")]
+            if len(parts) >= 7 and parts[6].startswith("http"):
+                url = parts[6]
+                m = re.search(r"problems/([^/]+)", url)
+                if m:
+                    slug = m.group(1).lower()
+                    times_str = parts[4]
+                    try:
+                        times = int(times_str)
+                    except:
+                        times = 1
+                    if slug not in slug_to_companies:
+                        slug_to_companies[slug] = {}
+                    slug_to_companies[slug][c_name] = times
+
+for num, p in catalog_by_num.items():
+    m = re.search(r"problems/([^/]+)", p.get("url", ""))
+    slug = m.group(1).lower() if m else ""
+    if not slug:
+        slug = re.sub(r"[^a-z0-9]+", "-", p["title"].lower()).strip("-")
+    
+    comp_map = slug_to_companies.get(slug, {})
+    p["companies"] = list(comp_map.keys())
+    p["companyFreq"] = comp_map
+
 curated_problems = [catalog_by_num[k] for k in sorted(catalog_by_num.keys())]
 c150 = sum(1 for p in curated_problems if p["in150"])
 c75 = sum(1 for p in curated_problems if p["in75"])
@@ -1347,6 +1387,38 @@ def build_html(default_view: str = "concepts") -> str:
         <span id="tracker-showing-count" class="text-xs font-mono ui-text-muted">Showing problems</span>
       </div>
 
+      <!-- Row 1.5: Company Quick Filters -->
+      <div class="flex flex-wrap items-center gap-1.5 text-xs border-b ui-border pb-3">
+        <span class="text-[11px] font-bold uppercase tracking-wider ui-text-muted mr-1 flex items-center gap-1">🏢 Company:</span>
+        <button type="button" onclick="setTrackerCompanyFilter('ALL')" data-company="ALL" class="trk-comp-btn px-2.5 py-1 rounded-lg font-semibold ui-accent-soft border">
+          All
+        </button>
+        <button type="button" onclick="setTrackerCompanyFilter('Meta')" data-company="Meta" class="trk-comp-btn px-2.5 py-1 rounded-lg font-medium ui-surface border ui-text-muted hover:text-[var(--text)]">
+          Meta
+        </button>
+        <button type="button" onclick="setTrackerCompanyFilter('Google')" data-company="Google" class="trk-comp-btn px-2.5 py-1 rounded-lg font-medium ui-surface border ui-text-muted hover:text-[var(--text)]">
+          Google
+        </button>
+        <button type="button" onclick="setTrackerCompanyFilter('Amazon')" data-company="Amazon" class="trk-comp-btn px-2.5 py-1 rounded-lg font-medium ui-surface border ui-text-muted hover:text-[var(--text)]">
+          Amazon
+        </button>
+        <button type="button" onclick="setTrackerCompanyFilter('Microsoft')" data-company="Microsoft" class="trk-comp-btn px-2.5 py-1 rounded-lg font-medium ui-surface border ui-text-muted hover:text-[var(--text)]">
+          Microsoft
+        </button>
+        <button type="button" onclick="setTrackerCompanyFilter('Apple')" data-company="Apple" class="trk-comp-btn px-2.5 py-1 rounded-lg font-medium ui-surface border ui-text-muted hover:text-[var(--text)]">
+          Apple
+        </button>
+        <button type="button" onclick="setTrackerCompanyFilter('Bloomberg')" data-company="Bloomberg" class="trk-comp-btn px-2.5 py-1 rounded-lg font-medium ui-surface border ui-text-muted hover:text-[var(--text)]">
+          Bloomberg
+        </button>
+        <button type="button" onclick="setTrackerCompanyFilter('Uber')" data-company="Uber" class="trk-comp-btn px-2.5 py-1 rounded-lg font-medium ui-surface border ui-text-muted hover:text-[var(--text)]">
+          Uber
+        </button>
+        <button type="button" onclick="setTrackerCompanyFilter('Netflix')" data-company="Netflix" class="trk-comp-btn px-2.5 py-1 rounded-lg font-medium ui-surface border ui-text-muted hover:text-[var(--text)]">
+          Netflix
+        </button>
+      </div>
+
       <!-- Row 2: Search Input + Topic Dropdown + Status Filter -->
       <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5">
         <search class="flex-1">
@@ -1670,6 +1742,7 @@ def build_html(default_view: str = "concepts") -> str:
     let sidebarScope = 'concept';
     let currentDocPath = "00_foundations/01_algorithms_correctness_efficiency.md";
     let trackerPlanFilter = 'ALL'; // 'ALL' | '150' | '75' | 'WITH_DOC'
+    let trackerCompanyFilter = 'ALL';
     let trackerStatusFilter = 'ALL';
     let isLeftSidebarOpen = true;
     let isRightSidebarOpen = true;
@@ -3186,6 +3259,18 @@ print("Hello from Python 3 Playground!")
       renderTrackerTable();
     }}
 
+    function setTrackerCompanyFilter(comp) {{
+      trackerCompanyFilter = comp;
+      document.querySelectorAll('.trk-comp-btn').forEach(btn => {{
+        if (btn.dataset.company === comp) {{
+          btn.className = 'trk-comp-btn px-2.5 py-1 rounded-lg font-semibold ui-accent-soft border';
+        }} else {{
+          btn.className = 'trk-comp-btn px-2.5 py-1 rounded-lg font-medium ui-surface border ui-text-muted hover:text-[var(--text)]';
+        }}
+      }});
+      renderTrackerTable();
+    }}
+
     function cycleProbStatus(num) {{
       const cur = getProbStatus(num);
       const next = cur === 'todo' ? 'solved' : (cur === 'solved' ? 'review' : 'todo');
@@ -3236,11 +3321,12 @@ print("Hello from Python 3 Playground!")
       document.getElementById('stat-review-label').textContent = `${{allReview.length}} problems in review queue`;
 
       // Filter rows
-      const rows = CURATED_CATALOG.filter(p => {{
+      let rows = CURATED_CATALOG.filter(p => {{
         if (trackerPlanFilter === 'HW' && !p.inHW) return false;
         if (trackerPlanFilter === '150' && !p.in150) return false;
         if (trackerPlanFilter === '75' && !p.in75) return false;
         if (trackerPlanFilter === 'WITH_DOC' && !p.docPath) return false;
+        if (trackerCompanyFilter !== 'ALL' && (!p.companies || !p.companies.includes(trackerCompanyFilter))) return false;
         if (topicFilter !== 'ALL' && p.topic !== topicFilter) return false;
         if (diffFilter !== 'ALL' && p.difficulty !== diffFilter) return false;
         const st = getProbStatus(p.number);
@@ -3248,17 +3334,27 @@ print("Hello from Python 3 Playground!")
         if (q) {{
           const note = (p.docPath && docNotesMap[p.docPath]) || docNotesMap['lc-' + p.number] || p.summary || '';
           const disp = (p.displayNum || ('#' + p.number)).toLowerCase();
+          const compStr = (p.companies || []).join(' ').toLowerCase();
           return p.title.toLowerCase().includes(q) ||
                  p.topic.toLowerCase().includes(q) ||
                  p.pattern.toLowerCase().includes(q) ||
                  p.number.toString().includes(q) ||
                  disp.includes(q) ||
+                 compStr.includes(q) ||
                  note.toLowerCase().includes(q);
         }}
         return true;
       }});
 
-      document.getElementById('tracker-showing-count').textContent = `Showing ${{rows.length}} problems`;
+      if (trackerCompanyFilter !== 'ALL') {{
+        rows.sort((a, b) => {{
+          const fa = (a.companyFreq && a.companyFreq[trackerCompanyFilter]) || 0;
+          const fb = (b.companyFreq && b.companyFreq[trackerCompanyFilter]) || 0;
+          return fb - fa;
+        }});
+      }}
+
+      document.getElementById('tracker-showing-count').textContent = `Showing ${{rows.length}} problems${{trackerCompanyFilter !== 'ALL' ? ' (' + trackerCompanyFilter + ' frequency rank)' : ''}}`;
 
       tbody.innerHTML = rows.map(p => {{
         const st = getProbStatus(p.number);
@@ -3278,6 +3374,15 @@ print("Hello from Python 3 Playground!")
           p.in75 ? '<span class="px-1.5 py-0.5 rounded text-xs bg-sky-500/15 text-sky-400 border border-sky-500/30">⚡ 75</span>' : '',
         ].filter(Boolean).join(' ');
 
+        const compBadges = (p.companies || []).slice(0, 4).map(c => {{
+          const cnt = (p.companyFreq && p.companyFreq[c]) ? p.companyFreq[c] : '';
+          const isSelected = trackerCompanyFilter === c;
+          const cls = isSelected
+            ? 'px-1.5 py-0.5 rounded text-[10px] font-semibold bg-sky-500/30 text-sky-200 border border-sky-400'
+            : 'px-1.5 py-0.5 rounded text-[10px] bg-slate-500/10 text-slate-400 border border-slate-500/20';
+          return `<span class="${{cls}}">${{c}}${{cnt ? ' ' + cnt : ''}}</span>`;
+        }}).join(' ');
+
         return `
           <tr class="hover:bg-[var(--surface-hover)] transition-colors">
             <td class="py-3 px-3 whitespace-nowrap">
@@ -3294,6 +3399,7 @@ print("Hello from Python 3 Playground!")
                 }}
               </div>
               <div class="text-xs ${{diffColor}} mt-0.5">${{p.difficulty}} ${{p.docPath ? '• 📖 Has Visual Study Note' : ''}}</div>
+              ${{compBadges ? `<div class="flex items-center gap-1 flex-wrap mt-1">${{compBadges}}</div>` : ''}}
             </td>
             <td class="py-3 px-3 hidden sm:table-cell">
               <div class="flex items-center gap-1.5 flex-wrap">
