@@ -521,6 +521,18 @@ Return: dummy.next (Points directly to [ 10 ])
 * If you created a fake anchor `dummy = ListNode(0)` to build or splice: return `dummy.next`.
 * If you modified nodes in place using `cur = head` without altering the first node: return `head`.
 
+### The golden rule: When do you need a dummy node?
+
+Ask yourself one question: **"Can the very first node (`head`) change, get deleted, or move?"**
+
+| Scenario | Do you need `dummy`? | Why | Example Problems |
+| :--- | :--- | :--- | :--- |
+| **Deleting nodes** | **YES** | The target to delete might be `head` itself | LC 203 (Remove Elements)<br/>LC 19 (Remove Nth Node)<br/>LC 2095 (Delete Middle) |
+| **Reversing a subsegment** | **YES** | The subsegment might start at `1` (`left == 1`), changing the list head | LC 92 (Reverse II)<br/>LC 25 (Reverse k-Group)<br/>LC 24 (Swap Pairs) |
+| **Building a new list** | **YES** | Need an immovable anchor while an active pointer appends nodes | LC 21 (Merge Two Sorted Lists)<br/>LC 2 (Add Two Numbers) |
+| **Read-only / Searching** | **NO** | Only inspecting data or cycle checks; head never moves | LC 876 (Middle of List)<br/>LC 141 (Cycle Detection)<br/>LC 160 (Intersection) |
+| **Reversing the ENTIRE list** | **NO** | Entire list flips. `prev` naturally ends up on the new head | LC 206 (Reverse Linked List) |
+
 ---
 
 ## The 6 core FAANG linked list patterns
