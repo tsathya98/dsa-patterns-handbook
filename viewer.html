@@ -377,6 +377,9 @@
       padding: 0.55rem 0.8rem;
       border-bottom: 1px solid var(--border);
     }
+    .md-body tr:nth-child(even) td {
+      background: var(--surface-hover);
+    }
     .md-body a {
       color: var(--accent-text);
       text-decoration: underline;
@@ -424,28 +427,31 @@
       </div>
     </div>
 
-    <!-- 6 Primary Views -->
+    <!-- Primary Views -->
     <nav class="flex items-center gap-1 ui-card p-1 rounded-xl border overflow-x-auto" aria-label="Primary sections">
       <button type="button" onclick="switchView('concepts')" id="nav-btn-concepts" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
         <span aria-hidden="true">📘</span> Concepts
       </button>
       <button type="button" onclick="switchView('problems')" id="nav-btn-problems" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
-        <span aria-hidden="true">🧩</span> LeetCode Guides
+        <span aria-hidden="true">🧩</span> Problem Guides
+      </button>
+      <button type="button" onclick="switchView('companies')" id="nav-btn-companies" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
+        <span aria-hidden="true">🏢</span> Companies
+      </button>
+      <button type="button" onclick="switchView('system_design')" id="nav-btn-system_design" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
+        <span aria-hidden="true">🏗️</span> System Design
       </button>
       <button type="button" onclick="switchView('cheatsheets')" id="nav-btn-cheatsheets" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
         <span aria-hidden="true">⚡</span> Cheat Sheets
       </button>
-      <button type="button" onclick="switchView('playground')" id="nav-btn-playground" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
-        <span aria-hidden="true">🐍</span> Playground
-      </button>
       <button type="button" onclick="switchView('tracker')" id="nav-btn-tracker" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
-        <span aria-hidden="true">✅</span> 150 & 75 Tracker
+        <span aria-hidden="true">✅</span> Tracker
       </button>
       <button type="button" onclick="switchView('pomodoro')" id="nav-btn-pomodoro" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
         <span aria-hidden="true">⏱️</span> <span id="nav-pomo-label">Pomodoro</span>
       </button>
-      <button type="button" onclick="switchView('roadmap')" id="nav-btn-roadmap" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
-        <span aria-hidden="true">🗺️</span> 12-Wk Plan
+      <button type="button" onclick="switchView('playground')" id="nav-btn-playground" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
+        <span aria-hidden="true">🐍</span> Playground
       </button>
     </nav>
 
@@ -475,10 +481,11 @@
     <aside id="reader-sidebar" class="w-[280px] min-w-[280px] max-w-[280px] shrink-0 ui-surface border-r flex flex-col h-full overflow-hidden">
       <div class="p-3 border-b ui-border space-y-2.5 shrink-0">
         <div class="flex items-center justify-between gap-2">
-          <div class="grid grid-cols-3 gap-1 ui-card p-1 rounded-lg border text-xs flex-1" role="group" aria-label="Sidebar filter">
-            <button type="button" onclick="setSidebarScope('concept')" id="sb-scope-concept" class="py-1 rounded font-semibold transition-colors">📘 Concepts</button>
-            <button type="button" onclick="setSidebarScope('problem')" id="sb-scope-problem" class="py-1 rounded font-semibold transition-colors">🧩 Problems</button>
-            <button type="button" onclick="setSidebarScope('all')" id="sb-scope-all" class="py-1 rounded font-semibold transition-colors">All (94)</button>
+          <div class="grid grid-cols-4 gap-0.5 ui-card p-1 rounded-lg border text-[11px] flex-1" role="group" aria-label="Sidebar filter">
+            <button type="button" onclick="setSidebarScope('concept')" id="sb-scope-concept" class="py-1 px-0.5 rounded font-semibold transition-colors text-center truncate" title="DSA Pattern Concepts">📘 Theory</button>
+            <button type="button" onclick="setSidebarScope('problem')" id="sb-scope-problem" class="py-1 px-0.5 rounded font-semibold transition-colors text-center truncate" title="LeetCode Problem Guides">🧩 Problems</button>
+            <button type="button" onclick="setSidebarScope('companies')" id="sb-scope-companies" class="py-1 px-0.5 rounded font-semibold transition-colors text-center truncate" title="Company Frequency Banks">🏢 Comp</button>
+            <button type="button" onclick="setSidebarScope('system_design')" id="sb-scope-system_design" class="py-1 px-0.5 rounded font-semibold transition-colors text-center truncate" title="System Design Case Studies">🏗️ Design</button>
           </div>
           <button type="button" onclick="toggleLeftSidebar()" class="p-1.5 rounded-lg ui-card border ui-text-muted hover:text-[var(--text)]" title="Collapse left sidebar (b)">
             «
@@ -2272,22 +2279,22 @@ print("Hello from Python 3 Playground!")
 
     function setSidebarScope(scope) {
       sidebarScope = scope;
-      ['concept', 'problem', 'all'].forEach(s => {
+      ['concept', 'problem', 'companies', 'system_design'].forEach(s => {
         const btn = document.getElementById(`sb-scope-${s}`);
         if (!btn) return;
         if (s === scope) {
-          btn.className = 'py-1 rounded font-semibold transition-colors ui-accent-btn shadow-sm';
+          btn.className = 'py-1 px-0.5 rounded font-semibold transition-colors text-center truncate ui-accent-btn shadow-sm';
         } else {
-          btn.className = 'py-1 rounded font-medium transition-colors ui-text-muted hover:text-[var(--text)]';
+          btn.className = 'py-1 px-0.5 rounded font-medium transition-colors text-center truncate ui-text-muted hover:text-[var(--text)]';
         }
       });
       renderSidebarTree();
     }
 
-    // 5. Primary Navigation Switcher (7 Views)
+    // 5. Primary Navigation Switcher
     function switchView(view) {
       currentView = view;
-      ['concepts', 'problems', 'cheatsheets', 'playground', 'tracker', 'pomodoro', 'roadmap'].forEach(v => {
+      ['concepts', 'problems', 'companies', 'system_design', 'cheatsheets', 'playground', 'tracker', 'pomodoro'].forEach(v => {
         const btn = document.getElementById(`nav-btn-${v}`);
         if (!btn) return;
         if (v === view) {
@@ -2309,7 +2316,7 @@ print("Hello from Python 3 Playground!")
       if (view === 'concepts') {
         readerEl.classList.remove('hidden');
         setSidebarScope('concept');
-        if (DOCS_DATA[currentDocPath]?.docType === 'problem') {
+        if (DOCS_DATA[currentDocPath]?.docType === 'problem' || DOCS_DATA[currentDocPath]?.category === 'companies') {
           renderDoc("00_foundations/01_algorithms_correctness_efficiency.md");
         }
       } else if (view === 'problems') {
@@ -2317,6 +2324,18 @@ print("Hello from Python 3 Playground!")
         setSidebarScope('problem');
         if (DOCS_DATA[currentDocPath]?.docType !== 'problem') {
           renderDoc("01_arrays_and_pointers/3_longest_substring_without_repeating_characters.md");
+        }
+      } else if (view === 'companies') {
+        readerEl.classList.remove('hidden');
+        setSidebarScope('companies');
+        if (DOCS_DATA[currentDocPath]?.category !== 'companies') {
+          renderDoc("companies/google.md");
+        }
+      } else if (view === 'system_design') {
+        readerEl.classList.remove('hidden');
+        setSidebarScope('system_design');
+        if (DOCS_DATA[currentDocPath]?.category !== 'system_design') {
+          renderDoc("system_design/00_faang_system_design_framework.md");
         }
       } else if (view === 'cheatsheets') {
         csEl.classList.remove('hidden');
@@ -2350,12 +2369,12 @@ print("Hello from Python 3 Playground!")
     function openDocInReader(docPath) {
       const key = resolveDocKey(docPath);
       const doc = DOCS_DATA[key];
-      const targetTab = doc?.docType === 'problem' ? 'problems' : 'concepts';
+      let targetTab = 'concepts';
+      if (doc?.docType === 'problem') targetTab = 'problems';
+      else if (doc?.category === 'companies') targetTab = 'companies';
+      else if (doc?.category === 'system_design') targetTab = 'system_design';
       currentDocPath = key;
       switchView(targetTab);
-      if (doc?.docType === 'cheat_sheet') {
-        setSidebarScope('all');
-      }
       renderDoc(key);
     }
 
@@ -2421,8 +2440,10 @@ print("Hello from Python 3 Playground!")
 
     function getFilteredSidebarDocs() {
       return DOC_KEYS.map(k => DOCS_DATA[k]).filter(d => {
-        if (sidebarScope === 'concept') return d.docType === 'concept';
+        if (sidebarScope === 'concept') return d.docType === 'concept' && d.category !== 'companies' && d.category !== 'system_design';
         if (sidebarScope === 'problem') return d.docType === 'problem';
+        if (sidebarScope === 'companies') return d.category === 'companies';
+        if (sidebarScope === 'system_design') return d.category === 'system_design';
         return true;
       });
     }
@@ -2543,7 +2564,7 @@ print("Hello from Python 3 Playground!")
         return d.title.toLowerCase().includes(q) || d.pattern.toLowerCase().includes(q) || d.path.toLowerCase().includes(q);
       });
 
-      const scopeLabel = sidebarScope === 'concept' ? 'Concept Guides' : (sidebarScope === 'problem' ? 'Repo Problem Guides' : 'Total Docs');
+      const scopeLabel = sidebarScope === 'concept' ? 'Theory Guides' : (sidebarScope === 'problem' ? 'Problem Solutions' : (sidebarScope === 'companies' ? 'Company Banks' : 'System Design Guides'));
       document.getElementById('sidebar-count-label').textContent = `${scopedDocs.length} ${scopeLabel}`;
 
       const groups = {};
