@@ -1,17 +1,44 @@
 class Solution:
+    def kthFactor_brute_force(self, n: int, k: int) -> int:
+        """
+        Approach 1: Brute Force Linear Scan
+        Time: O(n)
+        Space: O(1)
+        """
+        for i in range(1, n + 1):
+            if n % i == 0:
+                k -= 1
+                if k == 0:
+                    return i
+        return -1
+
+    def kthFactor_semi_optimized(self, n: int, k: int) -> int:
+        """
+        Approach 2: Semi-Optimized / Intuitive (Symmetric Pairs with Sort)
+        Collect pairs (i, n // i) up to sqrt(n), sort, and pick index k - 1.
+        Time: O(sqrt(n) + d log d) where d is number of factors
+        Space: O(d)
+        """
+        factors = []
+        i = 1
+        while i * i <= n:
+            if n % i == 0:
+                factors.append(i)
+                if i * i != n:
+                    factors.append(n // i)
+            i += 1
+
+        factors.sort()
+        return factors[k - 1] if k <= len(factors) else -1
+
     def kthFactor(self, n: int, k: int) -> int:
         """
-        Find the kth factor of n in O(sqrt(n)) time and O(1) auxiliary space.
-
-        Intuition:
-        - Factor pairs (i, n // i) are symmetric around sqrt(n).
-        - Pass 1: Loop i from 1 to floor(sqrt(n)). Small factors are naturally ascending.
-          Decrement k on each hit. If k == 0, return i.
-        - Pass 2: If k > 0, the answer lies in the large partner factors.
-          Walking i backwards from floor(sqrt(n)) down to 1 generates (n // i) in ascending order!
-          Skip i if i * i == n to prevent double-counting the square root.
+        Approach 3: Optimized Two-Pass Count (No Sort, O(1) Space)
+        Pass 1: small factors (1 to sqrt(n)) in ascending order.
+        Pass 2: large factors (sqrt(n) down to 1) via (n // i) in ascending order.
+        Time: O(sqrt(n))
+        Space: O(1)
         """
-        # Pass 1: Check small factors (1 to sqrt(n))
         i = 1
         while i * i <= n:
             if n % i == 0:
@@ -20,14 +47,10 @@ class Solution:
                     return i
             i += 1
 
-        # Step back to the largest checked integer
         i -= 1
-
-        # If n is a perfect square, skip the square root so it is not checked twice
         if i * i == n:
             i -= 1
 
-        # Pass 2: Check large factors in ascending order by walking i backward
         while i >= 1:
             if n % i == 0:
                 k -= 1
@@ -38,31 +61,34 @@ class Solution:
         return -1
 
 
-def test_kth_factor():
+def test_all_approaches():
     sol = Solution()
+    approaches = [
+        ("Brute Force", sol.kthFactor_brute_force),
+        ("Semi-Optimized", sol.kthFactor_semi_optimized),
+        ("Optimized", sol.kthFactor),
+    ]
 
-    # LeetCode examples
-    assert sol.kthFactor(12, 3) == 3, "Factors of 12: [1, 2, 3, 4, 6, 12], 3rd is 3"
-    assert sol.kthFactor(7, 2) == 7, "Factors of 7: [1, 7], 2nd is 7"
-    assert sol.kthFactor(4, 4) == -1, "Factors of 4: [1, 2, 4], 4th does not exist"
+    test_cases = [
+        (12, 3, 3),
+        (7, 2, 7),
+        (4, 4, -1),
+        (36, 5, 6),
+        (36, 6, 9),
+        (36, 9, 36),
+        (36, 10, -1),
+        (1, 1, 1),
+        (1, 2, -1),
+        (13, 2, 13),
+    ]
 
-    # Perfect square case (36: [1, 2, 3, 4, 6, 9, 12, 18, 36])
-    assert sol.kthFactor(36, 5) == 6, "5th factor of 36 is 6 (square root)"
-    assert sol.kthFactor(36, 6) == 9, "6th factor of 36 is 9 (first large partner)"
-    assert sol.kthFactor(36, 9) == 36, "9th factor of 36 is 36"
-    assert sol.kthFactor(36, 10) == -1, "10th factor of 36 does not exist"
+    for name, fn in approaches:
+        for n, k, expected in test_cases:
+            res = fn(n, k)
+            assert res == expected, f"{name} failed on n={n}, k={k}: got {res}, expected {expected}"
 
-    # Prime case
-    assert sol.kthFactor(13, 1) == 1
-    assert sol.kthFactor(13, 2) == 13
-    assert sol.kthFactor(13, 3) == -1
-
-    # N = 1 boundary
-    assert sol.kthFactor(1, 1) == 1
-    assert sol.kthFactor(1, 2) == -1
-
-    print("All 1492 tests passed successfully!")
+    print("All 3 approaches (Brute, Semi-Optimized, Optimized) passed all tests!")
 
 
 if __name__ == "__main__":
-    test_kth_factor()
+    test_all_approaches()

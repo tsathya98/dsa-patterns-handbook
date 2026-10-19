@@ -1,14 +1,14 @@
 # Two Sum: Return All Unique Pairs
 
-> **Course reference:** CodeKerdos Homework | **Difficulty:** Easy-Medium | **Pattern:** Hash Set + Canonical Pair Deduplication
+> **Course reference:** CodeKerdos Homework | **Difficulty:** Medium  
+> **Source Code:** [`01_two_sum_all_unique_pairs.py`](./01_two_sum_all_unique_pairs.py) | **Pattern:** Canonical Tuple Deduplication
 
 ## The problem
 
-Given an integer array `arr` and a target `k`, return all **unique pairs of values** `(a, b)` such that `a + b == k`.
-
-* A pair must not be repeated in reverse order: if `(1, 5)` is included, `(5, 1)` must not be included.
-* Duplicate pairs must be avoided even if values appear multiple times in `arr`.
-* **Expected complexity:** $\mathcal{O}(N)$ time using $\mathcal{O}(N)$ extra space.
+Given an integer array `arr` and a target `k`, return all unique pairs of values `(a, b)` such that `a + b == k`.
+- Avoid reverse duplicates: if `(1, 5)` is included, `(5, 1)` must not be included.
+- Avoid duplicate value pairs even if values repeat in `arr`.
+- Expected complexity: $\mathcal{O}(N)$ time using $\mathcal{O}(N)$ extra space.
 
 ```text
 Input:  arr = [1, 5, 7, -1, 5],  k = 6
@@ -17,103 +17,90 @@ Output: [(1, 5), (-1, 7)]
 
 ---
 
-## Why naive hash-map Two Sum fails here
+## Approach 1: Brute force (nested loops)
 
-In standard LeetCode 1 (Two Sum), you stop as soon as you find the first pair. Here, you have to scan the entire array, and duplicates create two traps:
-1. **Duplicate elements:** The second `5` in `[1, 5, 7, -1, 5]` sees `1` in `seen` again and tries to emit `(1, 5)` a second time.
-2. **Reverse-order pairs:** Depending on order, you might record `(1, 5)` and later `(5, 1)`.
+Examine every pair `(arr[i], arr[j])` for all $i < j$. If the sum equals `k`, insert the normalized pair `(min(arr[i], arr[j]), max(arr[i], arr[j]))` into a set.
+* **Time:** $\mathcal{O}(N^2)$ nested iterations.
+* **Space:** $\mathcal{O}(U)$ to store unique pairs. Hits TLE when $N \ge 10^5$.
 
 ---
 
-## The core trick: Canonical tuple `(min, max)` in a `pairs` set
+## Approach 2: Semi-optimized (sort + two-pointer squeeze)
 
-Always store a matched pair in **canonical sorted order**:
-```python
-pair = (min(x, target_comp), max(x, target_comp))
+Sort the array in $\mathcal{O}(N \log N)$ time, then squeeze from both ends with `left` and `right`:
+* If `arr[left] + arr[right] == k`: record `(arr[left], arr[right])`, increment `left`, decrement `right`, and skip adjacent duplicates with while loops.
+* If sum is smaller, advance `left`. If larger, decrement `right`.
+* **Time:** $\mathcal{O}(N \log N)$ dominated by sorting.
+* **Auxiliary space:** $\mathcal{O}(1)$ beyond the sort.
+
+---
+
+## Approach 3: Optimized (hash set with canonical tuples)
+
+Scan `arr` in a single pass. For each element `x`:
+1. Check if complement `comp = k - x` is in `seen`.
+2. If yes, form canonical tuple `pair = (min(x, comp), max(x, comp))`.
+3. If `pair` has not been emitted yet, record it.
+4. Add `x` to `seen`.
+
+```text
+Canonical Tuple Normalization:
+(min(1, 5), max(1, 5))  ==>  (1, 5)
+(min(5, 1), max(5, 1))  ==>  (1, 5)   <- Automatic duplicate prevention
 ```
-Because `(min(1, 5), max(1, 5))` and `(min(5, 1), max(5, 1))` both evaluate to `(1, 5)`, storing `pair` in a `pairs` set (or checking `if pair not in pairs_set`) automatically kills both reverse-order duplicates and repeated-value duplicates in $\mathcal{O}(1)$ time.
 
 ### Algorithm steps:
-* **1. Initialize sets:** Create `seen = set()` to track numbers visited so far, and `pairs = set()` (or a `result` list backed by a set) to store unique canonical pairs.
-* **2. Check complement:** For each `x` in `arr`, compute `comp = k - x`.
-* **3. Record canonical pair:** If `comp in seen`, form `pair = (min(x, comp), max(x, comp))`. If `pair` is not in `pairs`, add it.
-* **4. Mark current value visited:** Add `x` to `seen` and move to the next element.
+* **1. Initialize sets:** `seen = set()`, `used_pairs = set()`, `result = []`.
+* **2. Compute complement:** For each `x` in `arr`, set `comp = k - x`.
+* **3. Match and record:** If `comp in seen`:
+  * Form `pair = (min(x, comp), max(x, comp))`.
+  * If `pair not in used_pairs`: add to `used_pairs` and append to `result`.
+* **4. Mark visited:** Add `x` to `seen` after checking the complement (prevents pairing an element with itself unless duplicated in input).
 
 ---
-
-## Step-by-step trace (`arr = [1, 5, 7, -1, 5]`, `k = 6`)
-
-**Initial state:**
-```text
-seen  = {}
-pairs = []
-```
-
-**Iteration 1 (`i = 0`, `x = 1`):**
-`comp = 6 - 1 = 5`. Is `5` in `seen`? No. Add `1` to `seen`.
-```text
-arr:   [ 1,   5,   7,  -1,   5 ]
-         ^
-seen  = {1}
-pairs = []
-```
-
-**Iteration 2 (`i = 1`, `x = 5`):**
-`comp = 6 - 5 = 1`. Is `1` in `seen`? **Yes!**
-Form canonical pair `(min(5, 1), max(5, 1)) = (1, 5)`. Add `(1, 5)` to `pairs`, and add `5` to `seen`.
-```text
-arr:   [ 1,   5,   7,  -1,   5 ]
-              ^
-seen  = {1, 5}
-pairs = [(1, 5)]
-```
-
-**Iteration 3 (`i = 2`, `x = 7`):**
-`comp = 6 - 7 = -1`. Is `-1` in `seen`? No. Add `7` to `seen`.
-```text
-arr:   [ 1,   5,   7,  -1,   5 ]
-                   ^
-seen  = {1, 5, 7}
-pairs = [(1, 5)]
-```
-
-**Iteration 4 (`i = 3`, `x = -1`):**
-`comp = 6 - (-1) = 7`. Is `7` in `seen`? **Yes!**
-Form canonical pair `(min(-1, 7), max(-1, 7)) = (-1, 7)`. Add `(-1, 7)` to `pairs`, and add `-1` to `seen`.
-```text
-arr:   [ 1,   5,   7,  -1,   5 ]
-                        ^
-seen  = {1, 5, 7, -1}
-pairs = [(1, 5), (-1, 7)]
-```
-
-**Iteration 5 (`i = 4`, `x = 5`):**
-`comp = 6 - 5 = 1`. Is `1` in `seen`? **Yes!**
-Form canonical pair `(min(5, 1), max(5, 1)) = (1, 5)`.
-Is `(1, 5)` already in `pairs_set`? **Yes, skip!**
-```text
-arr:   [ 1,   5,   7,  -1,   5 ]
-                             ^
-seen  = {1, 5, 7, -1}
-pairs = [(1, 5), (-1, 7)]   <- Duplicate (1, 5) ignored!
-```
-
----
-
-## Traps to watch for
-
-* **Checking `x == comp` (half-target trap):** If `k = 6` and `arr = [3, 4]`, you must check `comp in seen` **before** adding `x` to `seen`. Otherwise a single `3` will pair with itself to form `(3, 3)`. If `arr = [3, 3]`, the first `3` goes into `seen`, and the second `3` legitimately finds `3 in seen` and forms `(3, 3)`.
-* **Why `(min, max)` matters:** Without `(min(x, comp), max(x, comp))`, an input like `arr = [1, 5, 1]`, `k = 6` would see `1` at index 0, form `(1, 5)` at index 1, and then at index 2 (`x = 1`, `comp = 5`) form `(5, 1)` if you didn't normalize tuple order.
 
 <details>
-<summary>Spoiler: Solution Code</summary>
+<summary>Spoiler: Solution Code (All 3 Approaches)</summary>
 
 ```python
-def two_sum_unique_pairs(arr: list[int], k: int) -> list[tuple[int, int]]:
-    seen: set[int] = set()
-    used_pairs: set[tuple[int, int]] = set()
-    result: list[tuple[int, int]] = []
+# Approach 1: Brute Force O(N^2)
+def two_sum_unique_pairs_brute(arr: list[int], k: int) -> list[tuple[int, int]]:
+    unique_pairs = set()
+    n = len(arr)
+    for i in range(n):
+        for j in range(i + 1, n):
+            if arr[i] + arr[j] == k:
+                unique_pairs.add((min(arr[i], arr[j]), max(arr[i], arr[j])))
+    return list(unique_pairs)
 
+
+# Approach 2: Sort + Two Pointers O(N log N)
+def two_sum_unique_pairs_two_pointers(arr: list[int], k: int) -> list[tuple[int, int]]:
+    arr.sort()
+    left, right = 0, len(arr) - 1
+    result = []
+    while left < right:
+        curr_sum = arr[left] + arr[right]
+        if curr_sum == k:
+            result.append((arr[left], arr[right]))
+            left += 1
+            right -= 1
+            while left < right and arr[left] == arr[left - 1]:
+                left += 1
+            while left < right and arr[right] == arr[right + 1]:
+                right -= 1
+        elif curr_sum < k:
+            left += 1
+        else:
+            right -= 1
+    return result
+
+
+# Approach 3: Hash Set with Canonical Tuples O(N)
+def two_sum_unique_pairs(arr: list[int], k: int) -> list[tuple[int, int]]:
+    seen = set()
+    used_pairs = set()
+    result = []
     for x in arr:
         comp = k - x
         if comp in seen:
@@ -122,7 +109,6 @@ def two_sum_unique_pairs(arr: list[int], k: int) -> list[tuple[int, int]]:
                 used_pairs.add(pair)
                 result.append(pair)
         seen.add(x)
-
     return result
 ```
 
@@ -130,7 +116,10 @@ def two_sum_unique_pairs(arr: list[int], k: int) -> list[tuple[int, int]]:
 
 ---
 
-## Complexity
+## Complexity comparison
 
-* **Time:** $\mathcal{O}(N)$ single pass over `arr` with $\mathcal{O}(1)$ average hash set lookups.
-* **Space:** $\mathcal{O}(N)$ to store `seen` and `used_pairs`.
+| Approach | Time Complexity | Auxiliary Space | Status |
+|---|---|---|---|
+| **1. Brute Force** | $\mathcal{O}(N^2)$ | $\mathcal{O}(U)$ | TLE on large arrays |
+| **2. Sort + Two Pointers** | $\mathcal{O}(N \log N)$ | $\mathcal{O}(1)$ | Good when extra space is disallowed |
+| **3. Hash Set (Canonical)** | $\mathcal{O}(N)$ | $\mathcal{O}(N)$ | Optimal target for this problem |
