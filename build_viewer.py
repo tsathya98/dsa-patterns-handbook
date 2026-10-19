@@ -1436,15 +1436,19 @@ def build_html(default_view: str = "concepts") -> str:
           </button>
         </div>
 
-        <div class="relative w-56 h-56 flex items-center justify-center">
-          <svg class="w-full h-full -rotate-90" viewBox="0 0 120 120" aria-hidden="true">
-            <circle cx="60" cy="60" r="52" fill="none" stroke="var(--border)" stroke-width="6"></circle>
-            <circle id="pomo-ring-circle" cx="60" cy="60" r="52" fill="none" stroke="var(--accent)" stroke-width="6" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="0" class="transition-all duration-500"></circle>
+        <!-- Timer Ring: Increased container size to 68x68 with balanced typography so text never overflows the circle -->
+        <div class="relative w-64 h-64 sm:w-72 sm:h-72 flex items-center justify-center my-2 select-none">
+          <svg class="w-full h-full -rotate-90" viewBox="0 0 140 140" aria-hidden="true">
+            <circle cx="70" cy="70" r="60" fill="none" stroke="var(--border)" stroke-width="7"></circle>
+            <circle id="pomo-ring-circle" cx="70" cy="70" r="60" fill="none" stroke="var(--accent)" stroke-width="7" stroke-linecap="round" stroke-dasharray="376.99" stroke-dashoffset="0" class="transition-all duration-500"></circle>
           </svg>
-          <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-            <span id="pomo-mode-label" class="text-xs font-semibold uppercase tracking-wider ui-accent-text">Pomodoro Focus</span>
-            <div id="pomo-time-display" class="text-5xl font-black font-mono tracking-tight my-1">25:00</div>
-            <span id="pomo-status-sub" class="text-xs ui-text-muted">Ready to start</span>
+          <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
+            <span id="pomo-mode-label" class="text-[11px] sm:text-xs font-semibold uppercase tracking-wider ui-accent-text truncate max-w-[180px]">Pomodoro Focus</span>
+            <div id="pomo-time-display" class="text-5xl sm:text-6xl font-black font-mono tracking-tight my-2">25:00</div>
+            <div class="flex items-center gap-1.5">
+              <span id="pomo-status-sub" class="text-xs ui-text-muted">Ready to start</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-[var(--surface-hover)] border text-[var(--text-muted)] font-mono">Space</span>
+            </div>
           </div>
         </div>
 
@@ -1453,18 +1457,20 @@ def build_html(default_view: str = "concepts") -> str:
           <input id="pomo-task-input" type="text" placeholder="e.g. 2D Matrices & Spiral Traversal (LC 54)" class="w-full ui-surface border rounded-xl px-3.5 py-2 text-xs focus:outline-none">
         </div>
 
-        <div class="flex items-center justify-between gap-3 w-full pt-2 border-t ui-border">
-          <div class="flex items-center gap-2">
-            <button type="button" onclick="togglePomodoroStart()" id="pomo-start-btn" class="px-5 py-2 rounded-xl ui-accent-btn font-bold text-xs shadow-sm hover:opacity-90 transition-all">
-              ▶ Start Focus
+        <!-- Timer Controls: Prominent Start/Pause Button with Space shortcut & Reset -->
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 w-full pt-3 border-t ui-border">
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <button type="button" onclick="togglePomodoroStart()" id="pomo-start-btn" class="flex-1 sm:flex-initial px-6 py-2.5 rounded-xl ui-accent-btn font-bold text-sm shadow-md hover:opacity-95 transition-all flex items-center justify-center gap-2 cursor-pointer">
+              <span>▶ Start Focus</span>
+              <kbd class="hidden sm:inline-block text-[10px] font-mono px-1.5 py-0.5 rounded bg-black/20 text-white/90 border border-white/20">Space</kbd>
             </button>
-            <button type="button" onclick="resetPomodoro()" class="px-3.5 py-2 rounded-xl ui-surface border text-xs font-semibold ui-text-muted hover:text-[var(--text)]">
+            <button type="button" onclick="resetPomodoro()" class="px-4 py-2.5 rounded-xl ui-surface border text-xs font-semibold ui-text-muted hover:text-[var(--text)] transition-colors">
               Reset
             </button>
           </div>
 
-          <div class="flex items-center gap-1.5 text-xs">
-            <label for="pomo-custom-min" class="ui-text-muted">Custom:</label>
+          <div class="flex items-center gap-1.5 text-xs w-full sm:w-auto justify-end">
+            <label for="pomo-custom-min" class="ui-text-muted">Custom min:</label>
             <input id="pomo-custom-min" type="number" min="1" max="180" value="25" class="w-14 ui-surface border rounded-lg px-2 py-1 text-center font-mono">
             <button type="button" onclick="applyCustomPomodoro()" class="px-2.5 py-1 rounded-lg ui-card border font-medium hover:opacity-90">Set</button>
           </div>
@@ -1874,7 +1880,7 @@ def build_html(default_view: str = "concepts") -> str:
       const ring = document.getElementById('pomo-ring-circle');
       if (ring && pomoTotalSeconds > 0) {{
         const fraction = 1 - (pomoRemainingSeconds / pomoTotalSeconds);
-        ring.style.strokeDashoffset = String(326.7 * fraction);
+        ring.style.strokeDashoffset = String(376.99 * fraction);
       }}
 
       const navLbl = document.getElementById('nav-pomo-label');
@@ -3396,6 +3402,11 @@ print("Hello from Python 3 Playground!")
         if (e.key === ']') document.getElementById('next-doc-btn').click();
         if (e.key === 'b') toggleLeftSidebar();
         if (e.key === 'o') toggleRightSidebar();
+      }} else if (currentView === 'pomodoro' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) {{
+        if (e.code === 'Space' || e.key === ' ') {{
+          e.preventDefault();
+          togglePomodoroStart();
+        }}
       }}
     }});
 
