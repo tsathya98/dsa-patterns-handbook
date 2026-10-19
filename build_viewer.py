@@ -33,7 +33,7 @@ CATEGORY_META = {
 DEFAULT_SOLVED_NUMBERS = {
     2, 3, 5, 11, 12, 13, 15, 19, 20, 21, 26, 27, 48, 51, 53, 54, 55, 66,
     75, 78, 80, 83, 88, 121, 122, 125, 141, 142, 143, 167, 169, 189, 203, 206, 228,
-    234, 238, 241, 274, 283, 290, 392, 459, 643, 678, 704, 724, 779, 1290, 1456, 1721
+    234, 238, 241, 274, 283, 290, 392, 459, 643, 678, 704, 724, 779, 1290, 1456, 1492, 1721
 }
 
 # Official LeetCode Top Interview 150 (Exact 150 problems across 23 categories)
@@ -319,6 +319,7 @@ COURSE_HW_RAW = [
     # Class 3: Factors & Math (O(sqrt N))
     (9001, "Sum of All Factors of N (O(sqrt N))", "Easy", "Foundations / Math", "", "HW-1", "00_foundations/04_factors_primes_and_iteration_counting.md"),
     (9002, "Print All Factors in Sorted Order (O(sqrt N))", "Easy", "Foundations / Math", "", "HW-2", "00_foundations/04_factors_primes_and_iteration_counting.md"),
+    (1492, "The kth Factor of n", "Medium", "Foundations / Math", "the-kth-factor-of-n", None, "00_foundations/1492_the_kth_factor_of_n.md"),
     # Arrays, Hash Set & Prefix Sums
     (9003, "Two Sum - Return All Unique Pairs", "Medium", "Hashmap / Set", "", "HW-3", "01_arrays_and_pointers/01_two_sum_all_unique_pairs.md"),
     (238, "Product of Array Except Self", "Medium", "Prefix Sum", "product-of-array-except-self", None, None),

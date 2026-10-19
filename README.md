@@ -29,6 +29,7 @@ Personal notes, pattern cheat sheets, and problem walkthroughs for Data Structur
 - [02. Time & Space Complexity (Big-O)](./00_foundations/02_time_and_space_complexity_big_o.md) - Simplification rules, loop archetypes, and auxiliary vs. total space.
 - [03. Python Memory Model, Pointers & Core Collections](./00_foundations/03_python_memory_model_and_collections.md) - Pointers, dynamic arrays vs. lists, mutating lists inside tuples (`t[1].append()`), slice garbage collection, and hashability.
 - [04. Factors, Primes & Iteration Counting](./00_foundations/04_factors_primes_and_iteration_counting.md) - Symmetric factor pairs in $\mathcal{O}(\sqrt{N})$, prime checks, and exact loop iteration formulas.
+- [LC 1492: The kth Factor of n](./00_foundations/1492_the_kth_factor_of_n.md) - Two-pass $\mathcal{O}(\sqrt{N})$ time and $\mathcal{O}(1)$ space factor enumeration without sorting.
 
 ---
 
