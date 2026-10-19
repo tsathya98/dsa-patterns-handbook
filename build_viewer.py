@@ -1411,7 +1411,10 @@ def build_html(default_view: str = "concepts") -> str:
             🍅 25m Focus
           </button>
           <button type="button" onclick="setPomodoroPreset(50, '50/10 Deep Flow')" id="pomo-preset-50" class="pomo-preset-btn px-2.5 py-1.5 rounded-lg font-medium ui-text-muted hover:text-[var(--text)]">
-            🎯 50m Deep Flow
+            🎯 50m Flow
+          </button>
+          <button type="button" onclick="setPomodoroPreset(52, '52/17 Draugiem Rule')" id="pomo-preset-52" class="pomo-preset-btn px-2.5 py-1.5 rounded-lg font-medium ui-text-muted hover:text-[var(--text)]">
+            🔬 52m Focus
           </button>
           <button type="button" onclick="setPomodoroPreset(45, 'FAANG Mock Sprint')" id="pomo-preset-45" class="pomo-preset-btn px-2.5 py-1.5 rounded-lg font-medium ui-text-muted hover:text-[var(--text)]">
             ⚡ 45m Mock
@@ -1424,6 +1427,9 @@ def build_html(default_view: str = "concepts") -> str:
           </button>
           <button type="button" onclick="setPomodoroPreset(10, '10m Flow Break')" id="pomo-preset-10" class="pomo-preset-btn px-2.5 py-1.5 rounded-lg font-medium ui-text-muted hover:text-[var(--text)]">
             🌿 10m
+          </button>
+          <button type="button" onclick="setPomodoroPreset(17, '17m Full Recovery Break')" id="pomo-preset-17" class="pomo-preset-btn px-2.5 py-1.5 rounded-lg font-medium ui-text-muted hover:text-[var(--text)]">
+            🍃 17m Rest
           </button>
           <button type="button" onclick="setPomodoroPreset(15, 'Long Break')" id="pomo-preset-15" class="pomo-preset-btn px-2.5 py-1.5 rounded-lg font-medium ui-text-muted hover:text-[var(--text)]">
             🌴 15m
@@ -1895,7 +1901,7 @@ def build_html(default_view: str = "concepts") -> str:
       document.getElementById('pomo-start-btn').textContent = '▶ Start Focus';
       document.getElementById('pomo-status-sub').textContent = 'Ready to start';
 
-      [25, 50, 45, 90, 5, 10, 15].forEach(m => {{
+      [25, 50, 52, 45, 90, 5, 10, 17, 15].forEach(m => {{
         const btn = document.getElementById(`pomo-preset-${{m}}`);
         if (!btn) return;
         if (m === minutes) {{
