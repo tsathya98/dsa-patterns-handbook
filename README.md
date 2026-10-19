@@ -67,6 +67,7 @@ Personal notes, pattern cheat sheets, and problem walkthroughs for Data Structur
 - [LC 283: Move Zeroes](./01_arrays_and_pointers/283_move_zeroes.md) - Scout and writer single-pass swap.
 - [LC 290: Word Pattern](./01_arrays_and_pointers/290_word_pattern.md) - Bijective 1-to-1 mapping and avoiding the $\mathcal{O}(n)$ `in dict.values()` trap.
 - [LC 392: Is Subsequence](./01_arrays_and_pointers/392_is_subsequence.md) - Two-conveyor-belt pointer matching.
+- [LC 560: Subarray Sum Equals K](./01_arrays_and_pointers/560_subarray_sum_equals_k.md) - Running prefix sum with hash map frequency lookup (`cur_sum - k`).
 - [LC 643: Maximum Average Subarray I](./01_arrays_and_pointers/643_maximum_average_subarray_i.md) - Fixed-size $K$ sliding window with deferred division.
 - [LC 724: Find Pivot Index](./01_arrays_and_pointers/724_find_pivot_index.md) - Seesaw balance equation (`left_sum == total - left_sum - num`).
 - [LC 1456: Maximum Number of Vowels in a Substring](./01_arrays_and_pointers/1456_maximum_number_of_vowels_in_a_substring_of_given_length.md) - Fixed-size $K$ sliding window on character counts.
