@@ -1407,17 +1407,26 @@ def build_html(default_view: str = "concepts") -> str:
     <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
       <div class="md:col-span-3 ui-card border rounded-2xl p-6 flex flex-col items-center justify-between space-y-6 shadow-sm">
         <div class="flex flex-wrap items-center justify-center gap-1.5 ui-surface p-1.5 rounded-xl border text-xs w-full">
-          <button type="button" onclick="setPomodoroPreset(25, 'Pomodoro Focus')" id="pomo-preset-25" class="pomo-preset-btn px-3 py-1.5 rounded-lg font-semibold ui-accent-btn">
+          <button type="button" onclick="setPomodoroPreset(25, 'Classic Pomodoro')" id="pomo-preset-25" class="pomo-preset-btn px-2.5 py-1.5 rounded-lg font-semibold ui-accent-btn">
             🍅 25m Focus
           </button>
-          <button type="button" onclick="setPomodoroPreset(45, 'FAANG Mock Sprint')" id="pomo-preset-45" class="pomo-preset-btn px-3 py-1.5 rounded-lg font-medium ui-text-muted hover:text-[var(--text)]">
-            ⚡ 45m FAANG Mock
+          <button type="button" onclick="setPomodoroPreset(50, '50/10 Deep Flow')" id="pomo-preset-50" class="pomo-preset-btn px-2.5 py-1.5 rounded-lg font-medium ui-text-muted hover:text-[var(--text)]">
+            🎯 50m Deep Flow
           </button>
-          <button type="button" onclick="setPomodoroPreset(5, 'Short Break')" id="pomo-preset-5" class="pomo-preset-btn px-3 py-1.5 rounded-lg font-medium ui-text-muted hover:text-[var(--text)]">
-            ☕ 5m Break
+          <button type="button" onclick="setPomodoroPreset(45, 'FAANG Mock Sprint')" id="pomo-preset-45" class="pomo-preset-btn px-2.5 py-1.5 rounded-lg font-medium ui-text-muted hover:text-[var(--text)]">
+            ⚡ 45m Mock
           </button>
-          <button type="button" onclick="setPomodoroPreset(15, 'Long Break')" id="pomo-preset-15" class="pomo-preset-btn px-3 py-1.5 rounded-lg font-medium ui-text-muted hover:text-[var(--text)]">
-            🌿 15m Break
+          <button type="button" onclick="setPomodoroPreset(90, '90m Ultradian Block')" id="pomo-preset-90" class="pomo-preset-btn px-2.5 py-1.5 rounded-lg font-medium ui-text-muted hover:text-[var(--text)]">
+            🧠 90m Ultradian
+          </button>
+          <button type="button" onclick="setPomodoroPreset(5, 'Short Break')" id="pomo-preset-5" class="pomo-preset-btn px-2.5 py-1.5 rounded-lg font-medium ui-text-muted hover:text-[var(--text)]">
+            ☕ 5m
+          </button>
+          <button type="button" onclick="setPomodoroPreset(10, '10m Flow Break')" id="pomo-preset-10" class="pomo-preset-btn px-2.5 py-1.5 rounded-lg font-medium ui-text-muted hover:text-[var(--text)]">
+            🌿 10m
+          </button>
+          <button type="button" onclick="setPomodoroPreset(15, 'Long Break')" id="pomo-preset-15" class="pomo-preset-btn px-2.5 py-1.5 rounded-lg font-medium ui-text-muted hover:text-[var(--text)]">
+            🌴 15m
           </button>
         </div>
 
@@ -1886,13 +1895,13 @@ def build_html(default_view: str = "concepts") -> str:
       document.getElementById('pomo-start-btn').textContent = '▶ Start Focus';
       document.getElementById('pomo-status-sub').textContent = 'Ready to start';
 
-      [25, 45, 5, 15].forEach(m => {{
+      [25, 50, 45, 90, 5, 10, 15].forEach(m => {{
         const btn = document.getElementById(`pomo-preset-${{m}}`);
         if (!btn) return;
         if (m === minutes) {{
-          btn.className = 'pomo-preset-btn px-3 py-1.5 rounded-lg font-semibold ui-accent-btn';
+          btn.className = 'pomo-preset-btn px-2.5 py-1.5 rounded-lg font-semibold ui-accent-btn';
         }} else {{
-          btn.className = 'pomo-preset-btn px-3 py-1.5 rounded-lg font-medium ui-text-muted hover:text-[var(--text)]';
+          btn.className = 'pomo-preset-btn px-2.5 py-1.5 rounded-lg font-medium ui-text-muted hover:text-[var(--text)]';
         }}
       }});
 
