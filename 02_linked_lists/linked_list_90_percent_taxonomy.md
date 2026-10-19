@@ -121,7 +121,7 @@ Two pointers moving at 1x and 2x speed.
   - **Technique:** Dummy anchor + `cur` builder. Attach smaller node, advance, then attach the leftover tail in one step.
 - [ ] [LC 23: Merge k Sorted Lists](https://leetcode.com/problems/merge-k-sorted-lists/)
   - **Technique:** Min-heap of size $k$ ($\mathcal{O}(N \log k)$ time) or pairwise divide-and-conquer merges.
-- [ ] [LC 160: Intersection of Two Linked Lists](https://leetcode.com/problems/intersection-of-two-linked-lists/)
+- [x] [LC 160: Intersection of Two Linked Lists](./160_intersection_of_two_linked_lists.md)
   - **Technique:** Track switch (`a = a.next if a else headB`, `b = b.next if b else headA`). Both traverse $A + B$ steps and meet at the intersection (or `None`).
 - [ ] [LC 1634: Add Two Polynomials Represented as Linked Lists](https://leetcode.com/problems/add-two-polynomials-represented-as-linked-lists/)
   - **Technique:** Zipper merge comparing `p1.power` and `p2.power`.
