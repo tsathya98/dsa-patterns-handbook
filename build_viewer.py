@@ -319,7 +319,7 @@ COURSE_HW_RAW = [
     # Class 3: Factors & Math (O(sqrt N))
     (9001, "Sum of All Factors of N (O(sqrt N))", "Easy", "Foundations / Math", "", "HW-1", "00_foundations/04_factors_primes_and_iteration_counting.md"),
     (9002, "Print All Factors in Sorted Order (O(sqrt N))", "Easy", "Foundations / Math", "", "HW-2", "00_foundations/04_factors_primes_and_iteration_counting.md"),
-    (1492, "The kth Factor of n", "Medium", "Foundations / Math", "the-kth-factor-of-n", None, "00_foundations/1492_the_kth_factor_of_n.md"),
+    (1492, "The kth Factor of n", "Medium", "Foundations / Math", "the-kth-factor-of-n", "Revisit: O(1) space", "00_foundations/1492_the_kth_factor_of_n.md"),
     # Arrays, Hash Set & Prefix Sums
     (9003, "Two Sum - Return All Unique Pairs", "Medium", "Hashmap / Set", "", "HW-3", "01_arrays_and_pointers/01_two_sum_all_unique_pairs.md"),
     (238, "Product of Array Except Self", "Medium", "Prefix Sum", "product-of-array-except-self", None, None),
