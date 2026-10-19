@@ -1436,20 +1436,30 @@ def build_html(default_view: str = "concepts") -> str:
           </button>
         </div>
 
-        <!-- Timer Ring: Increased container size to 68x68 with balanced typography so text never overflows the circle -->
-        <div class="relative w-64 h-64 sm:w-72 sm:h-72 flex items-center justify-center my-2 select-none">
+        <!-- Timer Ring: Inner elements strictly sized to never intersect ring boundary -->
+        <div class="relative w-64 h-64 sm:w-72 sm:h-72 flex items-center justify-center select-none">
           <svg class="w-full h-full -rotate-90" viewBox="0 0 140 140" aria-hidden="true">
-            <circle cx="70" cy="70" r="60" fill="none" stroke="var(--border)" stroke-width="7"></circle>
-            <circle id="pomo-ring-circle" cx="70" cy="70" r="60" fill="none" stroke="var(--accent)" stroke-width="7" stroke-linecap="round" stroke-dasharray="376.99" stroke-dashoffset="0" class="transition-all duration-500"></circle>
+            <circle cx="70" cy="70" r="58" fill="none" stroke="var(--border)" stroke-width="6"></circle>
+            <circle id="pomo-ring-circle" cx="70" cy="70" r="58" fill="none" stroke="var(--accent)" stroke-width="6" stroke-linecap="round" stroke-dasharray="364.42" stroke-dashoffset="0" class="transition-all duration-500"></circle>
           </svg>
-          <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
-            <span id="pomo-mode-label" class="text-[11px] sm:text-xs font-semibold uppercase tracking-wider ui-accent-text truncate max-w-[180px]">Pomodoro Focus</span>
-            <div id="pomo-time-display" class="text-5xl sm:text-6xl font-black font-mono tracking-tight my-2">25:00</div>
-            <div class="flex items-center gap-1.5">
-              <span id="pomo-status-sub" class="text-xs ui-text-muted">Ready to start</span>
-              <span class="text-[10px] px-1.5 py-0.5 rounded bg-[var(--surface-hover)] border text-[var(--text-muted)] font-mono">Space</span>
+          <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-6 pointer-events-none">
+            <span id="pomo-mode-label" class="text-[11px] sm:text-xs font-semibold uppercase tracking-wider ui-accent-text truncate max-w-[150px]">Pomodoro Focus</span>
+            <div id="pomo-time-display" class="text-5xl sm:text-6xl font-black font-mono tracking-tight my-1.5 text-[var(--text)]">25:00</div>
+            <div id="pomo-status-pill" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs bg-[var(--surface)] border ui-border shadow-xs">
+              <span id="pomo-status-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              <span id="pomo-status-sub" class="text-[11px] font-medium ui-text-muted">Ready</span>
             </div>
           </div>
+        </div>
+
+        <!-- Footnote & Shortcut helper: Placed cleanly outside and below the circle -->
+        <div class="flex items-center justify-center gap-2 text-xs ui-text-muted -mt-2">
+          <span>Runs in background across tabs</span>
+          <span class="text-neutral-500">•</span>
+          <span class="inline-flex items-center gap-1">
+            <span>Toggle with</span>
+            <kbd class="text-[10px] px-1.5 py-0.5 rounded bg-[var(--surface-hover)] border ui-border text-[var(--text-muted)] font-mono">Space</kbd>
+          </span>
         </div>
 
         <div class="w-full space-y-1">
@@ -1880,7 +1890,7 @@ def build_html(default_view: str = "concepts") -> str:
       const ring = document.getElementById('pomo-ring-circle');
       if (ring && pomoTotalSeconds > 0) {{
         const fraction = 1 - (pomoRemainingSeconds / pomoTotalSeconds);
-        ring.style.strokeDashoffset = String(376.99 * fraction);
+        ring.style.strokeDashoffset = String(364.42 * fraction);
       }}
 
       const navLbl = document.getElementById('nav-pomo-label');
@@ -1895,6 +1905,21 @@ def build_html(default_view: str = "concepts") -> str:
       }}
     }}
 
+    function updateStartButton(label) {{
+      const btn = document.getElementById('pomo-start-btn');
+      if (!btn) return;
+      btn.innerHTML = `<span>${{label}}</span> <kbd class="hidden sm:inline-block text-[10px] font-mono px-1.5 py-0.5 rounded bg-black/20 text-white/90 border border-white/20">Space</kbd>`;
+    }}
+
+    function setStatusBadge(text, dotClass = 'bg-emerald-500', pulse = false) {{
+      const sub = document.getElementById('pomo-status-sub');
+      const dot = document.getElementById('pomo-status-dot');
+      if (sub) sub.textContent = text;
+      if (dot) {{
+        dot.className = `w-1.5 h-1.5 rounded-full ${{dotClass}} ${{pulse ? 'animate-pulse' : ''}}`;
+      }}
+    }}
+
     function setPomodoroPreset(minutes, label) {{
       if (pomoInterval) {{
         clearInterval(pomoInterval);
@@ -1904,8 +1929,8 @@ def build_html(default_view: str = "concepts") -> str:
       pomoRemainingSeconds = pomoTotalSeconds;
       pomoModeTitle = label;
       document.getElementById('pomo-custom-min').value = minutes;
-      document.getElementById('pomo-start-btn').textContent = '▶ Start Focus';
-      document.getElementById('pomo-status-sub').textContent = 'Ready to start';
+      updateStartButton('▶ Start Focus');
+      setStatusBadge('Ready', 'bg-emerald-500', false);
 
       [25, 50, 52, 45, 90, 5, 10, 17, 15].forEach(m => {{
         const btn = document.getElementById(`pomo-preset-${{m}}`);
@@ -1926,9 +1951,6 @@ def build_html(default_view: str = "concepts") -> str:
     }}
 
     function togglePomodoroStart() {{
-      const startBtn = document.getElementById('pomo-start-btn');
-      const sub = document.getElementById('pomo-status-sub');
-
       if (!audioCtx) {{
         try {{
           const AudioContextClass = window.AudioContext || window.webkitAudioContext;
@@ -1939,8 +1961,8 @@ def build_html(default_view: str = "concepts") -> str:
       if (pomoInterval) {{
         clearInterval(pomoInterval);
         pomoInterval = null;
-        startBtn.textContent = '▶ Resume';
-        sub.textContent = 'Paused';
+        updateStartButton('▶ Resume');
+        setStatusBadge('Paused', 'bg-amber-400', false);
         updatePomodoroUI();
         return;
       }}
@@ -1949,8 +1971,8 @@ def build_html(default_view: str = "concepts") -> str:
         pomoRemainingSeconds = pomoTotalSeconds;
       }}
 
-      startBtn.textContent = '⏸ Pause';
-      sub.textContent = 'Focusing... (stays active across tabs)';
+      updateStartButton('⏸ Pause');
+      setStatusBadge('Focusing', 'bg-emerald-500', true);
 
       pomoInterval = setInterval(() => {{
         pomoRemainingSeconds -= 1;
@@ -1959,8 +1981,8 @@ def build_html(default_view: str = "concepts") -> str:
         if (pomoRemainingSeconds <= 0) {{
           clearInterval(pomoInterval);
           pomoInterval = null;
-          startBtn.textContent = '▶ Start Again';
-          sub.textContent = '🎉 Session Complete!';
+          updateStartButton('▶ Start Again');
+          setStatusBadge('Done!', 'bg-sky-400', false);
           playSmoothAlarm();
 
           const minsCompleted = Math.round(pomoTotalSeconds / 60);
@@ -1988,8 +2010,8 @@ def build_html(default_view: str = "concepts") -> str:
         pomoInterval = null;
       }}
       pomoRemainingSeconds = pomoTotalSeconds;
-      document.getElementById('pomo-start-btn').textContent = '▶ Start Focus';
-      document.getElementById('pomo-status-sub').textContent = 'Ready to start';
+      updateStartButton('▶ Start Focus');
+      setStatusBadge('Ready', 'bg-emerald-500', false);
       updatePomodoroUI();
     }}
 
