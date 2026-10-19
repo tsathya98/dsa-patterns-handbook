@@ -32,9 +32,9 @@ def to_list(head: Optional[ListNode]) -> List[int]:
     return res
 
 
-class SolutionTwoWireReconnect:
+class SolutionLeftPrev:
     """
-    Approach 1: 4-Step Reverse + 2-Wire Reconnect.
+    NeetCode 3-Phase Pointer Reversal using left_prev.
     Time Complexity: O(N)
     Space Complexity: O(1)
     """
@@ -45,63 +45,31 @@ class SolutionTwoWireReconnect:
 
         dummy = ListNode(0, head)
 
-        # 1. Park before_window right before the cut
-        before_window = dummy
+        # Phase 1: Reach node at position left
+        left_prev = dummy
+        cur = head
         for _ in range(left - 1):
-            before_window = before_window.next
+            left_prev = cur
+            cur = cur.next
 
-        # 2. window_tail will end up as the tail of the flipped window
-        window_tail = before_window.next
-
-        # 3. Standard 4-step pointer reversal for (right - left + 1) nodes
+        # Phase 2: Reverse from left to right (right - left + 1 nodes)
         prev = None
-        cur = window_tail
         for _ in range(right - left + 1):
             nxt = cur.next
             cur.next = prev
             prev = cur
             cur = nxt
 
-        # 4. Reconnect both wires
-        window_tail.next = cur        # Tail of flipped chunk connects to downstream
-        before_window.next = prev     # Upstream connects to new head of flipped chunk
-
-        return dummy.next
-
-
-class SolutionSplicing:
-    """
-    Approach 2: One-Pass Head Splicing.
-    Time Complexity: O(N)
-    Space Complexity: O(1)
-    """
-
-    def reverseBetween(self, head: Optional[ListNode], left: int, right: int) -> Optional[ListNode]:
-        if not head or left == right:
-            return head
-
-        dummy = ListNode(0, head)
-        before_window = dummy
-
-        for _ in range(left - 1):
-            before_window = before_window.next
-
-        cur = before_window.next
-
-        # Repeat right - left times
-        for _ in range(right - left):
-            nxt = cur.next
-            cur.next = nxt.next
-            nxt.next = before_window.next
-            before_window.next = nxt
+        # Phase 3: Reconnect both loose ends
+        left_prev.next.next = cur   # Tail of flipped chunk connects to remainder
+        left_prev.next = prev        # Upstream connects to new head of flipped chunk
 
         return dummy.next
 
 
 # --- Test Suite ---
 def test_reverse_between():
-    sol1 = SolutionTwoWireReconnect()
-    sol2 = SolutionSplicing()
+    sol = SolutionLeftPrev()
 
     test_cases = [
         # (input_list, left, right, expected)
@@ -114,17 +82,11 @@ def test_reverse_between():
     ]
 
     for arr, l, r, expected in test_cases:
-        # Test Approach 1
-        h1 = build_linked_list(arr)
-        res1 = to_list(sol1.reverseBetween(h1, l, r))
-        assert res1 == expected, f"Approach 1 failed for {arr}, left={l}, right={r}. Got {res1}"
+        h = build_linked_list(arr)
+        res = to_list(sol.reverseBetween(h, l, r))
+        assert res == expected, f"Solution failed for {arr}, left={l}, right={r}. Got {res}"
 
-        # Test Approach 2
-        h2 = build_linked_list(arr)
-        res2 = to_list(sol2.reverseBetween(h2, l, r))
-        assert res2 == expected, f"Approach 2 failed for {arr}, left={l}, right={r}. Got {res2}"
-
-    print("All LeetCode 92 test cases passed for both approaches!")
+    print("All LeetCode 92 test cases passed!")
 
 
 if __name__ == "__main__":

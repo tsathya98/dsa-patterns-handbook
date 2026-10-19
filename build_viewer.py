@@ -27,6 +27,7 @@ CATEGORY_META = {
     "06_recursion_and_backtracking": {"label": "06. Recursion & Backtracking", "order": 7, "icon": "🌳"},
     "system_design": {"label": "System Design", "order": 8, "icon": "🏗️"},
     "cheat_sheets": {"label": "Cheat Sheets", "order": 9, "icon": "⚡"},
+    "companies": {"label": "Company Frequency (2026)", "order": 10, "icon": "🏢"},
 }
 
 DEFAULT_SOLVED_NUMBERS = {
@@ -397,6 +398,17 @@ def parse_doc_metadata(rel_path: str, filename: str, content: str) -> dict:
     if cat_raw == "cheat_sheets":
         doc_type = "cheat_sheet"
         sort_key = (2, prefix_num, short_title.lower())
+    elif cat_raw == "companies":
+        company_name = filename.replace(".md", "").replace("-", " ").title()
+        title = f"{company_name} - LeetCode Frequency (2026)"
+        short_title = company_name
+        difficulty = "Company Tag"
+        pattern = "Interview Frequency (2026)"
+        doc_type = "company"
+        sort_key = (3, 0, short_title.lower())
+        summary = f"Real-world 2026 interview problem frequency data and appearance counts for {company_name}."
+        if not content.startswith("#"):
+            content = f"# {company_name} - LeetCode Frequency (2026)\n\n> **Category:** Company Question Bank (2026)  \n> **Company:** {company_name}\n\n" + content
     elif lc_number is not None:
         doc_type = "problem"
         sort_key = (1, lc_number, short_title.lower())
