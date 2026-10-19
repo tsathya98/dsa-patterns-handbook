@@ -108,8 +108,8 @@ Two pointers moving at 1x and 2x speed.
   - **Technique:** After `slow == fast`, start `slow2 = head` and step both by 1 until they meet at the cycle entrance.
 - [x] [LC 876: Middle of the Linked List [Free]](./876_middle_of_the_linked_list.md)
   - **Technique:** While `fast and fast.next`, step `slow` by 1 and `fast` by 2.
-- [ ] [LC 2095: Delete the Middle Node of a Linked List [Free]](https://leetcode.com/problems/delete-the-middle-node-of-a-linked-list/)
-  - **Technique:** Start `fast = head.next.next` so `slow` stops one node before the middle, then snip `slow.next = slow.next.next`.
+- [x] [LC 2095: Delete the Middle Node of a Linked List [Free]](./2095_delete_the_middle_node_of_a_linked_list.md)
+  - **Technique:** Start `fast = head.next.next` or dummy offset so `slow` stops one node before the middle, then snip `slow.next = slow.next.next`.
 
 ## II. Given 2 or more linked lists
 
