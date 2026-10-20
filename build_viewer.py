@@ -25,9 +25,13 @@ CATEGORY_META = {
     "04_sorting": {"label": "04. Sorting", "order": 5, "icon": "📊"},
     "05_binary_search": {"label": "05. Binary Search", "order": 6, "icon": "🔍"},
     "06_recursion_and_backtracking": {"label": "06. Recursion & Backtracking", "order": 7, "icon": "🌳"},
-    "system_design": {"label": "System Design", "order": 8, "icon": "🏗️"},
-    "cheat_sheets": {"label": "Cheat Sheets", "order": 9, "icon": "⚡"},
-    "companies": {"label": "Company Frequency (2026)", "order": 10, "icon": "🏢"},
+    "sd_framework": {"label": "01. Framework & Playbook", "order": 81, "icon": "🎯"},
+    "sd_pillars": {"label": "02. The 7 Distributed Pillars", "order": 82, "icon": "🏛️"},
+    "sd_cases": {"label": "03. Canonical HLD Case Studies", "order": 83, "icon": "🏗️"},
+    "sd_lld": {"label": "04. Low-Level Design (LLD)", "order": 84, "icon": "💻"},
+    "system_design": {"label": "System Design", "order": 85, "icon": "🏗️"},
+    "cheat_sheets": {"label": "Cheat Sheets", "order": 90, "icon": "⚡"},
+    "companies": {"label": "Company Frequency (2026)", "order": 100, "icon": "🏢"},
 }
 
 DEFAULT_SOLVED_NUMBERS = {
@@ -410,6 +414,25 @@ def parse_doc_metadata(rel_path: str, filename: str, content: str) -> dict:
         summary = f"Real-world 2026 interview problem frequency data and appearance counts for {company_name}."
         if not content.startswith("#"):
             content = f"# {company_name} - LeetCode Frequency (2026)\n\n> **Category:** Company Question Bank (2026)  \n> **Company:** {company_name}\n\n" + content
+    elif cat_raw == "system_design":
+        doc_type = "system_design"
+        if "case_studies" in rel_path:
+            cat_raw = "sd_cases"
+            cat_info = CATEGORY_META["sd_cases"]
+            difficulty = "Case Study"
+        elif any(k in filename for k in ["lld", "design_patterns", "problems_catalog"]):
+            cat_raw = "sd_lld"
+            cat_info = CATEGORY_META["sd_lld"]
+            difficulty = "LLD"
+        elif "framework" in filename or "excalidraw" in filename:
+            cat_raw = "sd_framework"
+            cat_info = CATEGORY_META["sd_framework"]
+            difficulty = "Playbook"
+        else:
+            cat_raw = "sd_pillars"
+            cat_info = CATEGORY_META["sd_pillars"]
+            difficulty = "Pillar"
+        sort_key = (cat_info["order"], prefix_num, short_title.lower())
     elif lc_number is not None:
         doc_type = "problem"
         sort_key = (1, lc_number, short_title.lower())
@@ -421,6 +444,7 @@ def parse_doc_metadata(rel_path: str, filename: str, content: str) -> dict:
         "path": rel_path,
         "title": title,
         "shortTitle": short_title,
+        "prefixNum": prefix_num,
         "category": cat_raw,
         "categoryLabel": cat_info["label"],
         "categoryOrder": cat_info["order"],
@@ -1085,16 +1109,24 @@ def build_html(default_view: str = "concepts") -> str:
   <!-- ===================================================================== -->
   <main id="view-reader" class="flex-1 min-h-0 flex overflow-hidden w-full">
     
-    <aside id="reader-sidebar" class="w-[280px] min-w-[280px] max-w-[280px] shrink-0 ui-surface border-r flex flex-col h-full overflow-hidden">
+    <aside id="reader-sidebar" class="w-[310px] min-w-[310px] max-w-[310px] shrink-0 ui-surface border-r flex flex-col h-full overflow-hidden">
       <div class="p-3 border-b ui-border space-y-2.5 shrink-0">
         <div class="flex items-center justify-between gap-2">
-          <div class="grid grid-cols-4 gap-0.5 ui-card p-1 rounded-lg border text-[11px] flex-1" role="group" aria-label="Sidebar filter">
-            <button type="button" onclick="setSidebarScope('concept')" id="sb-scope-concept" class="py-1 px-0.5 rounded font-semibold transition-colors text-center truncate" title="DSA Pattern Concepts">📘 Theory</button>
-            <button type="button" onclick="setSidebarScope('problem')" id="sb-scope-problem" class="py-1 px-0.5 rounded font-semibold transition-colors text-center truncate" title="LeetCode Problem Guides">🧩 Problems</button>
-            <button type="button" onclick="setSidebarScope('companies')" id="sb-scope-companies" class="py-1 px-0.5 rounded font-semibold transition-colors text-center truncate" title="Company Frequency Banks">🏢 Comp</button>
-            <button type="button" onclick="setSidebarScope('system_design')" id="sb-scope-system_design" class="py-1 px-0.5 rounded font-semibold transition-colors text-center truncate" title="System Design Case Studies">🏗️ Design</button>
+          <div class="grid grid-cols-2 gap-1.5 ui-card p-1.5 rounded-xl border text-xs flex-1" role="group" aria-label="Sidebar scope">
+            <button type="button" onclick="setSidebarScope('concept')" id="sb-scope-concept" class="py-1.5 px-2 rounded-lg font-semibold transition-all text-center flex items-center justify-center gap-1.5" title="DSA Pattern Theory">
+              <span>📘</span> Theory
+            </button>
+            <button type="button" onclick="setSidebarScope('problem')" id="sb-scope-problem" class="py-1.5 px-2 rounded-lg font-semibold transition-all text-center flex items-center justify-center gap-1.5" title="LeetCode Problem Solutions">
+              <span>🧩</span> Problems
+            </button>
+            <button type="button" onclick="setSidebarScope('companies')" id="sb-scope-companies" class="py-1.5 px-2 rounded-lg font-semibold transition-all text-center flex items-center justify-center gap-1.5" title="560+ Company Frequency Banks">
+              <span>🏢</span> Companies
+            </button>
+            <button type="button" onclick="setSidebarScope('system_design')" id="sb-scope-system_design" class="py-1.5 px-2 rounded-lg font-semibold transition-all text-center flex items-center justify-center gap-1.5" title="System Design & LLD">
+              <span>🏗️</span> Sys Design
+            </button>
           </div>
-          <button type="button" onclick="toggleLeftSidebar()" class="p-1.5 rounded-lg ui-card border ui-text-muted hover:text-[var(--text)]" title="Collapse left sidebar (b)">
+          <button type="button" onclick="toggleLeftSidebar()" class="p-2 rounded-xl ui-card border ui-text-muted hover:text-[var(--text)] self-stretch flex items-center justify-center" title="Collapse left sidebar (b)">
             «
           </button>
         </div>
@@ -2884,22 +2916,34 @@ print("Hello from Python 3 Playground!")
       }});
     }}
 
-    function setSidebarScope(scope) {{
+    function setSidebarScope(scope, syncNav = true) {{
       sidebarScope = scope;
       ['concept', 'problem', 'companies', 'system_design'].forEach(s => {{
         const btn = document.getElementById(`sb-scope-${{s}}`);
         if (!btn) return;
         if (s === scope) {{
-          btn.className = 'py-1 px-0.5 rounded font-semibold transition-colors text-center truncate ui-accent-btn shadow-sm';
+          btn.className = 'py-1.5 px-2 rounded-lg font-bold transition-all text-center flex items-center justify-center gap-1.5 ui-accent-btn shadow-sm';
         }} else {{
-          btn.className = 'py-1 px-0.5 rounded font-medium transition-colors text-center truncate ui-text-muted hover:text-[var(--text)]';
+          btn.className = 'py-1.5 px-2 rounded-lg font-medium transition-all text-center flex items-center justify-center gap-1.5 ui-text-muted hover:text-[var(--text)] hover:bg-[var(--surface-hover)]';
         }}
       }});
       renderSidebarTree();
+
+      if (syncNav) {{
+        const viewMap = {{
+          'concept': 'concepts',
+          'problem': 'problems',
+          'companies': 'companies',
+          'system_design': 'system_design'
+        }};
+        if (viewMap[scope] && currentView !== viewMap[scope]) {{
+          switchView(viewMap[scope], false);
+        }}
+      }}
     }}
 
     // 5. Primary Navigation Switcher
-    function switchView(view) {{
+    function switchView(view, syncSidebar = true) {{
       currentView = view;
       ['concepts', 'problems', 'companies', 'system_design', 'cheatsheets', 'playground', 'tracker', 'pomodoro'].forEach(v => {{
         const btn = document.getElementById(`nav-btn-${{v}}`);
@@ -2920,29 +2964,36 @@ print("Hello from Python 3 Playground!")
 
       [readerEl, csEl, playEl, trkEl, pomoEl, rmEl].forEach(el => el && el.classList.add('hidden'));
 
-      if (view === 'concepts') {{
+      const scopeMap = {{
+        'concepts': 'concept',
+        'problems': 'problem',
+        'companies': 'companies',
+        'system_design': 'system_design'
+      }};
+
+      if (scopeMap[view]) {{
         readerEl.classList.remove('hidden');
-        setSidebarScope('concept');
-        if (DOCS_DATA[currentDocPath]?.docType === 'problem' || DOCS_DATA[currentDocPath]?.category === 'companies') {{
-          renderDoc("00_foundations/01_algorithms_correctness_efficiency.md");
+        if (syncSidebar) {{
+          setSidebarScope(scopeMap[view], false);
         }}
-      }} else if (view === 'problems') {{
-        readerEl.classList.remove('hidden');
-        setSidebarScope('problem');
-        if (DOCS_DATA[currentDocPath]?.docType !== 'problem') {{
-          renderDoc("01_arrays_and_pointers/3_longest_substring_without_repeating_characters.md");
-        }}
-      }} else if (view === 'companies') {{
-        readerEl.classList.remove('hidden');
-        setSidebarScope('companies');
-        if (DOCS_DATA[currentDocPath]?.category !== 'companies') {{
-          renderDoc("companies/google.md");
-        }}
-      }} else if (view === 'system_design') {{
-        readerEl.classList.remove('hidden');
-        setSidebarScope('system_design');
-        if (DOCS_DATA[currentDocPath]?.category !== 'system_design') {{
-          renderDoc("system_design/00_faang_system_design_framework.md");
+
+        const doc = DOCS_DATA[currentDocPath];
+        if (view === 'concepts') {{
+          if (doc?.docType === 'problem' || doc?.category === 'companies' || doc?.category?.startsWith('sd_') || doc?.category === 'system_design') {{
+            renderDoc("00_foundations/01_algorithms_correctness_efficiency.md");
+          }}
+        }} else if (view === 'problems') {{
+          if (doc?.docType !== 'problem') {{
+            renderDoc("01_arrays_and_pointers/3_longest_substring_without_repeating_characters.md");
+          }}
+        }} else if (view === 'companies') {{
+          if (doc?.category !== 'companies') {{
+            renderDoc("companies/google.md");
+          }}
+        }} else if (view === 'system_design') {{
+          if (!doc?.category?.startsWith('sd_') && doc?.category !== 'system_design') {{
+            renderDoc("system_design/00_faang_system_design_framework.md");
+          }}
         }}
       }} else if (view === 'cheatsheets') {{
         csEl.classList.remove('hidden');
@@ -2979,7 +3030,7 @@ print("Hello from Python 3 Playground!")
       let targetTab = 'concepts';
       if (doc?.docType === 'problem') targetTab = 'problems';
       else if (doc?.category === 'companies') targetTab = 'companies';
-      else if (doc?.category === 'system_design') targetTab = 'system_design';
+      else if (doc?.category?.startsWith('sd_') || doc?.category === 'system_design') targetTab = 'system_design';
       currentDocPath = key;
       switchView(targetTab);
       renderDoc(key);
@@ -3047,10 +3098,10 @@ print("Hello from Python 3 Playground!")
 
     function getFilteredSidebarDocs() {{
       return DOC_KEYS.map(k => DOCS_DATA[k]).filter(d => {{
-        if (sidebarScope === 'concept') return d.docType === 'concept' && d.category !== 'companies' && d.category !== 'system_design';
+        if (sidebarScope === 'concept') return d.docType === 'concept' && d.category !== 'companies' && !d.category.startsWith('sd_') && d.category !== 'system_design';
         if (sidebarScope === 'problem') return d.docType === 'problem';
         if (sidebarScope === 'companies') return d.category === 'companies';
-        if (sidebarScope === 'system_design') return d.category === 'system_design';
+        if (sidebarScope === 'system_design') return d.category.startsWith('sd_') || d.category === 'system_design';
         return true;
       }});
     }}
@@ -3066,7 +3117,15 @@ print("Hello from Python 3 Playground!")
       window.history.replaceState({{}}, '', url);
 
       document.title = `${{doc.title}} | DSA Study Hub`;
-      document.getElementById('doc-type-badge').textContent = doc.docType === 'problem' ? '🧩 LeetCode Walkthrough' : (doc.docType === 'cheat_sheet' ? '⚡ Cheat Sheet' : '📘 Concept Guide');
+      let typeLabel = '📘 Concept Guide';
+      if (doc.docType === 'problem') typeLabel = '🧩 LeetCode Walkthrough';
+      else if (doc.docType === 'cheat_sheet') typeLabel = '⚡ Cheat Sheet';
+      else if (doc.category === 'companies') typeLabel = '🏢 Company Frequency';
+      else if (doc.category === 'sd_framework') typeLabel = '🎯 FAANG Interview Playbook';
+      else if (doc.category === 'sd_pillars') typeLabel = '🏛️ Distributed System Pillar';
+      else if (doc.category === 'sd_cases') typeLabel = '🏗️ Canonical HLD Case Study';
+      else if (doc.category === 'sd_lld') typeLabel = '💻 Low-Level Design (LLD)';
+      document.getElementById('doc-type-badge').textContent = typeLabel;
       document.getElementById('doc-cat-badge').textContent = `${{doc.categoryIcon}} ${{doc.categoryLabel}}`;
 
       const diffBadge = document.getElementById('doc-diff-badge');
@@ -3077,6 +3136,14 @@ print("Hello from Python 3 Playground!")
         diffBadge.className = 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30';
       }} else if (doc.difficulty === 'Hard') {{
         diffBadge.className = 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-rose-500/15 text-rose-400 border border-rose-500/30';
+      }} else if (doc.difficulty === 'Pillar') {{
+        diffBadge.className = 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-indigo-500/15 text-indigo-400 border border-indigo-500/30';
+      }} else if (doc.difficulty === 'Case Study') {{
+        diffBadge.className = 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-purple-500/15 text-purple-400 border border-purple-500/30';
+      }} else if (doc.difficulty === 'Playbook') {{
+        diffBadge.className = 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30';
+      }} else if (doc.difficulty === 'LLD') {{
+        diffBadge.className = 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-teal-500/15 text-teal-400 border border-teal-500/30';
       }} else {{
         diffBadge.className = 'hidden';
       }}
@@ -3171,7 +3238,7 @@ print("Hello from Python 3 Playground!")
         return d.title.toLowerCase().includes(q) || d.pattern.toLowerCase().includes(q) || d.path.toLowerCase().includes(q);
       }});
 
-      const scopeLabel = sidebarScope === 'concept' ? 'Theory Guides' : (sidebarScope === 'problem' ? 'Problem Solutions' : (sidebarScope === 'companies' ? 'Company Banks' : 'System Design Guides'));
+      const scopeLabel = sidebarScope === 'concept' ? 'Theory Guides' : (sidebarScope === 'problem' ? 'Problem Solutions' : (sidebarScope === 'companies' ? 'Company Banks' : 'System Design Tracks'));
       document.getElementById('sidebar-count-label').textContent = `${{scopedDocs.length}} ${{scopeLabel}}`;
 
       const groups = {{}};
@@ -3214,9 +3281,22 @@ print("Hello from Python 3 Playground!")
             ? '<span class="ui-accent-text font-bold shrink-0">✓</span>'
             : (st === 'review' ? '<span class="text-amber-400 shrink-0">🔁</span>' : '');
 
-          const shortLabel = item.lcNumber
-            ? `<span class="truncate"><span class="font-mono opacity-60 mr-1.5">#${{item.lcNumber}}</span>${{item.shortTitle}}</span>`
-            : `<span class="truncate">${{item.shortTitle}}</span>`;
+          let shortLabel = '';
+          if (item.lcNumber) {{
+            shortLabel = `<span class="truncate"><span class="font-mono opacity-60 mr-1.5">#${{item.lcNumber}}</span>${{item.shortTitle}}</span>`;
+          }} else if (item.category === 'sd_pillars') {{
+            const numStr = item.prefixNum < 9000 ? `Pillar ${{item.prefixNum}}` : 'Pillar';
+            shortLabel = `<span class="truncate"><span class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/15 text-indigo-400 border border-indigo-500/25 mr-1.5 font-bold">${{numStr}}</span>${{item.shortTitle}}</span>`;
+          }} else if (item.category === 'sd_cases') {{
+            const numStr = item.prefixNum < 9000 ? `Case ${{item.prefixNum}}` : 'Case';
+            shortLabel = `<span class="truncate"><span class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-400 border border-purple-500/25 mr-1.5 font-bold">${{numStr}}</span>${{item.shortTitle}}</span>`;
+          }} else if (item.category === 'sd_framework') {{
+            shortLabel = `<span class="truncate"><span class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 mr-1.5 font-bold">Guide</span>${{item.shortTitle}}</span>`;
+          }} else if (item.category === 'sd_lld') {{
+            shortLabel = `<span class="truncate"><span class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-teal-500/15 text-teal-400 border border-teal-500/25 mr-1.5 font-bold">LLD</span>${{item.shortTitle}}</span>`;
+          }} else {{
+            shortLabel = `<span class="truncate">${{item.shortTitle}}</span>`;
+          }}
 
           a.innerHTML = `${{shortLabel}}${{statusIcon}}`;
           a.addEventListener('click', (e) => {{
@@ -3489,7 +3569,7 @@ print("Hello from Python 3 Playground!")
         'rm-phase-1-grid': ['00_foundations', '01_arrays_and_pointers'],
         'rm-phase-2-grid': ['02_linked_lists', '03_stacks_and_queues', '04_sorting', '05_binary_search'],
         'rm-phase-3-grid': ['cheat_sheets'],
-        'rm-phase-4-grid': ['system_design']
+        'rm-phase-4-grid': ['sd_framework', 'sd_pillars', 'sd_cases', 'sd_lld', 'system_design']
       }};
 
       Object.keys(phaseMapping).forEach(gridId => {{
