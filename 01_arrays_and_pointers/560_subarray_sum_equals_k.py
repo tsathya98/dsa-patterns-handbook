@@ -48,7 +48,8 @@ class Solution:
 
         for x in nums:
             cur_sum += x
-            count += prefix_counts.get(cur_sum - k, 0)
+            needed_cut = cur_sum - k
+            count += prefix_counts.get(needed_cut, 0)
             prefix_counts[cur_sum] = prefix_counts.get(cur_sum, 0) + 1
 
         return count

@@ -43,32 +43,31 @@ Check all pairs `(i, j)` in $\mathcal{O}(N^2)$ time.
 
 ## Approach 3: Optimized (running prefix sum + hash map frequency)
 
-If the running prefix sum from index $0 \dots i$ is `cur_sum`, and some earlier prefix from index $0 \dots j$ had sum `cur_sum - k`, then the subarray between $j + 1$ and $i$ must sum to exactly $k$:
+### The tape cutting analogy:
+Think of `cur_sum` as a measuring tape starting at index 0 that keeps extending (never reset).
+If the total tape length from index 0 to `i` is `cur_sum`, and we want a piece at the end that sums to `k`:
+$$\text{Front slice to cut off} = \text{cur\_sum} - k$$
 
-$$\text{sum}(j + 1 \dots i) = \text{cur\_sum} - (\text{cur\_sum} - k) = k$$
-
-Store a hash map `prefix_counts` tracking the frequency of every prefix sum seen so far:
-- **Base seed:** Initialize `prefix_counts = {0: 1}`. An empty prefix before index 0 has sum 0. If `cur_sum == k` starting directly from index 0, `cur_sum - k = 0` matches this seed!
-- For each number:
-  1. `cur_sum += x`
-  2. `count += prefix_counts.get(cur_sum - k, 0)`
-  3. `prefix_counts[cur_sum] = prefix_counts.get(cur_sum, 0) + 1`
+Every time that exact `needed_cut` appeared as a previous prefix measurement, chopping it off leaves a valid contiguous subarray ending at `i` that sums to `k`.
 
 ```text
-Target k = 3
-Array:          [  1,    2,    1,   -1,    2 ]
-cur_sum:           1     3     4     3     5
-cur_sum - k:      -2     0     1     0     2
-Found in map?     No   Yes(0) Yes(1) Yes(0) No
-Cumulative ans:    0     1     2     3     3
+[ 3,   4,   2,   5 ]  (cur_sum = 14, k = 7)
+├─────────┤├───────┤
+  Cut off    Target 
+  prefix       k=7
+ (14-7=7)
 ```
 
+### Why cur_sum is never reset:
+`cur_sum` is an odometer from the starting line (index 0). If you reset it midway, previous measurements lose their common origin and subtracting readings breaks.
+
 ### Algorithm steps:
-* **1. Seed prefix map:** `prefix_counts = {0: 1}`, `cur_sum = 0`, `count = 0`.
-* **2. Iterate:** For each `x` in `nums`:
-  * Accumulate: `cur_sum += x`.
-  * Query complement: `count += prefix_counts.get(cur_sum - k, 0)`.
-  * Record frequency: `prefix_counts[cur_sum] = prefix_counts.get(cur_sum, 0) + 1`.
+* **1. Base seed:** `prefix_counts = {0: 1}`, `cur_sum = 0`, `count = 0`. An empty prefix before index 0 has distance 0.
+* **2. Step forward:** For each `x` in `nums`:
+  * `cur_sum += x`
+  * `needed_cut = cur_sum - k`
+  * `count += prefix_counts.get(needed_cut, 0)`
+  * `prefix_counts[cur_sum] = prefix_counts.get(cur_sum, 0) + 1`
 * **3. Return:** `count` in single-pass linear time.
 
 ---
@@ -111,7 +110,8 @@ class Solution:
 
         for x in nums:
             cur_sum += x
-            count += prefix_counts.get(cur_sum - k, 0)
+            needed_cut = cur_sum - k
+            count += prefix_counts.get(needed_cut, 0)
             prefix_counts[cur_sum] = prefix_counts.get(cur_sum, 0) + 1
 
         return count
