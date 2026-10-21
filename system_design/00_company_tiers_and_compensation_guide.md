@@ -90,7 +90,115 @@ Total Compensation (TC) = Base Cash + Annual Bonus + Liquid Stocks (RSUs) or ESO
 
 ---
 
-## 3. The "Sweet Spot" Strategy (High Pay + True Good WLB)
+## 3. Potential AI Roles Across Target Companies (GenAI, Agents, CV, ML & AI Infra)
+
+Companies in India are actively paying top-of-band packages (₹80L to ₹2.5 Cr+) to Senior and Staff engineers who combine distributed systems fundamentals with modern AI architecture. 
+
+If you are expanding your portfolio into GenAI, AI Agents, Computer Vision, or ML Infrastructure, here is the breakdown of what these companies build and the exact roles they hire for.
+
+### The 5 High-Paying AI Engineering Archetypes
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       THE 5 MODERN AI ROLES IN TECH                         │
+├──────────────────────────────┬──────────────────────────────────────────────┤
+│ 1. GenAI & AI Agent SWE      │ Multi-agent orchestration, tool-calling, RAG │
+├──────────────────────────────┼──────────────────────────────────────────────┤
+│ 2. AI Infrastructure & LLMs  │ vLLM, TensorRT-LLM, Triton, GPU clustering   │
+├──────────────────────────────┼──────────────────────────────────────────────┤
+│ 3. Computer Vision / Vision  │ Diffusion models, visual search, OCR, safety │
+├──────────────────────────────┼──────────────────────────────────────────────┤
+│ 4. Applied ML & RecSys       │ Two-tower embeddings, GNN fraud, rankers     │
+├──────────────────────────────┼──────────────────────────────────────────────┤
+│ 5. Quantitative AI & RL      │ Deep RL execution, tick-by-tick transformers │
+└──────────────────────────────┴──────────────────────────────────────────────┘
+```
+
+#### 1. GenAI & AI Agent Systems Engineer
+* **What you build:** Autonomous agent loops with planning, tool invocation, dynamic routing, and self-correction. Enterprise Retrieval-Augmented Generation (RAG) over vector databases and hybrid keyword indices. Multi-agent workflows with state graphs (LangGraph, CrewAI).
+* **Target companies:** Atlassian, Microsoft, Intuit, ServiceNow, Rippling, Coinbase, Google, Meta, PhonePe.
+* **Key stack:** Python, LangGraph, LlamaIndex, Qdrant/Milvus/Pinecone, LiteLLM, DSPy, Ragas (evaluations).
+
+#### 2. Distributed AI Infrastructure & LLM Serving Engineer
+* **What you build:** Low-latency high-throughput LLM serving clusters. PagedAttention, KV-cache management, dynamic batching, model quantization (AWQ, FP8, INT4), distributed training frameworks (Megatron-LM, DeepSpeed, Ray), and GPU memory optimization.
+* **Target companies:** Databricks (MosaicML), Nvidia, Snowflake (Cortex AI), Google (TPU/JAX), Meta (PyTorch Core), Microsoft (Azure OpenAI infra).
+* **Key stack:** vLLM, TensorRT-LLM, Triton Inference Server, CUDA, C++, PyTorch, Ray, Slurm/K8s.
+
+#### 3. Computer Vision & Multimodal Engineer
+* **What you build:** Generative diffusion models for image and video synthesis. Visual search engines ("find fashion from this photo"). Multimodal document intelligence (extracting structured JSON from bills, invoices, and menus). Real-time safety perception on dashcam feeds.
+* **Target companies:** Adobe (Firefly), Apple (CoreML/Vision), Swiggy/Zepto/Zomato (grocery quality check, menu OCR), Flipkart/Meesho (visual fashion search), Uber (driver safety vision), Nvidia (Omniverse/Drive).
+* **Key stack:** PyTorch, OpenCV, Stable Diffusion / FLUX, CLIP, SAM (Segment Anything), TensorRT.
+
+#### 4. Applied ML & Recommendation Systems Engineer
+* **What you build:** Two-tower neural retrieval models, vector embeddings at billion-scale, Graph Neural Networks (GNNs) for fraud and syndicate detection, dynamic dispatch algorithms, and real-time feature store ingestion.
+* **Target companies:** Uber (Michelangelo platform, dispatch/pricing), ByteDance (TikTok Monolith recommendation engine), LinkedIn (feed & job matching), Stripe/PhonePe/Razorpay (risk & fraud GNNs), InMobi (real-time bidding).
+* **Key stack:** PyTorch, Feast (Feature Store), ScaNN/FAISS, Spark, Kafka, Ray Train, Triton.
+
+#### 5. Quantitative AI & Deep Reinforcement Learning Researcher
+* **What you build:** Deep Reinforcement Learning algorithms for optimal order execution and market making. Transformer architectures trained on tick-by-tick limit order book data. Natural language sentiment extraction from real-time global news feeds.
+* **Target companies:** Graviton, Tower Research, Hudson River Trading (HRT), Jane Street, D.E. Shaw, WorldQuant, Quadeye, NK Securities.
+* **Key stack:** Modern C++ (C++20), PyTorch, CUDA, Linux kernel bypass, low-latency SIMD intrinsics.
+
+---
+
+### Company-by-Company AI Initiatives & Target Roles
+
+| Company | Core AI Domain | Specific AI Systems Built | Target AI Job Titles |
+| :--- | :--- | :--- | :--- |
+| **Google** | GenAI & AI Infra | Gemini LLM core, Vertex AI, Search Generative Experience, TPU/JAX distributed training | Applied AI SWE, ML Platform Engineer, GenAI Research Engineer |
+| **Meta** | GenAI & AI Infra | Llama open-source models, PyTorch core, Generative AI for ads, Ray/vLLM infra | GenAI Platform SWE, Research Engineer (Llama), Applied ML SWE |
+| **Uber** | RecSys, Vision & Agents | Michelangelo ML platform, Deep Learning dispatch, agentic support, driver safety vision | Senior ML Engineer (Pricing/Dispatch), AI Agent SWE, Computer Vision SWE |
+| **Atlassian** | GenAI & Agents | Atlassian Intelligence, enterprise RAG across Jira & Confluence, autonomous ticket triage | Senior AI Engineer, GenAI Platform SWE, Enterprise RAG SWE |
+| **Databricks** | AI Infra & GenAI | MosaicML distributed LLM pre-training, Vector Search, DBRX serving, MLflow GenAI evals | LLM Systems Engineer, AI Platform SWE, Distributed Training Engineer |
+| **Snowflake** | AI Infra & GenAI | Cortex AI (serverless LLM functions), Snowpark Container Services, Streamlit GenAI | AI Database Systems SWE, GenAI Platform Engineer |
+| **Rippling** | GenAI & Agents | Autonomous HR/payroll workflows, multimodal document extraction, policy reasoning agents | GenAI Application SWE, Document Vision Engineer, Agent Automation SWE |
+| **Rubrik** | AI Agents & Security | Ruby AI (autonomous cyber recovery assistant), backup snapshot anomaly detection | AI Security SWE, Applied ML Engineer, Threat Detection ML SWE |
+| **Stripe** | Applied ML & Agents | Radar deep learning fraud detection, agentic checkout assistant, financial reasoning models | Staff ML Engineer (Risk), GenAI Systems Engineer |
+| **Coinbase** | AI Agents & ML | Base on-chain AI agents (autonomous crypto transactions), blockchain anomaly detection | Crypto AI Agent SWE, ML Security Engineer |
+| **LinkedIn** | RecSys & GenAI | Large-scale feed & jobs recommendation, GNNs, LinkedIn Post Copilot, Vector Search | Staff ML Engineer (RecSys), GenAI Copilot SWE, Graph ML Engineer |
+| **Graviton / Tower / HRT**| Quant AI & RL | Deep RL for trade execution, limit order book transformers, real-time news NLP | Quantitative ML Researcher, Deep RL Systems Dev, Low-Latency AI SWE |
+| **PhonePe** | Applied ML & Agents | Graph Neural Networks for fraud detection, statement OCR, agentic debt collection bots | Lead ML Engineer (Risk), GenAI Agent SWE, Document Vision Engineer |
+| **CRED** | Applied ML & Agents | Credit risk underwriting models, financial document vision parsing, agentic support | Senior ML Engineer (Fintech Risk), GenAI Systems SWE |
+| **Swiggy / Zepto / Zomato**| Vision & RecSys | Grocery quality check vision, menu OCR, dynamic ETA deep learning, multimodal food search | Senior Computer Vision Engineer, Applied ML SWE (Logistics), GenAI SWE |
+| **Flipkart / Meesho** | Vision & RecSys | Visual fashion search, two-tower catalog ranking, GenAI product catalog descriptions | Staff ML Engineer (Search & Recs), Computer Vision SWE, GenAI Catalog SWE |
+| **Microsoft** | GenAI, Agents & Infra | Copilot ecosystem (M365, GitHub, Security), Azure OpenAI Service infra, Phi-3 SLMs | Senior AI Platform SWE, Copilot Systems Engineer, Distributed Training SWE |
+| **Amazon** | GenAI, Agents & Infra | Rufus conversational shopping agent, Bedrock GenAI platform, SageMaker distributed train | Applied Scientist (LLM), AI Systems SWE, Computer Vision Engineer |
+| **Adobe** | Computer Vision & GenAI | Firefly generative diffusion models (image/video/audio), Photoshop neural filters, Sensei | Computer Vision Research SWE, Generative Diffusion Engineer, Deep Learning SWE |
+| **Apple** | GenAI & On-Device Vision| Apple Intelligence (on-device SLMs, Private Cloud Compute), CoreML, Siri LLM agent | On-Device ML Systems SWE, Computer Vision SWE, Foundation Model SWE |
+| **Nvidia** | AI Infra & Systems | TensorRT-LLM, Megatron-LM, NeMo Agentic framework, Omniverse 3D vision, Drive AV | AI Systems Performance SWE, Deep Learning Performance SWE, Vision SWE |
+| **Intuit** | GenAI & Agents | Intuit GenStudio, Financial GenAI OS (tax & accounting LLMs), domain tax agents | Principal AI Engineer, Agent Systems SWE, Financial NLP SWE |
+| **ServiceNow** | GenAI & Agents | Now Assist (ITSM code generation, enterprise agentic workflows, domain-adapted LLMs) | Staff GenAI Engineer, Enterprise Agent Architecture SWE |
+| **Datadog** | AI Agents & Observability| Bits AI (autonomous incident remediation agent, log anomaly detection LLMs) | AI Observability SWE, Anomaly Detection ML Engineer |
+| **Palo Alto Networks** | AI Security & Agents | Precision AI (autonomous SecOps agents, real-time zero-day malware detection models) | AI Security SWE, Threat Intelligence ML Engineer |
+| **ByteDance (SG)** | RecSys & Vision | TikTok Monolith large-scale deep retrieval, video diffusion models, content moderation | Staff Recommendation Algorithm SWE, Multimodal AI SWE |
+| **Booking.com (NL)** | GenAI & RecSys | Travel itinerary generation agents, pricing elasticity deep learning, photo ranking | Senior Machine Learning Scientist, GenAI Travel SWE |
+| **Spotify (SE)** | Audio AI & RecSys | Spotify AI DJ (voice synthesis + personalization), audio feature embeddings, podcast LLM | Staff Audio ML Engineer, Personalization Algorithm SWE |
+
+---
+
+### What Senior / Staff AI System Design Rounds Test
+
+When interviewing for Senior or Staff AI roles at top companies, you are evaluated on production reliability and latency, not just writing prompts:
+
+1. **RAG Architecture & Latency at Scale:**
+   * Hybrid retrieval (dense vector embeddings via Qdrant/Milvus combined with sparse BM25 keyword search).
+   * Cross-encoder re-ranking models (Cohere / BGE) and latency budgets (keeping re-ranking under 40 ms).
+   * Chunking strategies (semantic chunking, parent-document retrieval, sentence windowing).
+2. **LLM Inference Optimization:**
+   * Continuous batching and PagedAttention mechanics (how vLLM eliminates memory fragmentation).
+   * Prompt caching and semantic caching (using Redis to avoid duplicate LLM calls on identical queries).
+   * Quantization trade-offs (AWQ vs GPTQ vs FP8) and GPU VRAM capacity math for 70B parameter models.
+3. **Agent Reliability & Failure Modes:**
+   * Preventing infinite tool-calling loops and setting recursion depth limits.
+   * Structured JSON outputs with Pydantic and JSON Schema validation.
+   * Hallucination guardrails and automated evaluation pipelines (Ragas context relevance and faithfulness scores).
+4. **Data Privacy & Enterprise Security:**
+   * PII masking (guardrails before sending context to external model APIs).
+   * Role-Based Access Control (RBAC) filtering on vector database queries so users only retrieve documents they are authorized to view.
+
+---
+
+## 4. The "Sweet Spot" Strategy (High Pay + True Good WLB)
 
 If your goal is to earn between **₹80L and ₹1.2 Cr** as a Senior Engineer without destroying your mental health or having your phone ring at 3 AM:
 
@@ -102,7 +210,7 @@ If your goal is to earn between **₹80L and ₹1.2 Cr** as a Senior Engineer wi
 
 ---
 
-## 4. The High-Hustle High-Reward Strategy
+## 5. The High-Hustle High-Reward Strategy
 
 If you want the maximum possible cash and equity growth in the shortest time, and are comfortable with fast-paced sprints:
 
@@ -112,7 +220,7 @@ If you want the maximum possible cash and equity growth in the shortest time, an
 
 ---
 
-## 5. The Interview Game: A-Tier vs S-Tier Differences
+## 6. The Interview Game: A-Tier vs S-Tier Differences
 
 ### At A-Tier (Startups, Unicorns, Traditional Big Tech):
 * **Round 1:** Machine Coding / Low-Level Design (LLD). 90 minutes to write working, modular, thread-safe code in Python or Java with unit tests.
@@ -132,7 +240,7 @@ If you want the maximum possible cash and equity growth in the shortest time, an
 
 ---
 
-## 6. How to Leverage Competing Offers in India
+## 7. How to Leverage Competing Offers in India
 
 1. **Never disclose current salary upfront:** When HR asks for your current CTC, state: *"I am targeting market rates for Senior/Staff roles in the ₹75L to ₹1.1 Cr band based on the scope and leveling of this position."*
 2. **Secure High-Volume Offers First:** Amazon, Microsoft, and Swiggy interview year-round and issue offers quickly. 
