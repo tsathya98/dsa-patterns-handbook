@@ -43,8 +43,8 @@ Total Compensation (TC) = Base Cash + Annual Bonus + Liquid Stocks (RSUs) or ESO
 | **Tower Research** | Quant | Senior Engineer | ₹60L - ₹85L | ₹1.2 Cr - ₹2.2 Cr | ₹2.5 Cr - ₹4.0 Cr | 100% Cash Bonus | Tough (High Pressure) | Linux Internals + Network Bypass + Hard DSA |
 | **Hudson River (HRT)**| Quant | Senior Systems | ₹70L - ₹1.0 Cr | ₹1.5 Cr - ₹3.0 Cr | ₹3.0 Cr - ₹5.0 Cr | 100% Cash Bonus | Tough (Live PnL) | C++20 + Memory Architecture + High Perf |
 | **Jane Street** | Quant | Senior Systems | ₹75L - ₹1.1 Cr | ₹1.5 Cr - ₹3.0 Cr | ₹3.0 Cr - ₹5.0 Cr | 100% Cash Bonus | Tough | Functional Systems (OCaml) + Concurrency |
-| **D.E. Shaw** | Quant | Senior Member Tech| ₹50L - ₹65L | ₹80L - ₹1.2 Cr | ₹1.3 Cr - ₹1.8 Cr | Cash + High Bonus | Moderate/Tough | Algorithmic Problem Solving + Systems |
-| **WorldQuant** | Quant | Senior Lead | ₹55L - ₹75L | ₹90L - ₹1.5 Cr | ₹1.5 Cr - ₹2.5 Cr | Cash + Discretionary | Moderate/Tough | Quantitative Data Pipelines + C++ Systems |
+| **D.E. Shaw** | Quant | Senior SWE (L5) | ₹50L - ₹65L | ₹80L - ₹1.2 Cr | ₹1.3 Cr - ₹1.8 Cr | Cash + High Bonus | Moderate/Tough | Algorithmic Problem Solving + Systems |
+| **WorldQuant** | Quant | Senior SWE (L5) | ₹55L - ₹75L | ₹90L - ₹1.5 Cr | ₹1.5 Cr - ₹2.5 Cr | Cash + Discretionary | Moderate/Tough | Quantitative Data Pipelines + C++ Systems |
 | **PhonePe** | A-Tier | SDE-3 | ₹50L - ₹65L | ₹70L - ₹95L | ₹1.2 Cr - ₹1.6 Cr | High Base + Buybacks | Tough (On-Call) | 90m LLD + Concurrency + High Volume HLD |
 | **CRED** | A-Tier | SDE-3 | ₹50L - ₹70L | ₹70L - ₹95L | ₹1.1 Cr - ₹1.5 Cr | High Cash Base | Tough (Fast Sprints) | Clean Architecture + LLD + System Design |
 | **Swiggy** | A-Tier | SDE-3 | ₹48L - ₹62L | ₹65L - ₹90L | ₹1.0 Cr - ₹1.5 Cr | Base + ESOPs | Tough (Hyper-growth) | Machine Coding + Real-time Logistics HLD |
@@ -55,32 +55,32 @@ Total Compensation (TC) = Base Cash + Annual Bonus + Liquid Stocks (RSUs) or ESO
 | **Meesho** | A-Tier | SDE-3 | ₹42L - ₹55L | ₹55L - ₹80L | ₹90L - ₹1.3 Cr | Base + ESOPs | Moderate/Tough | High-concurrency Catalog Design + LLD |
 | **Microsoft** | A-Tier | L63 / L64 (Senior)| ₹42L - ₹58L | ₹65L - ₹95L | ₹1.2 Cr - ₹1.7 Cr | Liquid RSUs (US) | Good (Azure on-call) | DSA + HLD + Core Competencies & Culture |
 | **Amazon** | A-Tier | L6 (SDE-3) | ₹45L - ₹55L | ₹75L - ₹1.1 Cr | ₹1.6 Cr - ₹2.5 Cr | RSUs + Sign-on Cash | Tough (Stack Rank) | 1 DSA + 2 HLD + 16 Leadership Principles |
-| **Salesforce** | A-Tier | SMTS (Senior) | ₹45L - ₹55L | ₹65L - ₹85L | ₹1.0 Cr - ₹1.5 Cr | Liquid RSUs (US) | Good (Balanced) | Cloud Platforms + Multi-tenant Architecture |
-| **Adobe** | A-Tier | Computer Scientist| ₹45L - ₹55L | ₹65L - ₹85L | ₹1.0 Cr - ₹1.5 Cr | Liquid RSUs (US) | Good (Very Low Stress)| Algorithms + System Architecture + Clean Code |
+| **Salesforce** | A-Tier | Senior SWE (SMTS) | ₹45L - ₹55L | ₹65L - ₹85L | ₹1.0 Cr - ₹1.5 Cr | Liquid RSUs (US) | Good (Balanced) | Cloud Platforms + Multi-tenant Architecture |
+| **Adobe** | A-Tier | Senior SWE (CS-2) | ₹45L - ₹55L | ₹65L - ₹85L | ₹1.0 Cr - ₹1.5 Cr | Liquid RSUs (US) | Good (Very Low Stress)| Algorithms + System Architecture + Clean Code |
 | **Intuit** | A-Tier | Senior SWE | ₹45L - ₹55L | ₹65L - ₹85L | ₹1.0 Cr - ₹1.4 Cr | Liquid RSUs (US) | Good (High Satisfaction)| Software Craftsmanship + Domain Design + HLD |
-| **ServiceNow** | A-Tier | Senior / Staff | ₹45L - ₹55L | ₹65L - ₹85L | ₹95L - ₹1.3 Cr | Liquid RSUs (US) | Good (Enterprise) | Workflow Architecture + Relational DB Scaling |
+| **ServiceNow** | A-Tier | Senior SWE (IC3) | ₹45L - ₹55L | ₹65L - ₹85L | ₹95L - ₹1.3 Cr | Liquid RSUs (US) | Good (Enterprise) | Workflow Architecture + Relational DB Scaling |
 | **Apple** | A-Tier | ICT4 (Senior) | ₹48L - ₹62L | ₹70L - ₹95L | ₹1.2 Cr - ₹1.7 Cr | Liquid RSUs (US) | Good (Secretive) | Operating Systems + Low-level Primitives + DSA |
 | **Nvidia** | A-Tier | Senior Systems | ₹45L - ₹60L | ₹65L - ₹95L | ₹1.2 Cr - ₹1.8 Cr | Liquid RSUs (High Growth)| Good (Systems Focus) | CUDA / GPU Compute + C++ Systems Architecture |
 | **Broadcom / VMware**| A-Tier | Senior Engineer | ₹45L - ₹58L | ₹60L - ₹85L | ₹1.0 Cr - ₹1.5 Cr | Liquid RSUs (US) | Good | Virtualization + Networking + Distributed Kernels |
-| **Nutanix** | A-Tier | MTS-4 (Senior) | ₹45L - ₹60L | ₹65L - ₹90L | ₹1.1 Cr - ₹1.5 Cr | Liquid RSUs (US) | Moderate | Distributed Storage + Hyperconvergence + LC |
+| **Nutanix** | A-Tier | Senior SWE (MTS-4) | ₹45L - ₹60L | ₹65L - ₹90L | ₹1.1 Cr - ₹1.5 Cr | Liquid RSUs (US) | Moderate | Distributed Storage + Hyperconvergence + LC |
 | **Expedia** | A-Tier | SDE-3 | ₹40L - ₹52L | ₹55L - ₹75L | ₹90L - ₹1.3 Cr | Liquid RSUs (US) | Good (Travel Perks) | Microservices + Event-Driven Systems + Spring |
 | **PayPal** | A-Tier | SE-3 (Senior) | ₹40L - ₹52L | ₹55L - ₹75L | ₹90L - ₹1.3 Cr | Liquid RSUs (US) | Good | Fault-Tolerant Payment Systems + Security |
-| **Walmart Tech** | A-Tier | Staff SWE | ₹40L - ₹52L | ₹55L - ₹75L | ₹90L - ₹1.3 Cr | Liquid Stock (US) | Moderate | Supply Chain Distributed Scale + Java/Cloud |
+| **Walmart Tech** | A-Tier | Senior SWE (L5) | ₹40L - ₹52L | ₹55L - ₹75L | ₹90L - ₹1.3 Cr | Liquid Stock (US) | Moderate | Supply Chain Distributed Scale + Java/Cloud |
 | **Datadog** | A-Tier | Senior Engineer | ₹42L - ₹55L | ₹55L - ₹80L | ₹95L - ₹1.4 Cr | Liquid RSUs (US) | Good/Moderate | High-throughput Ingestion (Go) + Metrics Engine |
 | **Palo Alto Networks**| A-Tier | Senior SWE | ₹45L - ₹58L | ₹65L - ₹90L | ₹1.1 Cr - ₹1.5 Cr | Liquid RSUs (US) | Good | High-throughput Packet Processing + Security |
 | **Cohesity** | A-Tier | Senior Engineer | ₹45L - ₹60L | ₹65L - ₹90L | ₹1.1 Cr - ₹1.5 Cr | Stock Options | Moderate | Distributed File Systems + Storage Resilience |
-| **Arcesium** | A-Tier | Senior Tech Lead | ₹45L - ₹60L | ₹65L - ₹95L | ₹1.1 Cr - ₹1.6 Cr | Cash + High Bonus | Tough (Deadlines) | Financial Ledgers + High-throughput Processing |
-| **Goldman Sachs** | A-Tier | VP (Senior Lead) | ₹45L - ₹60L | ₹60L - ₹90L | ₹1.1 Cr - ₹1.7 Cr | Cash + Annual Bonus | Tough (Banking) | Java Internals + Financial Systems + Spring |
-| **J.P. Morgan** | A-Tier | VP (Eng Lead) | ₹40L - ₹55L | ₹55L - ₹80L | ₹90L - ₹1.4 Cr | Cash + Annual Bonus | Moderate | Corporate Banking Architecture + Security |
+| **Arcesium** | A-Tier | Senior SWE (L5) | ₹45L - ₹60L | ₹65L - ₹95L | ₹1.1 Cr - ₹1.6 Cr | Cash + High Bonus | Tough (Deadlines) | Financial Ledgers + High-throughput Processing |
+| **Goldman Sachs** | A-Tier | Senior SWE (L5) | ₹45L - ₹60L | ₹60L - ₹90L | ₹1.1 Cr - ₹1.7 Cr | Cash + Annual Bonus | Tough (Banking) | Java Internals + Financial Systems + Spring |
+| **J.P. Morgan** | A-Tier | Senior SWE (L5) | ₹40L - ₹55L | ₹55L - ₹80L | ₹90L - ₹1.4 Cr | Cash + Annual Bonus | Moderate | Corporate Banking Architecture + Security |
 | **Cisco** | Mid-Tier | Senior SWE | ₹30L - ₹42L | ₹40L - ₹55L | ₹65L - ₹90L | RSUs + Bonus | Good (Very Relaxed) | Networking Protocols + Distributed Routing |
 | **Visa** | Mid-Tier | Senior SWE | ₹32L - ₹45L | ₹45L - ₹60L | ₹70L - ₹1.0 Cr | Liquid RSUs | Good (Stable) | Payment Gateway Security + High Availability |
 | **Mastercard** | Mid-Tier | Senior SWE | ₹32L - ₹45L | ₹45L - ₹60L | ₹70L - ₹1.0 Cr | Liquid RSUs | Good (Stable) | Transaction Processing + Scalability |
-| **Qualcomm** | Mid-Tier | Senior Systems | ₹30L - ₹42L | ₹38L - ₹55L | ₹65L - ₹90L | Stock + Bonus | Good (Predictable) | Embedded Systems + Device Drivers + C |
+| **Qualcomm** | Mid-Tier | Senior Systems SWE | ₹30L - ₹42L | ₹38L - ₹55L | ₹65L - ₹90L | Stock + Bonus | Good (Predictable) | Embedded Systems + Device Drivers + C |
 | **Intel** | Mid-Tier | Senior SWE | ₹28L - ₹40L | ₹38L - ₹52L | ₹65L - ₹85L | Stock + Bonus | Good (Predictable) | Hardware Abstraction + Low-level Tooling |
 | **Texas Instruments**| Mid-Tier| Senior Engineer | ₹28L - ₹40L | ₹38L - ₹50L | ₹60L - ₹80L | Stock + Bonus | Good (Low Stress) | Firmware + Microcontroller Systems + C/C++ |
 | **SAP Labs** | Mid-Tier | Senior Developer | ₹28L - ₹38L | ₹38L - ₹50L | ₹60L - ₹85L | Stock + Bonus | Good (Strict European) | ERP Systems + Enterprise Cloud + Microservices |
 | **Redhat** | Mid-Tier | Senior SWE | ₹28L - ₹40L | ₹40L - ₹55L | ₹65L - ₹90L | Stock (IBM) | Good (Open Source) | Linux Kernel + Containers + Open Source |
-| **Zoho** | Mid-Tier | Member Tech Staff| ₹20L - ₹32L | ₹25L - ₹40L | ₹45L - ₹65L | 100% Cash Base | Good (Independent) | Full-stack Product Engineering + Java |
+| **Zoho** | Mid-Tier | Senior SWE (L5) | ₹20L - ₹32L | ₹25L - ₹40L | ₹45L - ₹65L | 100% Cash Base | Good (Independent) | Full-stack Product Engineering + Java |
 | **Booking.com (NL)**| Relocation| Senior SWE | €95k - €115k | ~₹85L - ₹1.1 Cr | ~₹1.3 Cr - ₹1.7 Cr | Liquid RSUs (US) | Good (30 Days PTO) | High-volume E-commerce + A/B Testing + HLD |
 | **ByteDance (SG)** | Relocation| 2-2 (Senior) | S$160k - S$210k | ~₹1.0 Cr - ₹1.4 Cr | ~₹1.6 Cr - ₹2.2 Cr | Liquid Stock / Bonus | Tough (996 Culture) | High-concurrency Feeds + Hard DSA + Systems |
 | **Databricks (NL)**| Relocation| Senior SWE | €130k - €170k | ~₹1.2 Cr - ₹1.6 Cr | ~₹1.8 Cr - ₹2.5 Cr | Pre-IPO Stock | Moderate | Distributed Data Engines + Systems Coding |
