@@ -636,6 +636,98 @@ hl_css = open(hl_css_path, "r", encoding="utf-8").read() if os.path.exists(hl_cs
 docs_json_str = json.dumps(docs)
 problems_json_str = json.dumps(curated_problems)
 
+# 60+ Tier-1 & Tier-2 Tech Companies in India: Verified 2026 Pay Bands, Tiers & WLB
+COMPANY_TIERS_RAW = [
+    ("Google", "google", "S-Tier", "Bangalore / Hyderabad / Pune", "L5 (Senior SWE)", "₹50L - ₹65L", "₹85L - ₹1.2 Cr", "₹1.4 Cr - ₹2.1 Cr", "Liquid GSUs (US)", "Good", "High WLB, Cloud on-call", "2 LC Hard + 2 Distributed HLD + Googlyness", ["S-Tier", "Good WLB", "FAANG", "Liquid RSUs"]),
+    ("Uber", "uber", "S-Tier", "Bangalore / Hyderabad", "L5A (Senior SWE)", "₹65L - ₹75L", "₹95L - ₹1.35 Cr", "₹1.6 Cr - ₹2.4 Cr", "Liquid RSUs (US)", "Tough", "High-stress on-call, real-time pager", "2 HLD + 2 LC Med/Hard + Bar Raiser", ["S-Tier", "High Hustle", "Liquid RSUs"]),
+    ("Atlassian", "atlassian", "S-Tier", "Bangalore / Remote", "P50 (Senior SWE)", "₹55L - ₹68L", "₹95L - ₹1.15 Cr", "₹1.5 Cr - ₹1.9 Cr", "Liquid RSUs (US)", "Good", "Team Anywhere (100% Remote), Sydney syncs", "System Design + Code Craftsmanship + Values", ["S-Tier", "Good WLB", "Remote-First", "Liquid RSUs"]),
+    ("Rippling", "rippling", "S-Tier", "Bangalore", "L6 / L7 (Senior SWE)", "₹60L - ₹78L", "₹95L - ₹1.5 Cr", "₹1.6 Cr - ₹2.5 Cr", "High Base + Stock", "Tough", "High intensity, relentless execution", "Execution Speed + LLD + System Architecture", ["S-Tier", "High Hustle", "Top Base"]),
+    ("Rubrik", "rubrik", "S-Tier", "Bangalore", "G7 (Senior SWE)", "₹55L - ₹68L", "₹1.0 Cr - ₹1.4 Cr", "₹1.5 Cr - ₹2.2 Cr", "Liquid RSUs (US)", "Moderate", "Data management scale, fast delivery", "Distributed Storage + File Systems + LC", ["S-Tier", "Liquid RSUs"]),
+    ("Stripe", "stripe", "S-Tier", "Bangalore / Remote", "L3 / L4 (Senior SWE)", "₹60L - ₹75L", "₹1.0 Cr - ₹1.5 Cr", "₹1.8 Cr - ₹2.8 Cr", "Liquid RSUs (US)", "Moderate", "Strong engineering culture, high bar", "Bug Hunting + Practical API Design + HLD", ["S-Tier", "Remote-First", "Liquid RSUs"]),
+    ("Databricks", "databricks", "S-Tier", "Bangalore", "L5 (Senior SWE)", "₹55L - ₹70L", "₹90L - ₹1.3 Cr", "₹1.6 Cr - ₹2.5 Cr", "High Growth Equity", "Moderate", "Distributed compute scale, deep tech", "Distributed Systems (Spark) + LC Hard", ["S-Tier"]),
+    ("Snowflake", "snowflake", "S-Tier", "Pune / Bangalore", "IC4 (Senior SWE)", "₹35L - ₹48L", "₹55L - ₹75L", "₹90L - ₹1.3 Cr", "Liquid RSUs (US)", "Good", "Solid WLB, enterprise predictability", "Cloud Data Warehouse Internals + Concurrency", ["S-Tier", "Good WLB", "Liquid RSUs"]),
+    ("Coinbase", "coinbase", "S-Tier", "Remote (India)", "IC5 (Senior SWE)", "₹55L - ₹70L", "₹85L - ₹1.2 Cr", "₹1.5 Cr - ₹2.2 Cr", "Liquid RSUs (US)", "Moderate", "Remote-first, 4 company recharge weeks", "Crypto Platforms + Distributed HLD + Security", ["S-Tier", "Remote-First", "Liquid RSUs"]),
+    ("Meta", "meta", "S-Tier", "Gurgaon / Bangalore", "E5 (Senior SWE)", "₹55L - ₹70L", "₹1.0 Cr - ₹1.4 Cr", "₹1.8 Cr - ₹3.0 Cr", "Liquid RSUs (US)", "Moderate", "High ownership, direct impact", "Product Architecture + 2 DSA + 2 System Design", ["S-Tier", "FAANG", "Liquid RSUs"]),
+    ("LinkedIn", "linkedin", "S-Tier", "Bangalore", "Senior SWE", "₹50L - ₹65L", "₹80L - ₹1.1 Cr", "₹1.3 Cr - ₹1.8 Cr", "Liquid RSUs (MSFT)", "Good", "InDays (monthly Friday off), low PIP", "Large-scale PaaS + Kafka + Algorithms", ["S-Tier", "Good WLB", "Liquid RSUs"]),
+    ("Graviton", "graviton", "Quant", "Gurgaon", "Senior Systems Lead", "₹65L - ₹90L", "₹1.3 Cr - ₹2.5 Cr", "₹2.5 Cr - ₹4.5 Cr", "100% Cash Bonus", "Tough", "Ultra low latency, daily trading PnL", "C++20 + Kernel Bypass + Memory Locality", ["Quant", "High Hustle", "Top Cash"]),
+    ("Tower Research", "tower-research-capital", "Quant", "Gurgaon", "Senior Systems SWE", "₹60L - ₹85L", "₹1.2 Cr - ₹2.2 Cr", "₹2.5 Cr - ₹4.0 Cr", "100% Cash Bonus", "Tough", "High-frequency trading latency pressure", "Linux Internals + Network Stack + Hard DSA", ["Quant", "High Hustle", "Top Cash"]),
+    ("Hudson River (HRT)", "hudson-river-trading", "Quant", "Gurgaon", "Senior Core Dev", "₹70L - ₹1.0 Cr", "₹1.5 Cr - ₹3.0 Cr", "₹3.0 Cr - ₹5.0 Cr", "100% Cash Bonus", "Tough", "Extreme low latency, algorithmic desk", "High Performance Systems + Modern C++", ["Quant", "High Hustle", "Top Cash"]),
+    ("Jane Street", "jane-street", "Quant", "Mumbai / Remote", "Senior Systems SWE", "₹75L - ₹1.1 Cr", "₹1.5 Cr - ₹3.0 Cr", "₹3.0 Cr - ₹5.0 Cr", "100% Cash Bonus", "Tough", "Functional trading core, deep systems", "Functional Programming (OCaml) + Concurrency", ["Quant", "High Hustle", "Top Cash"]),
+    ("D.E. Shaw", "de-shaw", "Quant", "Hyderabad", "Senior Member Tech", "₹50L - ₹65L", "₹80L - ₹1.2 Cr", "₹1.3 Cr - ₹1.8 Cr", "Cash + High Bonus", "Moderate", "Structured financial technology delivery", "Hard DSA + Concurrency + System Architecture", ["Quant", "Top Cash"]),
+    ("WorldQuant", "worldquant", "Quant", "Mumbai / Gurgaon", "Senior Lead Dev", "₹55L - ₹75L", "₹90L - ₹1.5 Cr", "₹1.5 Cr - ₹2.5 Cr", "Cash + Discretionary", "Moderate", "Quantitative simulation pipelines", "C++ / Python Data Pipelines + Distributed Core", ["Quant", "Top Cash"]),
+    ("Quadeye", "quadeye", "Quant", "Gurgaon", "Senior Systems SWE", "₹60L - ₹85L", "₹1.1 Cr - ₹2.0 Cr", "₹2.0 Cr - ₹3.5 Cr", "100% Cash Bonus", "Tough", "Algorithmic market making, fast cycles", "C++ Systems + Low-level Networking", ["Quant", "High Hustle", "Top Cash"]),
+    ("NK Securities", "nk-securities", "Quant", "Gurgaon", "Senior Low Latency", "₹65L - ₹90L", "₹1.2 Cr - ₹2.0 Cr", "₹2.2 Cr - ₹4.0 Cr", "100% Cash Bonus", "Tough", "High-frequency execution engine", "Hardware Acceleration + C++ + FPGA", ["Quant", "High Hustle", "Top Cash"]),
+    ("PhonePe", "phonepe", "A-Tier", "Bangalore", "SDE-3", "₹50L - ₹65L", "₹70L - ₹95L", "₹1.2 Cr - ₹1.6 Cr", "High Base + Buybacks", "Tough", "Demanding on-call, late production syncs", "90m LLD + Concurrency + Scale HLD", ["A-Tier", "Top Base", "High Hustle"]),
+    ("CRED", "cred", "A-Tier", "Bangalore", "SDE-3", "₹50L - ₹70L", "₹70L - ₹95L", "₹1.1 Cr - ₹1.5 Cr", "High Cash Base", "Tough", "Rapid release cycles, evening hours", "Clean Architecture + LLD + System Design", ["A-Tier", "Top Base", "High Hustle"]),
+    ("Swiggy", "swiggy", "A-Tier", "Bangalore / Remote", "SDE-3", "₹48L - ₹62L", "₹65L - ₹90L", "₹1.0 Cr - ₹1.5 Cr", "Base + ESOPs", "Tough", "Quick commerce hypergrowth, peak on-call", "Machine Coding + Real-time Routing HLD", ["A-Tier", "High Hustle"]),
+    ("Zepto", "zepto", "A-Tier", "Bangalore / Mumbai", "SDE-3", "₹50L - ₹65L", "₹65L - ₹95L", "₹1.1 Cr - ₹1.6 Cr", "Base + ESOPs", "Tough", "Aggressive product deadlines, 10-min SLA", "Rapid LLD + Event-driven Architectures", ["A-Tier", "High Hustle"]),
+    ("Zomato / Blinkit", "zomato", "A-Tier", "Gurgaon", "SDE-3", "₹45L - ₹60L", "₹60L - ₹85L", "₹1.0 Cr - ₹1.4 Cr", "Base + Equity", "Tough", "Consumer tech intensity, rapid iteration", "Low-level Engineering + Caching at Scale", ["A-Tier", "High Hustle"]),
+    ("Razorpay", "razorpay", "A-Tier", "Bangalore", "SDE-3", "₹45L - ₹58L", "₹60L - ₹85L", "₹95L - ₹1.4 Cr", "Base + Buybacks", "Moderate", "Fintech stability with startup speed", "FinTech Idempotency + Distributed ACID", ["A-Tier"]),
+    ("Flipkart", "flipkart", "A-Tier", "Bangalore", "SDE-3", "₹45L - ₹55L", "₹60L - ₹85L", "₹95L - ₹1.4 Cr", "Base + Walmart Stock", "Moderate", "Large-scale e-commerce, big sale events", "Machine Coding + High-volume HLD", ["A-Tier"]),
+    ("Meesho", "meesho", "A-Tier", "Bangalore", "SDE-3", "₹42L - ₹55L", "₹55L - ₹80L", "₹90L - ₹1.3 Cr", "Base + ESOPs", "Moderate", "Hyper-growth scale, practical engineering", "High-concurrency Catalog + LLD", ["A-Tier"]),
+    ("InMobi", "inmobi", "A-Tier", "Bangalore", "SDE-3", "₹42L - ₹55L", "₹55L - ₹75L", "₹90L - ₹1.3 Cr", "Base + RSUs/ESOPs", "Good", "Balanced work culture, AdTech scale", "AdTech Real-Time Bidding + Big Data", ["A-Tier", "Good WLB"]),
+    ("Microsoft", "microsoft", "A-Tier", "Bangalore / Hyderabad / Noida", "L63 / L64 (Senior)", "₹42L - ₹58L", "₹65L - ₹95L", "₹1.2 Cr - ₹1.7 Cr", "Liquid RSUs (US)", "Good", "Team dependent: Office/Teams chill, Azure on-call", "DSA + HLD + Core Competencies & Culture", ["A-Tier", "Good WLB", "FAANG", "Liquid RSUs"]),
+    ("Amazon", "amazon", "A-Tier", "Bangalore / Hyderabad / Chennai", "L6 (SDE-3 / Senior)", "₹45L - ₹55L", "₹75L - ₹1.1 Cr", "₹1.6 Cr - ₹2.5 Cr", "RSUs + Cash Bonus", "Tough", "Stack ranking (URA target), heavy pager duty", "1 DSA + 2 HLD + 16 Leadership Principles", ["A-Tier", "High Hustle", "FAANG", "Liquid RSUs"]),
+    ("Salesforce", "salesforce", "A-Tier", "Bangalore / Hyderabad", "SMTS (Senior)", "₹45L - ₹55L", "₹65L - ₹85L", "₹1.0 Cr - ₹1.5 Cr", "Liquid RSUs (US)", "Good", "Balanced enterprise culture, low weekend work", "Cloud Platforms + Multi-tenant Architecture", ["A-Tier", "Good WLB", "Liquid RSUs"]),
+    ("Adobe", "adobe", "A-Tier", "Noida / Bangalore", "Computer Scientist", "₹45L - ₹55L", "₹65L - ₹85L", "₹1.0 Cr - ₹1.5 Cr", "Liquid RSUs (US)", "Good", "Very low stress, great stability, low PIP", "Algorithms + System Architecture + Clean Code", ["A-Tier", "Good WLB", "Liquid RSUs"]),
+    ("Intuit", "intuit", "A-Tier", "Bangalore", "Senior SWE", "₹45L - ₹55L", "₹65L - ₹85L", "₹1.0 Cr - ₹1.4 Cr", "Liquid RSUs (US)", "Good", "Consistently voted top workplace, rare on-call", "Software Craftsmanship + Domain Design + HLD", ["A-Tier", "Good WLB", "Liquid RSUs"]),
+    ("ServiceNow", "servicenow", "A-Tier", "Hyderabad / Bangalore", "Senior / Staff", "₹45L - ₹55L", "₹65L - ₹85L", "₹95L - ₹1.3 Cr", "Liquid RSUs (US)", "Good", "High enterprise stability, steady growth", "Workflow Architecture + Relational DB Scaling", ["A-Tier", "Good WLB", "Liquid RSUs"]),
+    ("Apple", "apple", "A-Tier", "Hyderabad / Bangalore", "ICT4 (Senior SWE)", "₹48L - ₹62L", "₹70L - ₹95L", "₹1.2 Cr - ₹1.7 Cr", "Liquid RSUs (US)", "Good", "High quality bar, confidential projects", "Operating Systems + Low-level + DSA", ["A-Tier", "Good WLB", "FAANG", "Liquid RSUs"]),
+    ("Nvidia", "nvidia", "A-Tier", "Bangalore / Pune", "Senior Systems SWE", "₹45L - ₹60L", "₹65L - ₹95L", "₹1.2 Cr - ₹1.8 Cr", "Liquid RSUs (High Upside)", "Good", "Deep tech focus, massive stock appreciation", "CUDA / GPU Compute + C++ Systems Core", ["A-Tier", "Good WLB", "Liquid RSUs"]),
+    ("Broadcom / VMware", "vmware", "A-Tier", "Bangalore", "Senior Engineer", "₹45L - ₹58L", "₹60L - ₹85L", "₹1.0 Cr - ₹1.5 Cr", "Liquid RSUs (US)", "Good", "Enterprise virtualization, steady hours", "Virtualization + Networking + Distributed Kernels", ["A-Tier", "Good WLB", "Liquid RSUs"]),
+    ("Nutanix", "nutanix", "A-Tier", "Bangalore", "MTS-4 (Senior)", "₹45L - ₹60L", "₹65L - ₹90L", "₹1.1 Cr - ₹1.5 Cr", "Liquid RSUs (US)", "Moderate", "Hyperconverged infrastructure engineering", "Distributed Storage + Hyperconvergence + LC", ["A-Tier", "Liquid RSUs"]),
+    ("Expedia", "expedia", "A-Tier", "Gurgaon / Bangalore", "SDE-3", "₹40L - ₹52L", "₹55L - ₹75L", "₹90L - ₹1.3 Cr", "Liquid RSUs (US)", "Good", "Generous travel perks, predictable deadlines", "Microservices + Event-Driven Systems + Spring", ["A-Tier", "Good WLB", "Liquid RSUs"]),
+    ("PayPal", "paypal", "A-Tier", "Bangalore / Chennai", "SE-3 (Senior)", "₹40L - ₹52L", "₹55L - ₹75L", "₹90L - ₹1.3 Cr", "Liquid RSUs (US)", "Good", "Payment systems security, mature engineering", "Fault-Tolerant Payment Systems + Security", ["A-Tier", "Good WLB", "Liquid RSUs"]),
+    ("Walmart Tech", "walmart-labs", "A-Tier", "Bangalore / Chennai", "Staff SWE", "₹40L - ₹52L", "₹55L - ₹75L", "₹90L - ₹1.3 Cr", "Liquid Stock (US)", "Moderate", "High-volume retail scale, solid benefits", "Supply Chain Distributed Scale + Java/Cloud", ["A-Tier", "Liquid RSUs"]),
+    ("Datadog", "datadog", "A-Tier", "Bangalore", "Senior SWE", "₹42L - ₹55L", "₹55L - ₹80L", "₹95L - ₹1.4 Cr", "Liquid RSUs (US)", "Good", "Observability SaaS, modern Go tech stack", "High-throughput Ingestion + Metrics Engine", ["A-Tier", "Good WLB", "Liquid RSUs"]),
+    ("Palo Alto Networks", "palo-alto-networks", "A-Tier", "Bangalore", "Senior SWE", "₹45L - ₹58L", "₹65L - ₹90L", "₹1.1 Cr - ₹1.5 Cr", "Liquid RSUs (US)", "Good", "Cloud security market leader, steady hours", "High-throughput Packet Processing + Security", ["A-Tier", "Good WLB", "Liquid RSUs"]),
+    ("Cohesity", "cohesity", "A-Tier", "Bangalore", "Senior Engineer", "₹45L - ₹60L", "₹65L - ₹90L", "₹1.1 Cr - ₹1.5 Cr", "Stock Options", "Moderate", "Enterprise data backup and recovery", "Distributed File Systems + Storage Resilience", ["A-Tier"]),
+    ("Arcesium", "arcesium", "A-Tier", "Hyderabad / Bangalore", "Senior Tech Lead", "₹45L - ₹60L", "₹65L - ₹95L", "₹1.1 Cr - ₹1.6 Cr", "Cash + High Bonus", "Tough", "Strict financial deliverable dates", "Financial Ledgers + High-throughput Processing", ["A-Tier", "High Hustle"]),
+    ("Goldman Sachs", "goldman-sachs", "A-Tier", "Bangalore / Hyderabad", "VP (Senior Lead)", "₹45L - ₹60L", "₹60L - ₹90L", "₹1.1 Cr - ₹1.7 Cr", "Cash + Annual Bonus", "Tough", "Investment banking rigor and hours", "Java Internals + Financial Systems + Spring", ["A-Tier", "High Hustle"]),
+    ("J.P. Morgan", "j-p-morgan", "A-Tier", "Bangalore / Mumbai / Hyderabad", "VP (Eng Lead)", "₹40L - ₹55L", "₹55L - ₹80L", "₹90L - ₹1.4 Cr", "Cash + Annual Bonus", "Moderate", "Corporate banking platforms, good benefits", "Corporate Banking Architecture + Security", ["A-Tier"]),
+    ("Cisco", "cisco", "Mid-Tier", "Bangalore", "Senior SWE", "₹30L - ₹42L", "₹40L - ₹55L", "₹65L - ₹90L", "RSUs + Bonus", "Good", "Legendary 9-to-5 culture, almost zero on-call", "Networking Protocols + Distributed Routing", ["Mid-Tier", "Good WLB"]),
+    ("Visa", "visa", "Mid-Tier", "Bangalore", "Senior SWE", "₹32L - ₹45L", "₹45L - ₹60L", "₹70L - ₹1.0 Cr", "Liquid RSUs", "Good", "Very high job security, relaxed work pace", "Payment Gateway Security + High Availability", ["Mid-Tier", "Good WLB"]),
+    ("Qualcomm", "qualcomm", "Mid-Tier", "Bangalore / Hyderabad", "Senior Systems", "₹30L - ₹42L", "₹38L - ₹55L", "₹65L - ₹90L", "Stock + Bonus", "Good", "Predictable silicon tape-out schedules", "Embedded Systems + Device Drivers + C", ["Mid-Tier", "Good WLB"]),
+    ("Intel", "intel", "Mid-Tier", "Bangalore", "Senior SWE", "₹28L - ₹40L", "₹38L - ₹52L", "₹65L - ₹85L", "Stock + Bonus", "Good", "Predictable engineering pacing", "Hardware Abstraction + Low-level Tooling", ["Mid-Tier", "Good WLB"]),
+    ("Texas Instruments", "texas-instruments", "Mid-Tier", "Bangalore", "Senior Engineer", "₹28L - ₹40L", "₹38L - ₹50L", "₹60L - ₹80L", "Stock + Bonus", "Good", "Low stress, long employee tenures", "Firmware + Microcontroller Systems + C/C++", ["Mid-Tier", "Good WLB"]),
+    ("SAP Labs", "sap", "Mid-Tier", "Bangalore / Gurgaon", "Senior Developer", "₹28L - ₹38L", "₹38L - ₹50L", "₹60L - ₹85L", "Stock + Bonus", "Good", "Strict European work-life balance standards", "ERP Systems + Enterprise Cloud + Microservices", ["Mid-Tier", "Good WLB"]),
+    ("Zoho", "zoho", "Mid-Tier", "Chennai / Remote", "Member Tech Staff", "₹20L - ₹32L", "₹25L - ₹40L", "₹45L - ₹65L", "100% Cash Base", "Good", "Zero outside investor pressure, calm culture", "Full-stack Product Engineering + Java", ["Mid-Tier", "Good WLB"]),
+    ("Booking.com (NL)", "booking-com", "Relocation", "Amsterdam, Netherlands", "Senior SWE", "€95k - €115k", "~₹85L - ₹1.1 Cr", "~₹1.3 Cr - ₹1.7 Cr", "Liquid RSUs (US)", "Good", "30% Dutch expat tax ruling, 30 days PTO", "High-volume E-commerce + A/B Testing + HLD", ["Relocation", "Good WLB"]),
+    ("ByteDance (SG)", "bytedance", "Relocation", "Singapore", "2-2 (Senior SWE)", "S$160k - S$210k", "~₹1.0 Cr - ₹1.4 Cr", "~₹1.6 Cr - ₹2.2 Cr", "Liquid Stock / Bonus", "Tough", "Low flat income tax (15%), intense 996 hours", "High-concurrency Feeds + Hard DSA + Systems", ["Relocation", "High Hustle"]),
+    ("Databricks (NL)", "databricks", "Relocation", "Amsterdam, Netherlands", "Senior SWE", "€130k - €170k", "~₹1.2 Cr - ₹1.6 Cr", "~₹1.8 Cr - ₹2.5 Cr", "High Growth Equity", "Moderate", "Top-paying software firm in Europe", "Distributed Data Engines + Systems Coding", ["Relocation"]),
+    ("Zalando (DE)", "zalando", "Relocation", "Berlin, Germany", "Senior SWE", "€85k - €105k", "~₹78L - ₹1.0 Cr", "~₹1.1 Cr - ₹1.5 Cr", "Public RSUs", "Good", "38-hour work week, protected holidays", "Microservices + Event-Driven Architecture", ["Relocation", "Good WLB"]),
+    ("Spotify (SE)", "spotify", "Relocation", "Stockholm, Sweden", "Senior Engineer", "950k - 1.2M SEK", "~₹75L - ₹95L", "~₹1.1 Cr - ₹1.4 Cr", "Liquid RSUs (US)", "Good", "Legendary Scandinavian work culture", "Agile Engineering Culture + System Design", ["Relocation", "Good WLB"]),
+    ("Agoda (TH)", "agoda", "Relocation", "Bangkok, Thailand", "Senior Engineer", "2.5M - 3.5M THB", "~₹60L - ₹85L", "~₹90L - ₹1.3 Cr", "Cash + Stocks", "Good", "High savings potential in Bangkok", "Travel Platforms + Search Systems + Scale", ["Relocation", "Good WLB"]),
+]
+
+COMPANY_TIERS_DATA = []
+for item in COMPANY_TIERS_RAW:
+    (name, slug, tier, location, senior_lvl, senior_base, senior_tc, staff_tc, equity_type, wlb_status, wlb_note, interview_focus, tags) = item
+    doc_path = f"companies/{slug}.md"
+    has_doc = os.path.exists(os.path.join(ROOT_DIR, doc_path))
+    m_val = re.search(r"(\d+(?:\.\d+)?)\s*(?:Cr|L)", senior_tc)
+    tc_num = float(m_val.group(1)) * (100 if "Cr" in senior_tc else 1) if m_val else 50.0
+    COMPANY_TIERS_DATA.append({
+        "name": name,
+        "slug": slug,
+        "tier": tier,
+        "location": location,
+        "seniorLvl": senior_lvl,
+        "seniorBase": senior_base,
+        "seniorTC": senior_tc,
+        "seniorTCNum": tc_num,
+        "staffTC": staff_tc,
+        "equityType": equity_type,
+        "wlb": wlb_status,
+        "wlbNote": wlb_note,
+        "interviewFocus": interview_focus,
+        "tags": tags,
+        "hasDoc": has_doc,
+        "docPath": doc_path if has_doc else None,
+    })
+
+company_tiers_json_str = json.dumps(COMPANY_TIERS_DATA)
+
 
 def build_html(default_view: str = "concepts") -> str:
     return f"""<!DOCTYPE html>
@@ -1068,6 +1160,9 @@ def build_html(default_view: str = "concepts") -> str:
       </button>
       <button type="button" onclick="switchView('companies')" id="nav-btn-companies" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
         <span aria-hidden="true">🏢</span> Companies
+      </button>
+      <button type="button" onclick="switchView('compensation')" id="nav-btn-compensation" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
+        <span aria-hidden="true">💰</span> Pay & Tiers
       </button>
       <button type="button" onclick="switchView('system_design')" id="nav-btn-system_design" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
         <span aria-hidden="true">🏗️</span> System Design
@@ -1678,6 +1773,107 @@ def build_html(default_view: str = "concepts") -> str:
       </div>
       <div id="rm-phase-4" class="rm-panel" hidden="until-found">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2" id="rm-phase-4-grid"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- VIEW 6: TECH COMPENSATION, TIERS & WORK-LIFE BALANCE MATRIX           -->
+  <!-- ===================================================================== -->
+  <section id="view-compensation" class="hidden flex-1 min-h-0 overflow-y-auto h-full max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-5">
+    
+    <!-- Top Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b ui-border pb-4">
+      <div>
+        <h1 class="text-xl sm:text-2xl font-bold ui-accent-text flex items-center gap-2">
+          <span>💰</span> Tech Compensation & Tier Matrix (India 2026)
+        </h1>
+        <p class="text-xs ui-text-muted mt-0.5">Verified salary benchmarks, stock liquidity, work-life balance (WLB), and hiring bars for Senior SWE (L5 / SDE-3) and Staff / Principal (L6).</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="openDocInReader('system_design/00_company_tiers_and_compensation_guide.md')" class="px-3 py-1.5 rounded-lg ui-card border text-xs font-semibold ui-accent-text hover:opacity-90 flex items-center gap-1.5">
+          <span>📖</span> Read Strategy Guide →
+        </button>
+      </div>
+    </div>
+
+    <!-- Top KPI Cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div class="ui-card border rounded-xl p-3.5 space-y-1">
+        <div class="text-[11px] font-semibold text-amber-500 uppercase tracking-wider">🔥 S-Tier Senior Median</div>
+        <div class="text-xl font-bold">₹1.15 Cr</div>
+        <div class="text-[11px] ui-text-muted">₹55L - ₹75L Base + Liquid US RSUs</div>
+      </div>
+      <div class="ui-card border rounded-xl p-3.5 space-y-1">
+        <div class="text-[11px] font-semibold text-emerald-500 uppercase tracking-wider">⭐ A-Tier Senior Median</div>
+        <div class="text-xl font-bold">₹72 LPA</div>
+        <div class="text-[11px] ui-text-muted">₹45L - ₹60L Base + Stocks / Bonus</div>
+      </div>
+      <div class="ui-card border rounded-xl p-3.5 space-y-1">
+        <div class="text-[11px] font-semibold text-purple-500 uppercase tracking-wider">⚡ Quant Peak Cash</div>
+        <div class="text-xl font-bold">₹1.5 - ₹3 Cr</div>
+        <div class="text-[11px] ui-text-muted">100% Cash Base + Discretionary Bonus</div>
+      </div>
+      <div class="ui-card border rounded-xl p-3.5 space-y-1">
+        <div class="text-[11px] font-semibold text-sky-500 uppercase tracking-wider">🌱 High WLB Sweet Spot</div>
+        <div class="text-xl font-bold">₹80L - ₹1.1 Cr</div>
+        <div class="text-[11px] ui-text-muted">Google, Atlassian, LinkedIn, Intuit, Adobe</div>
+      </div>
+    </div>
+
+    <!-- Controls: Search & Filter Pills -->
+    <div class="ui-card border rounded-xl p-3 space-y-2.5">
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div class="relative flex-1 min-w-[240px]">
+          <input id="comp-search-input" type="search" oninput="onCompSearchChange(this.value)" placeholder="Search company, tier, level, tech stack, WLB..." class="w-full ui-card border rounded-lg pl-8 pr-3 py-1.5 text-xs focus:outline-none">
+          <svg class="w-3.5 h-3.5 ui-text-muted absolute left-2.5 top-2.5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <select id="comp-sort-select" onchange="onCompSortChange(this.value)" class="ui-card border rounded-lg px-2.5 py-1.5 text-xs focus:outline-none text-[var(--text)]">
+            <option value="pay_desc">Sort: Senior Pay (High to Low)</option>
+            <option value="pay_asc">Sort: Senior Pay (Low to High)</option>
+            <option value="name_asc">Sort: Company Name (A to Z)</option>
+            <option value="wlb">Sort: Best Work-Life Balance</option>
+          </select>
+          <span id="comp-count-badge" class="text-xs ui-text-muted px-2 py-1 ui-surface rounded-lg border">60 companies</span>
+        </div>
+      </div>
+
+      <!-- Filter Buttons -->
+      <div class="flex items-center gap-1.5 overflow-x-auto pb-1" role="tablist">
+        <button type="button" onclick="setCompFilter('all')" data-filter="all" class="comp-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold ui-accent-btn shadow-sm transition-all whitespace-nowrap">All (60)</button>
+        <button type="button" onclick="setCompFilter('s_tier')" data-filter="s_tier" class="comp-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold ui-card border ui-text-muted hover:text-[var(--text)] transition-all whitespace-nowrap">🔥 S-Tier (₹1 Cr+)</button>
+        <button type="button" onclick="setCompFilter('a_tier')" data-filter="a_tier" class="comp-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold ui-card border ui-text-muted hover:text-[var(--text)] transition-all whitespace-nowrap">⭐ A-Tier (₹60L - ₹95L)</button>
+        <button type="button" onclick="setCompFilter('quant')" data-filter="quant" class="comp-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold ui-card border ui-text-muted hover:text-[var(--text)] transition-all whitespace-nowrap">⚡ Quant / HFT (Cash)</button>
+        <button type="button" onclick="setCompFilter('good_wlb')" data-filter="good_wlb" class="comp-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold ui-card border ui-text-muted hover:text-[var(--text)] transition-all whitespace-nowrap">🌱 High WLB (9-to-5)</button>
+        <button type="button" onclick="setCompFilter('high_hustle')" data-filter="high_hustle" class="comp-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold ui-card border ui-text-muted hover:text-[var(--text)] transition-all whitespace-nowrap">🔥 High Hustle / Grind</button>
+        <button type="button" onclick="setCompFilter('remote')" data-filter="remote" class="comp-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold ui-card border ui-text-muted hover:text-[var(--text)] transition-all whitespace-nowrap">🏠 Remote-First</button>
+        <button type="button" onclick="setCompFilter('relocation')" data-filter="relocation" class="comp-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold ui-card border ui-text-muted hover:text-[var(--text)] transition-all whitespace-nowrap">✈️ Visa Relocation (EU/SG)</button>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="ui-card border rounded-2xl overflow-hidden shadow-sm">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="ui-surface border-b ui-border text-[11px] uppercase tracking-wider font-semibold text-[var(--text)]">
+              <th class="py-3 px-3">Company & Hub</th>
+              <th class="py-3 px-3">Tier</th>
+              <th class="py-3 px-3">Senior SWE (L5/SDE-3)</th>
+              <th class="py-3 px-3 hidden md:table-cell">Staff / Principal (L6)</th>
+              <th class="py-3 px-3 hidden lg:table-cell">Stock / Bonus Nature</th>
+              <th class="py-3 px-3">Work-Life Balance</th>
+              <th class="py-3 px-3 hidden xl:table-cell">Interview Bar & Focus</th>
+              <th class="py-3 px-3 text-right">Problems</th>
+            </tr>
+          </thead>
+          <tbody id="comp-tbody" class="divide-y ui-border">
+          </tbody>
+        </table>
+      </div>
+      <div id="comp-empty" class="hidden py-12 text-center text-xs ui-text-muted">
+        No companies found matching your search.
       </div>
     </div>
   </section>
@@ -2945,7 +3141,7 @@ print("Hello from Python 3 Playground!")
     // 5. Primary Navigation Switcher
     function switchView(view, syncSidebar = true) {{
       currentView = view;
-      ['concepts', 'problems', 'companies', 'system_design', 'cheatsheets', 'playground', 'tracker', 'pomodoro'].forEach(v => {{
+      ['concepts', 'problems', 'companies', 'compensation', 'system_design', 'cheatsheets', 'playground', 'tracker', 'pomodoro'].forEach(v => {{
         const btn = document.getElementById(`nav-btn-${{v}}`);
         if (!btn) return;
         if (v === view) {{
@@ -2961,8 +3157,9 @@ print("Hello from Python 3 Playground!")
       const trkEl = document.getElementById('view-tracker');
       const pomoEl = document.getElementById('view-pomodoro');
       const rmEl = document.getElementById('view-roadmap');
+      const compEl = document.getElementById('view-compensation');
 
-      [readerEl, csEl, playEl, trkEl, pomoEl, rmEl].forEach(el => el && el.classList.add('hidden'));
+      [readerEl, csEl, playEl, trkEl, pomoEl, rmEl, compEl].forEach(el => el && el.classList.add('hidden'));
 
       const scopeMap = {{
         'concepts': 'concept',
@@ -3017,6 +3214,9 @@ print("Hello from Python 3 Playground!")
       }} else if (view === 'roadmap') {{
         rmEl.classList.remove('hidden');
         renderRoadmapGrids();
+      }} else if (view === 'compensation') {{
+        compEl.classList.remove('hidden');
+        renderCompensationTable();
       }}
 
       const url = new URL(window.location);
@@ -3723,6 +3923,153 @@ print("Hello from Python 3 Playground!")
       }});
     }}
 
+    // 12. Tech Compensation & Tier Matrix Table
+    const COMPANY_TIERS_DATA = {company_tiers_json_str};
+    let currentCompFilter = 'all';
+    let currentCompSort = 'pay_desc';
+    let currentCompQuery = '';
+
+    function onCompSearchChange(val) {{
+      currentCompQuery = (val || '').toLowerCase().trim();
+      renderCompensationTable();
+    }}
+
+    function onCompSortChange(val) {{
+      currentCompSort = val;
+      renderCompensationTable();
+    }}
+
+    function setCompFilter(filter) {{
+      currentCompFilter = filter;
+      document.querySelectorAll('.comp-filter-btn').forEach(btn => {{
+        if (btn.dataset.filter === filter) {{
+          btn.className = 'comp-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold ui-accent-btn shadow-sm transition-all whitespace-nowrap';
+        }} else {{
+          btn.className = 'comp-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold ui-card border ui-text-muted hover:text-[var(--text)] transition-all whitespace-nowrap';
+        }}
+      }});
+      renderCompensationTable();
+    }}
+
+    function renderCompensationTable() {{
+      const tbody = document.getElementById('comp-tbody');
+      const emptyEl = document.getElementById('comp-empty');
+      const countEl = document.getElementById('comp-count-badge');
+      if (!tbody) return;
+
+      let list = [...COMPANY_TIERS_DATA];
+
+      // Filter
+      if (currentCompFilter === 's_tier') {{
+        list = list.filter(c => c.tier === 'S-Tier');
+      }} else if (currentCompFilter === 'a_tier') {{
+        list = list.filter(c => c.tier === 'A-Tier');
+      }} else if (currentCompFilter === 'quant') {{
+        list = list.filter(c => c.tier === 'Quant' || c.tags.includes('Quant'));
+      }} else if (currentCompFilter === 'good_wlb') {{
+        list = list.filter(c => c.wlb === 'Good');
+      }} else if (currentCompFilter === 'high_hustle') {{
+        list = list.filter(c => c.wlb === 'Tough' || c.tags.includes('High Hustle'));
+      }} else if (currentCompFilter === 'remote') {{
+        list = list.filter(c => c.tags.includes('Remote-First') || c.location.toLowerCase().includes('remote'));
+      }} else if (currentCompFilter === 'relocation') {{
+        list = list.filter(c => c.tier === 'Relocation');
+      }}
+
+      // Search
+      if (currentCompQuery) {{
+        list = list.filter(c => {{
+          const str = (c.name + ' ' + c.tier + ' ' + c.location + ' ' + c.seniorLvl + ' ' + c.seniorBase + ' ' + c.seniorTC + ' ' + c.staffTC + ' ' + c.wlbNote + ' ' + c.interviewFocus + ' ' + c.tags.join(' ')).toLowerCase();
+          return str.includes(currentCompQuery);
+        }});
+      }}
+
+      // Sort
+      if (currentCompSort === 'pay_desc') {{
+        list.sort((a, b) => b.seniorTCNum - a.seniorTCNum);
+      }} else if (currentCompSort === 'pay_asc') {{
+        list.sort((a, b) => a.seniorTCNum - b.seniorTCNum);
+      }} else if (currentCompSort === 'name_asc') {{
+        list.sort((a, b) => a.name.localeCompare(b.name));
+      }} else if (currentCompSort === 'wlb') {{
+        const wlbOrder = {{ 'Good': 1, 'Moderate': 2, 'Tough': 3 }};
+        list.sort((a, b) => (wlbOrder[a.wlb] || 9) - (wlbOrder[b.wlb] || 9));
+      }}
+
+      if (countEl) {{
+        countEl.textContent = `${{list.length}} ${{list.length === 1 ? 'company' : 'companies'}}`;
+      }}
+
+      if (!list.length) {{
+        tbody.innerHTML = '';
+        if (emptyEl) emptyEl.classList.remove('hidden');
+        return;
+      }}
+      if (emptyEl) emptyEl.classList.add('hidden');
+
+      tbody.innerHTML = list.map(c => {{
+        let tierBadge = '';
+        if (c.tier === 'S-Tier') {{
+          tierBadge = '<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/15 text-amber-400 border border-amber-500/30">🔥 S-Tier</span>';
+        }} else if (c.tier === 'A-Tier') {{
+          tierBadge = '<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">⭐ A-Tier</span>';
+        }} else if (c.tier === 'Quant') {{
+          tierBadge = '<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-purple-500/15 text-purple-400 border border-purple-500/30">⚡ Quant</span>';
+        }} else if (c.tier === 'Relocation') {{
+          tierBadge = '<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-sky-500/15 text-sky-400 border border-sky-500/30">✈️ Relocation</span>';
+        }} else {{
+          tierBadge = '<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-500/15 text-slate-400 border border-slate-500/30">Mid-Tier</span>';
+        }}
+
+        let wlbBadge = '';
+        if (c.wlb === 'Good') {{
+          wlbBadge = '<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">🌱 Good</span>';
+        }} else if (c.wlb === 'Tough') {{
+          wlbBadge = '<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-500/15 text-rose-400 border border-rose-500/30">🔥 Tough</span>';
+        }} else {{
+          wlbBadge = '<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/15 text-amber-400 border border-amber-500/30">⚖️ Moderate</span>';
+        }}
+
+        return `
+          <tr class="hover:bg-[var(--surface-hover)] transition-colors">
+            <td class="py-3 px-3">
+              <div class="font-bold text-sm text-[var(--text)]">${{c.name}}</div>
+              <div class="text-[11px] ui-text-muted mt-0.5">${{c.location}}</div>
+            </td>
+            <td class="py-3 px-3 whitespace-nowrap">
+              ${{tierBadge}}
+            </td>
+            <td class="py-3 px-3">
+              <div class="font-bold text-sm ui-accent-text">${{c.seniorTC}}</div>
+              <div class="text-[11px] ui-text-muted mt-0.5">${{c.seniorLvl}} • Base: <span class="font-semibold text-[var(--text)]">${{c.seniorBase}}</span></div>
+            </td>
+            <td class="py-3 px-3 hidden md:table-cell">
+              <div class="font-bold text-xs text-[var(--text)]">${{c.staffTC}}</div>
+            </td>
+            <td class="py-3 px-3 hidden lg:table-cell">
+              <div class="text-xs text-[var(--text)]">${{c.equityType}}</div>
+            </td>
+            <td class="py-3 px-3">
+              <div>${{wlbBadge}}</div>
+              <div class="text-[11px] ui-text-muted mt-0.5 max-w-[180px] truncate" title="${{c.wlbNote}}">${{c.wlbNote}}</div>
+            </td>
+            <td class="py-3 px-3 hidden xl:table-cell max-w-xs">
+              <div class="text-xs ui-text-muted line-clamp-2" title="${{c.interviewFocus}}">${{c.interviewFocus}}</div>
+            </td>
+            <td class="py-3 px-3 text-right whitespace-nowrap">
+              ${{c.hasDoc ? `
+                <button type="button" onclick="openDocInReader('${{c.docPath}}')" class="px-2.5 py-1 rounded-lg ui-card border text-xs font-semibold ui-accent-text hover:opacity-90 transition-opacity">
+                  Problems →
+                </button>
+              ` : `
+                <span class="text-[11px] ui-text-muted">Direct / C++</span>
+              `}}
+            </td>
+          </tr>
+        `;
+      }}).join('');
+    }}
+
     // Boot Application
     initState();
     const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
@@ -3737,7 +4084,7 @@ print("Hello from Python 3 Playground!")
 
     if (paramDoc) {{
       openDocInReader(paramDoc);
-    }} else if (paramView && ['concepts', 'problems', 'cheatsheets', 'playground', 'tracker', 'pomodoro', 'roadmap'].includes(paramView)) {{
+    }} else if (paramView && ['concepts', 'problems', 'companies', 'compensation', 'system_design', 'cheatsheets', 'playground', 'tracker', 'pomodoro', 'roadmap'].includes(paramView)) {{
       renderDoc(currentDocPath);
       switchView(paramView);
     }} else {{
