@@ -330,7 +330,7 @@ COURSE_HW_RAW = [
     (304, "Range Sum Query 2D - Immutable", "Medium", "Prefix Sum", "range-sum-query-2d-immutable", None, None),
     (53, "Maximum Subarray", "Medium", "Kadane's Algorithm", "maximum-subarray", None, None),
     (152, "Maximum Product Subarray", "Medium", "Kadane's Algorithm", "maximum-product-subarray", None, None),
-    (560, "Subarray Sum Equals K", "Medium", "Prefix Sum", "subarray-sum-equals-k", None, None),
+    (560, "Subarray Sum Equals K", "Medium", "Prefix Sum", "subarray-sum-equals-k", "Revisit: Prefix Map", "01_arrays_and_pointers/560_subarray_sum_equals_k.md"),
     # 2D Matrix
     (1572, "Matrix Diagonal Sum", "Easy", "Matrix", "matrix-diagonal-sum", None, None),
     (54, "Spiral Matrix", "Medium", "Matrix", "spiral-matrix", None, None),
