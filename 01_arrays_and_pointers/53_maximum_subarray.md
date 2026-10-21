@@ -1,77 +1,131 @@
 # LeetCode 53: Maximum Subarray
 
-> **Difficulty:** Medium | **Pattern:** Kadane's Algorithm (Running Prefix Reset) | **Link:** [LeetCode 53](https://leetcode.com/problems/maximum-subarray/)
+> **Difficulty:** Medium | **Pattern:** Kadane's Algorithm (Running Prefix Reset)  
+> **Source Code:** [`53_maximum_subarray.py`](./53_maximum_subarray.py) | **Link:** [LeetCode 53](https://leetcode.com/problems/maximum-subarray/)
 
-## The Problem
+## The problem
+
 Find the contiguous subarray inside `nums` that has the largest sum, and return that sum.
 
 ```text
 Input:  nums = [-2, 1, -3, 4, -1, 2, 1, -5, 4]
-Output: 6  (from subarray [4, -1, 2, 1])
+Output: 6  (From subarray [4, -1, 2, 1])
 ```
 
-## Why the naive way fails
-Checking every possible subarray `[i..j]` takes $\mathcal{O}(n^2)$ time. On an array of $10^5$ numbers, that's $5 \times 10^9$ steps and an instant Time Limit Exceeded (TLE).
+---
 
-## The core trick: drop negative baggage
-Walk through the array while keeping a running `current_sum`. Before adding today's number `num`, ask one question:
+## Approach 1: Brute force (nested loops)
 
-**Is my running sum from the past negative?**
-- If `current_sum < 0`, adding it to `num` only drags `num` down. Throw the past away and start fresh at `num`.
-- If `current_sum >= 0`, keep it and add `num`.
+Check every possible subarray `(i, j)`. Compute running sums and track the maximum.
+* **Time:** $\mathcal{O}(N^2)$ nested iterations.
+* **Space:** $\mathcal{O}(1)$. Hits TLE for $N = 10^5$.
 
-In code, that choice is just:
+---
+
+## Approach 2: Semi-optimized (divide and conquer)
+
+Split the array in half at `mid`. The maximum subarray must lie in one of three places:
+1. Entirely in the left half.
+2. Entirely in the right half.
+3. Crossing the midpoint (spanning from `mid` leftward and `mid + 1` rightward).
+
+Solve recursively with recurrence $T(N) = 2T(N/2) + \mathcal{O}(N)$.
+* **Time:** $\mathcal{O}(N \log N)$.
+* **Auxiliary space:** $\mathcal{O}(\log N)$ recursion stack frames. Follow-up question often asked by interviewers.
+
+---
+
+## Approach 3: Optimized (Kadane's algorithm)
+
+Walk through the array while keeping a running `cur_sum`. At each number `num`, ask:
+> *"Does adding `num` to the previous running sum help, or is the previous sum dragging me down?"*
+
+- If `cur_sum < 0`, carrying it forward hurts future sums. Drop the past baggage and start fresh at `num`.
+- If `cur_sum >= 0`, keep the positive cushion and add `num`.
+
 ```python
-current_sum = max(num, current_sum + num)
+cur_sum = max(cur_sum + num, num)
+max_sum = max(max_sum, cur_sum)
 ```
 
-Notice that a dip isn't fatal as long as the running total stays positive:
 ```text
-Subarray:  [ 4,  -1,   2,   1 ]
-Running:     4 -> 3 -> 5 -> 6 (Max!)
+nums:      [ -2,   1,  -3,   4,  -1,   2,   1,  -5,   4 ]
+cur_sum:     -2    1   -2    4    3    5    6    1    5
+Decision:   start reset reset start keep keep keep keep keep
+max_sum:     -2    1    1    4    4    5    6    6    6
 ```
-Even though `-1` dropped the total from `4` to `3`, keeping that `+3` cushion let us reach `6` when `2` and `1` showed up. We only reset when the running sum drops below `0`.
 
-### Algorithm steps (Kadane's algorithm):
-* **1. Initialize trackers:** Set `current_sum = nums[0]` and `max_sum = nums[0]`.
-* **2. Iterate through array:** For each `num` from index 1 to $n - 1$:
-  * If `current_sum < 0`, carrying it forward only hurts future sums; start fresh with `current_sum = num`.
-  * Otherwise, extend the existing positive cushion: `current_sum += num`.
-  * Update global best: `max_sum = max(max_sum, current_sum)`.
-* **3. Return:** `max_sum` in $\mathcal{O}(n)$ time and $\mathcal{O}(1)$ space.
+### Algorithm steps:
+* **1. Initialize:** `max_sum = float("-inf")`, `cur_sum = 0`.
+* **2. Iterate:** For each `num` in `nums`:
+  * `cur_sum = max(cur_sum + num, num)`
+  * `max_sum = max(max_sum, cur_sum)`
+* **3. Return:** `max_sum` in single pass.
 
-## Trace
-| `num` | `current_sum + num` | Start fresh (`num`) | New `current_sum` | `max_sum` |
-| :--- | :--- | :--- | :--- | :--- |
-| `-2` | (init) | `-2` | `-2` | `-2` |
-| `1` | `-2 + 1 = -1` | `1` (reset) | `1` | `1` |
-| `-3` | `1 + (-3) = -2` | `-3` | `-2` | `1` |
-| `4` | `-2 + 4 = 2` | `4` (reset) | `4` | `4` |
-| `-1` | `4 + (-1) = 3` | `-1` | `3` | `4` |
-| `2` | `3 + 2 = 5` | `2` | `5` | `5` |
-| `1` | `5 + 1 = 6` | `1` | `6` | `6` |
-
-## Traps to watch for
-- **All-negative arrays (`[-5, -2, -8]`):** Never initialize `max_sum = 0` or reset negative sums to `0`, or you'll return `0` instead of `-2`. Initialize both `current_sum` and `max_sum` to `nums[0]`.
+---
 
 <details>
-<summary>Spoiler: Solution Code</summary>
+<summary>Spoiler: Solution Code (All 3 Approaches)</summary>
 
 ```python
 class Solution:
+    # Approach 1: Brute Force (O(N^2) time, O(1) space)
+    def maxSubArray_brute(self, nums: list[int]) -> int:
+        n = len(nums)
+        max_sum = float("-inf")
+        for i in range(n):
+            curr_sum = 0
+            for j in range(i, n):
+                curr_sum += nums[j]
+                max_sum = max(max_sum, curr_sum)
+        return int(max_sum)
+
+    # Approach 2: Divide and Conquer (O(N log N) time, O(log N) space)
+    def maxSubArray_divide_and_conquer(self, nums: list[int]) -> int:
+        def cross_sum(left: int, mid: int, right: int) -> int:
+            left_sum = float("-inf")
+            curr = 0
+            for i in range(mid, left - 1, -1):
+                curr += nums[i]
+                left_sum = max(left_sum, curr)
+
+            right_sum = float("-inf")
+            curr = 0
+            for i in range(mid + 1, right + 1):
+                curr += nums[i]
+                right_sum = max(right_sum, curr)
+
+            return int(left_sum + right_sum)
+
+        def helper(left: int, right: int) -> int:
+            if left == right:
+                return nums[left]
+            mid = (left + right) // 2
+            left_best = helper(left, mid)
+            right_best = helper(mid + 1, right)
+            cross_best = cross_sum(left, mid, right)
+            return max(left_best, right_best, cross_best)
+
+        return helper(0, len(nums) - 1)
+
+    # Approach 3: Kadane's Algorithm (O(N) time, O(1) space)
     def maxSubArray(self, nums: list[int]) -> int:
-        current_sum = nums[0]
-        max_sum = nums[0]
-
-        for num in nums[1:]:
-            current_sum = max(num, current_sum + num)
-            max_sum = max(max_sum, current_sum)
-
-        return max_sum
+        max_sum = float("-inf")
+        cur_sum = 0
+        for num in nums:
+            cur_sum = max(cur_sum + num, num)
+            max_sum = max(max_sum, cur_sum)
+        return int(max_sum)
 ```
 
 </details>
 
-## Complexity
-- **Time:** $\mathcal{O}(n)$, single pass.
-- **Space:** $\mathcal{O}(1)$, two variables.
+---
+
+## Complexity comparison
+
+| Approach | Time Complexity | Auxiliary Space | Status |
+|---|---|---|---|
+| **1. Brute Force** | $\mathcal{O}(N^2)$ | $\mathcal{O}(1)$ | TLE on $N = 10^5$ |
+| **2. Divide & Conquer** | $\mathcal{O}(N \log N)$ | $\mathcal{O}(\log N)$ | Classic interview follow-up |
+| **3. Kadane's Algorithm** | $\mathcal{O}(N)$ | $\mathcal{O}(1)$ | Optimal FAANG benchmark |
