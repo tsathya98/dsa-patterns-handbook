@@ -37,7 +37,7 @@ CATEGORY_META = {
 DEFAULT_SOLVED_NUMBERS = {
     2, 3, 5, 11, 12, 13, 15, 19, 20, 21, 26, 27, 48, 51, 53, 54, 55, 66,
     75, 78, 80, 83, 88, 121, 122, 125, 141, 142, 143, 167, 169, 189, 203, 206, 228,
-    234, 238, 241, 274, 283, 290, 392, 459, 560, 643, 678, 704, 724, 779, 1290, 1456, 1492, 1721
+    234, 238, 241, 274, 283, 290, 392, 459, 560, 643, 678, 704, 724, 779, 1290, 1456, 1492, 1572, 1721
 }
 
 # Official LeetCode Top Interview 150 (Exact 150 problems across 23 categories)
@@ -332,7 +332,7 @@ COURSE_HW_RAW = [
     (152, "Maximum Product Subarray", "Medium", "Kadane's Algorithm", "maximum-product-subarray", None, None),
     (560, "Subarray Sum Equals K", "Medium", "Prefix Sum", "subarray-sum-equals-k", "Revisit: Prefix Map", "01_arrays_and_pointers/560_subarray_sum_equals_k.md"),
     # 2D Matrix
-    (1572, "Matrix Diagonal Sum", "Easy", "Matrix", "matrix-diagonal-sum", None, None),
+    (1572, "Matrix Diagonal Sum", "Easy", "Matrix", "matrix-diagonal-sum", None, "01_arrays_and_pointers/1572_matrix_diagonal_sum.md"),
     (54, "Spiral Matrix", "Medium", "Matrix", "spiral-matrix", None, None),
     (73, "Set Matrix Zeroes", "Medium", "Matrix", "set-matrix-zeroes", None, None),
     # Binary Search
