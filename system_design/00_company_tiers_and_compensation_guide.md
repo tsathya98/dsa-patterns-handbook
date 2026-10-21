@@ -143,40 +143,47 @@ If you are expanding your portfolio into GenAI, AI Agents, Computer Vision, or M
 
 ---
 
-### Company-by-Company AI Initiatives & Target Roles
+### Company-by-Company AI Initiatives & Target Roles (Strictly India Tech Hubs)
 
-| Company | Core AI Domain | Specific AI Systems Built | Target AI Job Titles |
-| :--- | :--- | :--- | :--- |
-| **Google** | GenAI & AI Infra | Gemini LLM core, Vertex AI, Search Generative Experience, TPU/JAX distributed training | Applied AI SWE, ML Platform Engineer, GenAI Research Engineer |
-| **Meta** | GenAI & AI Infra | Llama open-source models, PyTorch core, Generative AI for ads, Ray/vLLM infra | GenAI Platform SWE, Research Engineer (Llama), Applied ML SWE |
-| **Uber** | RecSys, Vision & Agents | Michelangelo ML platform, Deep Learning dispatch, agentic support, driver safety vision | Senior ML Engineer (Pricing/Dispatch), AI Agent SWE, Computer Vision SWE |
-| **Atlassian** | GenAI & Agents | Atlassian Intelligence, enterprise RAG across Jira & Confluence, autonomous ticket triage | Senior AI Engineer, GenAI Platform SWE, Enterprise RAG SWE |
-| **Databricks** | AI Infra & GenAI | MosaicML distributed LLM pre-training, Vector Search, DBRX serving, MLflow GenAI evals | LLM Systems Engineer, AI Platform SWE, Distributed Training Engineer |
-| **Snowflake** | AI Infra & GenAI | Cortex AI (serverless LLM functions), Snowpark Container Services, Streamlit GenAI | AI Database Systems SWE, Forward Deployed AI Engineer |
-| **Palantir** | AI Agents & Enterprise | Palantir AIP, ontology-driven enterprise LLM agents, Foundry data pipelines | Senior Forward Deployed SWE, Staff FDE, Forward Deployed AI Architect |
-| **Scale AI** | GenAI & LLM Deployment | Enterprise GenAI deployment, RLHF fine-tuning pipelines, model evaluation and red-teaming | Senior Forward Deployed AI Engineer, Staff Forward Deployed SWE |
-| **Rippling** | GenAI & Agents | Autonomous HR/payroll workflows, multimodal document extraction, policy reasoning agents | Forward Deployed Systems SWE, GenAI Application SWE, Document Vision Engineer |
-| **Rubrik** | AI Agents & Security | Ruby AI (autonomous cyber recovery assistant), backup snapshot anomaly detection | AI Security SWE, Applied ML Engineer, Threat Detection ML SWE |
-| **Stripe** | Applied ML & Agents | Radar deep learning fraud detection, agentic checkout assistant, financial reasoning models | Staff ML Engineer (Risk), GenAI Systems Engineer |
-| **Coinbase** | AI Agents & ML | Base on-chain AI agents (autonomous crypto transactions), blockchain anomaly detection | Crypto AI Agent SWE, ML Security Engineer |
-| **LinkedIn** | RecSys & GenAI | Large-scale feed & jobs recommendation, GNNs, LinkedIn Post Copilot, Vector Search | Staff ML Engineer (RecSys), GenAI Copilot SWE, Graph ML Engineer |
-| **Graviton / Tower / HRT**| Quant AI & RL | Deep RL for trade execution, limit order book transformers, real-time news NLP | Quantitative ML Researcher, Deep RL Systems Dev, Low-Latency AI SWE |
-| **PhonePe** | Applied ML & Agents | Graph Neural Networks for fraud detection, statement OCR, agentic debt collection bots | Lead ML Engineer (Risk), GenAI Agent SWE, Document Vision Engineer |
-| **CRED** | Applied ML & Agents | Credit risk underwriting models, financial document vision parsing, agentic support | Senior ML Engineer (Fintech Risk), GenAI Systems SWE |
-| **Swiggy / Zepto / Zomato**| Vision & RecSys | Grocery quality check vision, menu OCR, dynamic ETA deep learning, multimodal food search | Senior Computer Vision Engineer, Applied ML SWE (Logistics), GenAI SWE |
-| **Flipkart / Meesho** | Vision & RecSys | Visual fashion search, two-tower catalog ranking, GenAI product catalog descriptions | Staff ML Engineer (Search & Recs), Computer Vision SWE, GenAI Catalog SWE |
-| **Microsoft** | GenAI, Agents & Infra | Copilot ecosystem (M365, GitHub, Security), Azure OpenAI Service infra, Phi-3 SLMs | Senior AI Platform SWE, Copilot Systems Engineer, Distributed Training SWE |
-| **Amazon** | GenAI, Agents & Infra | Rufus conversational shopping agent, Bedrock GenAI platform, SageMaker distributed train | Applied Scientist (LLM), AI Systems SWE, Computer Vision Engineer |
-| **Adobe** | Computer Vision & GenAI | Firefly generative diffusion models (image/video/audio), Photoshop neural filters, Sensei | Computer Vision Research SWE, Generative Diffusion Engineer, Deep Learning SWE |
-| **Apple** | GenAI & On-Device Vision| Apple Intelligence (on-device SLMs, Private Cloud Compute), CoreML, Siri LLM agent | On-Device ML Systems SWE, Computer Vision SWE, Foundation Model SWE |
-| **Nvidia** | AI Infra & Systems | TensorRT-LLM, Megatron-LM, NeMo Agentic framework, Omniverse 3D vision, Drive AV | AI Systems Performance SWE, Deep Learning Performance SWE, Vision SWE |
-| **Intuit** | GenAI & Agents | Intuit GenStudio, Financial GenAI OS (tax & accounting LLMs), domain tax agents | Principal AI Engineer, Agent Systems SWE, Financial NLP SWE |
-| **ServiceNow** | GenAI & Agents | Now Assist (ITSM code generation, enterprise agentic workflows, domain-adapted LLMs) | Staff GenAI Engineer, Enterprise Agent Architecture SWE |
-| **Datadog** | AI Agents & Observability| Bits AI (autonomous incident remediation agent, log anomaly detection LLMs) | AI Observability SWE, Anomaly Detection ML Engineer |
-| **Palo Alto Networks** | AI Security & Agents | Precision AI (autonomous SecOps agents, real-time zero-day malware detection models) | AI Security SWE, Threat Intelligence ML Engineer |
-| **ByteDance (SG)** | RecSys & Vision | TikTok Monolith large-scale deep retrieval, video diffusion models, content moderation | Staff Recommendation Algorithm SWE, Multimodal AI SWE |
-| **Booking.com (NL)** | GenAI & RecSys | Travel itinerary generation agents, pricing elasticity deep learning, photo ranking | Senior Machine Learning Scientist, GenAI Travel SWE |
-| **Spotify (SE)** | Audio AI & RecSys | Spotify AI DJ (voice synthesis + personalization), audio feature embeddings, podcast LLM | Staff Audio ML Engineer, Personalization Algorithm SWE |
+Every role listed below is actively hired across Indian R&D centers (Bangalore, Hyderabad, Pune, Gurgaon, Noida, Chennai) or as 100% Remote from India.
+
+| Company | India Tech Hub | Core AI Domain | Specific AI Systems Built in India | Target AI Job Titles (L5 / L6) |
+| :--- | :--- | :--- | :--- | :--- |
+| **Google** | Bangalore / Hyderabad / Pune | GenAI & AI Infra | Gemini LLM core, Vertex AI, Search Generative Experience, TPU/JAX distributed training | Applied AI SWE, ML Platform Engineer, GenAI Research Engineer |
+| **Meta** | Gurgaon / Bangalore | GenAI & AI Infra | Llama open-source models, PyTorch core, Generative AI for ads, Ray/vLLM infra | GenAI Platform SWE, Research Engineer (Llama), Applied ML SWE |
+| **Uber** | Bangalore / Hyderabad | RecSys, Vision & Agents | Michelangelo ML platform, Deep Learning dispatch, agentic support, driver safety vision | Senior ML Engineer (Pricing/Dispatch), AI Agent SWE, Computer Vision SWE |
+| **Atlassian** | Bangalore / Remote (India) | GenAI & Agents | Atlassian Intelligence, enterprise RAG across Jira & Confluence, autonomous ticket triage | Senior AI Engineer, GenAI Platform SWE, Enterprise RAG SWE |
+| **Databricks** | Bangalore | AI Infra & GenAI | MosaicML distributed LLM pre-training, Vector Search, DBRX serving, MLflow GenAI evals | Senior Forward Deployed Engineer (AI), LLM Systems Engineer, AI Platform SWE |
+| **Snowflake** | Pune / Bangalore | AI Infra & GenAI | Cortex AI (serverless LLM functions), Snowpark Container Services, Streamlit GenAI | Forward Deployed AI Engineer, AI Database Systems SWE |
+| **Palantir** | Bangalore / Remote (India) | AI Agents & Enterprise | Palantir AIP, ontology-driven enterprise LLM agents, Foundry data pipelines | Senior Forward Deployed SWE, Staff FDE, Forward Deployed AI Architect |
+| **Scale AI** | Remote (India) | GenAI & LLM Deployment | Enterprise GenAI deployment, RLHF fine-tuning pipelines, model evaluation and red-teaming | Senior Forward Deployed AI Engineer, Staff Forward Deployed SWE |
+| **Rippling** | Bangalore | GenAI & Agents | Autonomous HR/payroll workflows, multimodal document extraction, policy reasoning agents | Forward Deployed Systems SWE, GenAI Application SWE, Document Vision Engineer |
+| **Rubrik** | Bangalore | AI Agents & Security | Ruby AI (autonomous cyber recovery assistant), backup snapshot anomaly detection | Senior Forward Deployed Security SWE, AI Security SWE, Applied ML Engineer |
+| **Stripe** | Bangalore / Remote (India) | Applied ML & Agents | Radar deep learning fraud detection, agentic checkout assistant, financial reasoning models | Senior Forward Deployed Engineer, Staff ML Engineer (Risk), GenAI Systems Engineer |
+| **Coinbase** | Remote (India) | AI Agents & ML | Base on-chain AI agents (autonomous crypto transactions), blockchain anomaly detection | Crypto AI Agent SWE, ML Security Engineer |
+| **LinkedIn** | Bangalore | RecSys & GenAI | Large-scale feed & jobs recommendation, GNNs, LinkedIn Post Copilot, Vector Search | Staff ML Engineer (RecSys), GenAI Copilot SWE, Graph ML Engineer |
+| **Graviton / Tower / HRT**| Gurgaon / Mumbai | Quant AI & RL | Deep RL for trade execution, limit order book transformers, real-time news NLP | Quantitative ML Researcher, Deep RL Systems Dev, Low-Latency AI SWE |
+| **PhonePe** | Bangalore | Applied ML & Agents | Graph Neural Networks for fraud detection, statement OCR, agentic debt collection bots | Lead ML Engineer (Risk), GenAI Agent SWE, Document Vision Engineer |
+| **CRED** | Bangalore | Applied ML & Agents | Credit risk underwriting models, financial document vision parsing, agentic support | Senior ML Engineer (Fintech Risk), GenAI Systems SWE |
+| **Swiggy** | Bangalore | Vision & RecSys | Grocery quality check vision, menu OCR, dynamic ETA deep learning, multimodal food search | Senior Computer Vision Engineer, Applied ML SWE (Logistics), GenAI SWE |
+| **Zepto** | Bangalore / Mumbai | Vision & Applied ML | 10-minute demand prediction, dark store warehouse robotics vision, smart substitute picker | Staff ML Engineer - Supply Chain, Computer Vision SWE |
+| **Zomato / Blinkit** | Gurgaon | Vision & RecSys | Restaurant menu digitizer vision, delivery partner fraud detection, dish recommendation embeddings | Lead ML Engineer, Computer Vision Engineer |
+| **Flipkart / Meesho** | Bangalore | Vision & RecSys | Visual fashion search, two-tower catalog ranking, GenAI product catalog descriptions | Staff ML Engineer (Search & Recs), Computer Vision SWE, GenAI Catalog SWE |
+| **Microsoft** | Bangalore / Hyderabad / Noida | GenAI, Agents & Infra | Copilot ecosystem (M365, GitHub, Security), Azure OpenAI Service infra, Phi-3 SLMs | Senior AI Platform SWE, Copilot Systems Engineer, Distributed Training SWE |
+| **Amazon** | Bangalore / Hyderabad / Chennai| GenAI, Agents & Infra | Rufus conversational shopping agent, Bedrock GenAI platform, SageMaker distributed train | Applied Scientist (LLM), AI Systems SWE, Computer Vision Engineer |
+| **Adobe** | Noida / Bangalore | Computer Vision & GenAI | Firefly generative diffusion models (image/video/audio), Photoshop neural filters, Sensei | Computer Vision Research SWE, Generative Diffusion Engineer, Deep Learning SWE |
+| **Apple** | Hyderabad / Bangalore | GenAI & On-Device Vision| Apple Intelligence (on-device SLMs, Private Cloud Compute), CoreML, Siri LLM agent | On-Device ML Systems SWE, Computer Vision SWE, Foundation Model SWE |
+| **Nvidia** | Bangalore / Pune | AI Infra & Systems | TensorRT-LLM, Megatron-LM, NeMo Agentic framework, Omniverse 3D vision, Drive AV | AI Systems Performance SWE, Deep Learning Performance SWE, Vision SWE |
+| **Salesforce** | Bangalore / Hyderabad | GenAI & Agents | Agentforce (Autonomous enterprise sales/service agents), Einstein 1 Platform RAG | Senior Forward Deployed AI Engineer (Agentforce), Lead GenAI SWE |
+| **Intuit** | Bangalore | GenAI & Agents | Intuit GenStudio, Financial GenAI OS (tax & accounting LLMs), domain tax agents | Principal AI Engineer, Agent Systems SWE, Financial NLP SWE |
+| **ServiceNow** | Hyderabad / Bangalore | GenAI & Agents | Now Assist (ITSM code generation, enterprise agentic workflows, domain-adapted LLMs) | Staff GenAI Engineer, Enterprise Agent Architecture SWE |
+| **Datadog** | Bangalore | AI Agents & Observability| Bits AI (autonomous incident remediation agent, log anomaly detection LLMs) | Forward Deployed Observability SWE, AI Observability SWE, Anomaly Detection ML Engineer |
+| **Palo Alto Networks** | Bangalore | AI Security & Agents | Precision AI (autonomous SecOps agents, real-time zero-day malware detection models) | AI Security SWE, Threat Intelligence ML Engineer |
+| **Walmart Tech** | Bangalore / Chennai | GenAI, Vision & RecSys | Conversational shopping assistant, in-store checkout computer vision, supply chain forecasting | Staff ML Engineer, Computer Vision SWE, GenAI Search SWE |
+| **InMobi** | Bangalore | Applied ML & GenAI | Real-time bidding neural networks, generative AI ad creatives, deep CTR prediction | Principal ML Engineer, AdTech GenAI SWE |
+| **PayPal** | Bangalore / Chennai | Applied ML & Security | Real-time graph fraud detection, checkout risk neural networks, conversational support bots | Staff ML Engineer - Risk & Fraud, Applied AI SWE |
+| **Qualcomm** | Bangalore / Hyderabad | Edge AI & NPU | Snapdragon NPU compiler optimization, on-device Whisper & Llama quantization (QNN) | Senior Embedded AI Engineer, NPU Systems SWE |
+| **Intel** | Bangalore | AI Infra & Compilers | OpenVINO toolkit, Gaudi AI accelerator software stack, PyTorch hardware kernels | AI Compiler Engineer, Deep Learning Performance SWE |
 
 ---
 
@@ -239,22 +246,24 @@ An FDE is not a sales engineer and not a support consultant. **An FDE is a full-
 
 ---
 
-### Compensation Reality: Senior FDE & Staff FDE Pay Bands
+### Compensation Reality: Senior FDE & Staff FDE Pay Bands (India Hubs & Remote)
 
-Because FDEs write production code and directly unlock multi-million dollar ($5M to $50M+) enterprise contracts, top companies pay them on the **exact same engineering salary scale as Core SWE**, often with higher bonus upside:
+Because FDEs write production code and directly unlock multi-million dollar ($5M to $50M+) enterprise contracts, top companies pay them on the **exact same engineering salary scale as Core SWE**, often with higher bonus upside. Every role below is based in India or hired as 100% remote from India:
 
-| Company | Level | Base Salary (INR) | Total Compensation | Equity Nature | Key Focus |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Palantir** | Senior FDE (L5) | ₹55L - ₹75L | ₹95L - ₹1.4 Cr | Liquid US RSUs (PLTR) | AIP (Artificial Intelligence Platform) + Foundry |
-| **Palantir** | Staff FDE (L6) | ₹75L - ₹95L | ₹1.6 Cr - ₹2.5 Cr | Liquid US RSUs (PLTR) | Enterprise AI Architecture + Lead Deployment |
-| **Scale AI** | Senior FDE (L5) | ₹60L - ₹80L | ₹1.1 Cr - ₹1.6 Cr | High Growth Equity | Enterprise LLM deployment, RLHF fine-tuning |
-| **Scale AI** | Staff FDE (L6) | ₹80L - ₹1.0 Cr | ₹1.8 Cr - ₹2.8 Cr | High Growth Equity | Fortune 500 AI transformation lead |
-| **Databricks**| Senior FDE (L5) | ₹55L - ₹70L | ₹90L - ₹1.3 Cr | Pre-IPO Stock | Lakehouse AI, MosaicML, Vector Search |
-| **Databricks**| Staff FDE (L6) | ₹70L - ₹90L | ₹1.6 Cr - ₹2.5 Cr | Pre-IPO Stock | Distributed data engine + LLM serving |
-| **Stripe** | Senior FDE (L4) | ₹60L - ₹75L | ₹1.0 Cr - ₹1.5 Cr | Liquid US RSUs | Custom billing engines, enterprise checkout APIs |
-| **Salesforce**| Senior FDE (SMTS) | ₹45L - ₹55L | ₹65L - ₹85L | Liquid US RSUs | Agentforce autonomous customer service agents |
-| **Snowflake** | Senior FDE (IC4) | ₹35L - ₹48L | ₹55L - ₹75L | Liquid US RSUs | Cortex AI serverless functions, Snowpark apps |
-| **Rubrik** | Senior FDE (G7) | ₹55L - ₹68L | ₹1.0 Cr - ₹1.4 Cr | Liquid US RSUs | Ruby AI cyber recovery, backup snapshot ML |
+| Company | India Tech Hub | Level | Base Salary (INR) | Total Compensation | Equity Nature | Key Focus |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **Palantir** | Bangalore / Remote (India) | Senior FDE (L5) | ₹55L - ₹75L | ₹95L - ₹1.4 Cr | Liquid US RSUs (PLTR) | AIP (Artificial Intelligence Platform) + Foundry |
+| **Palantir** | Bangalore / Remote (India) | Staff FDE (L6) | ₹75L - ₹95L | ₹1.6 Cr - ₹2.5 Cr | Liquid US RSUs (PLTR) | Enterprise AI Architecture + Lead Deployment |
+| **Scale AI** | Remote (India) | Senior FDE (L5) | ₹60L - ₹80L | ₹1.1 Cr - ₹1.6 Cr | High Growth Equity | Enterprise LLM deployment, RLHF fine-tuning |
+| **Scale AI** | Remote (India) | Staff FDE (L6) | ₹80L - ₹1.0 Cr | ₹1.8 Cr - ₹2.8 Cr | High Growth Equity | Fortune 500 AI transformation lead |
+| **Databricks**| Bangalore | Senior FDE (L5) | ₹55L - ₹70L | ₹90L - ₹1.3 Cr | Pre-IPO Stock | Lakehouse AI, MosaicML, Vector Search |
+| **Databricks**| Bangalore | Staff FDE (L6) | ₹70L - ₹90L | ₹1.6 Cr - ₹2.5 Cr | Pre-IPO Stock | Distributed data engine + LLM serving |
+| **Stripe** | Bangalore / Remote (India) | Senior FDE (L4) | ₹60L - ₹75L | ₹1.0 Cr - ₹1.5 Cr | Liquid US RSUs | Custom billing engines, enterprise checkout APIs |
+| **Salesforce**| Bangalore / Hyderabad | Senior FDE (SMTS) | ₹45L - ₹55L | ₹65L - ₹85L | Liquid US RSUs | Agentforce autonomous customer service agents |
+| **Snowflake** | Pune / Bangalore | Senior FDE (IC4) | ₹35L - ₹48L | ₹55L - ₹75L | Liquid US RSUs | Cortex AI serverless functions, Snowpark apps |
+| **Rubrik** | Bangalore | Senior FDE (G7) | ₹55L - ₹68L | ₹1.0 Cr - ₹1.4 Cr | Liquid US RSUs | Ruby AI cyber recovery, backup snapshot ML |
+| **Rippling** | Bangalore | Senior FDE (L6) | ₹60L - ₹78L | ₹95L - ₹1.5 Cr | High Base + Stock | Enterprise payroll integrations, identity APIs |
+| **Datadog** | Bangalore | Senior FDE (L5) | ₹42L - ₹55L | ₹55L - ₹80L | Liquid US RSUs | Forward Deployed Observability & Telemetry SWE |
 
 ---
 
