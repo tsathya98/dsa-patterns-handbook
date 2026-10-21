@@ -30,7 +30,13 @@ CATEGORY_META = {
     "sd_cases": {"label": "03. Canonical HLD Case Studies", "order": 83, "icon": "🏗️"},
     "sd_lld": {"label": "04. Low-Level Design (LLD)", "order": 84, "icon": "💻"},
     "system_design": {"label": "System Design", "order": 85, "icon": "🏗️"},
-    "cheat_sheets": {"label": "Cheat Sheets", "order": 90, "icon": "⚡"},
+    "ai_genai": {"label": "01. GenAI & Transformers", "order": 86, "icon": "⚡"},
+    "ai_serving": {"label": "02. LLM Inference & Serving", "order": 87, "icon": "🚀"},
+    "ai_rag_agents": {"label": "03. RAG & Agentic Systems", "order": 88, "icon": "🧠"},
+    "ai_mlops": {"label": "04. MLOps & Production Platforms", "order": 89, "icon": "🛠️"},
+    "ai_recsys": {"label": "05. RecSys & Two-Tower DNNs", "order": 90, "icon": "🎯"},
+    "ai_and_ml": {"label": "AI & GenAI Systems", "order": 85, "icon": "🤖"},
+    "cheat_sheets": {"label": "Cheat Sheets", "order": 91, "icon": "⚡"},
     "companies": {"label": "Company Frequency (2026)", "order": 100, "icon": "🏢"},
 }
 
@@ -318,7 +324,7 @@ LC_75_RAW = [
     (901, "Online Stock Span", "Medium", "Monotonic Stack", "online-stock-span"),
 ]
 
-# CodeKerdos Course Homework Problems (500+ Target Curriculum — Homework assigned to date)
+# CodeKerdos Course Homework Problems (500+ Target Curriculum - Homework assigned to date)
 COURSE_HW_RAW = [
     # Class 3: Factors & Math (O(sqrt N))
     (9001, "Sum of All Factors of N (O(sqrt N))", "Easy", "Foundations / Math", "", "HW-1", "00_foundations/04_factors_primes_and_iteration_counting.md"),
@@ -371,7 +377,7 @@ def parse_doc_metadata(rel_path: str, filename: str, content: str) -> dict:
     m_lc_title = re.search(r"LeetCode\s+(\d+)", title, re.IGNORECASE)
     lc_number = int(m_lc_title.group(1)) if m_lc_title else None
 
-    short_title = re.sub(r"^(?:LeetCode\s+\d+\s*[:\-–]\s*|\d+\.\s*)", "", title, flags=re.IGNORECASE).strip()
+    short_title = re.sub(r"^(?:LeetCode\s+\d+\s*[:\-\u2013]\s*|\d+\.\s*)", "", title, flags=re.IGNORECASE).strip()
 
     m_diff = re.search(r"\*\*Difficulty:\*\*\s*(Easy|Medium|Hard)", content, re.IGNORECASE)
     if m_diff:
@@ -432,6 +438,39 @@ def parse_doc_metadata(rel_path: str, filename: str, content: str) -> dict:
             cat_raw = "sd_pillars"
             cat_info = CATEGORY_META["sd_pillars"]
             difficulty = "Pillar"
+        sort_key = (cat_info["order"], prefix_num, short_title.lower())
+    elif cat_raw == "ai_and_ml":
+        doc_type = "ai"
+        if "transformers" in filename:
+            cat_raw = "ai_genai"
+            cat_info = CATEGORY_META["ai_genai"]
+            difficulty = "Concept"
+            pattern = "Transformers and Modern GenAI"
+        elif "inference" in filename or "serving" in filename:
+            cat_raw = "ai_serving"
+            cat_info = CATEGORY_META["ai_serving"]
+            difficulty = "Architecture"
+            pattern = "LLM Serving and Inference Systems"
+        elif "rag" in filename or "agentic" in filename:
+            cat_raw = "ai_rag_agents"
+            cat_info = CATEGORY_META["ai_rag_agents"]
+            difficulty = "Case Study"
+            pattern = "RAG, Agentic Systems, and GenAI Applications"
+        elif "mlops" in filename:
+            cat_raw = "ai_mlops"
+            cat_info = CATEGORY_META["ai_mlops"]
+            difficulty = "Playbook"
+            pattern = "MLOps and Machine Learning Infrastructure"
+        elif "recommendation" in filename or "recsys" in filename:
+            cat_raw = "ai_recsys"
+            cat_info = CATEGORY_META["ai_recsys"]
+            difficulty = "Case Study"
+            pattern = "Recommendation Systems and Deep Ranking"
+        else:
+            cat_raw = "ai_and_ml"
+            cat_info = CATEGORY_META["ai_and_ml"]
+            difficulty = "Concept"
+            pattern = "AI and Machine Learning"
         sort_key = (cat_info["order"], prefix_num, short_title.lower())
     elif lc_number is not None:
         doc_type = "problem"
@@ -1172,6 +1211,9 @@ def build_html(default_view: str = "concepts") -> str:
       <button type="button" onclick="switchView('system_design')" id="nav-btn-system_design" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
         <span aria-hidden="true">🏗️</span> System Design
       </button>
+      <button type="button" onclick="switchView('ai')" id="nav-btn-ai" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
+        <span aria-hidden="true">🤖</span> AI & GenAI
+      </button>
       <button type="button" onclick="switchView('cheatsheets')" id="nav-btn-cheatsheets" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap">
         <span aria-hidden="true">⚡</span> Cheat Sheets
       </button>
@@ -1213,17 +1255,20 @@ def build_html(default_view: str = "concepts") -> str:
       <div class="p-3 border-b ui-border space-y-2.5 shrink-0">
         <div class="flex items-center justify-between gap-2">
           <div class="grid grid-cols-2 gap-1.5 ui-card p-1.5 rounded-xl border text-xs flex-1" role="group" aria-label="Sidebar scope">
-            <button type="button" onclick="setSidebarScope('concept')" id="sb-scope-concept" class="py-1.5 px-2 rounded-lg font-semibold transition-all text-center flex items-center justify-center gap-1.5" title="DSA Pattern Theory">
+            <button type="button" onclick="setSidebarScope('concept')" id="sb-scope-concept" class="py-1 px-2 rounded-lg font-semibold transition-all text-center flex items-center justify-center gap-1" title="DSA Pattern Theory">
               <span>📘</span> Theory
             </button>
-            <button type="button" onclick="setSidebarScope('problem')" id="sb-scope-problem" class="py-1.5 px-2 rounded-lg font-semibold transition-all text-center flex items-center justify-center gap-1.5" title="LeetCode Problem Solutions">
+            <button type="button" onclick="setSidebarScope('problem')" id="sb-scope-problem" class="py-1 px-2 rounded-lg font-semibold transition-all text-center flex items-center justify-center gap-1" title="LeetCode Problem Solutions">
               <span>🧩</span> Problems
             </button>
-            <button type="button" onclick="setSidebarScope('companies')" id="sb-scope-companies" class="py-1.5 px-2 rounded-lg font-semibold transition-all text-center flex items-center justify-center gap-1.5" title="560+ Company Frequency Banks">
+            <button type="button" onclick="setSidebarScope('companies')" id="sb-scope-companies" class="py-1 px-2 rounded-lg font-semibold transition-all text-center flex items-center justify-center gap-1" title="560+ Company Frequency Banks">
               <span>🏢</span> Companies
             </button>
-            <button type="button" onclick="setSidebarScope('system_design')" id="sb-scope-system_design" class="py-1.5 px-2 rounded-lg font-semibold transition-all text-center flex items-center justify-center gap-1.5" title="System Design & LLD">
+            <button type="button" onclick="setSidebarScope('system_design')" id="sb-scope-system_design" class="py-1 px-2 rounded-lg font-semibold transition-all text-center flex items-center justify-center gap-1" title="System Design & LLD">
               <span>🏗️</span> Sys Design
+            </button>
+            <button type="button" onclick="setSidebarScope('ai')" id="sb-scope-ai" class="col-span-2 py-1 px-2 rounded-lg font-semibold transition-all text-center flex items-center justify-center gap-1" title="AI & GenAI Systems">
+              <span>🤖</span> AI & GenAI Systems
             </button>
           </div>
           <button type="button" onclick="toggleLeftSidebar()" class="p-2 rounded-xl ui-card border ui-text-muted hover:text-[var(--text)] self-stretch flex items-center justify-center" title="Collapse left sidebar (b)">
@@ -1754,16 +1799,19 @@ def build_html(default_view: str = "concepts") -> str:
     <div id="roadmap-accordion">
       <div class="flex items-center gap-2 overflow-x-auto pb-3" role="tablist">
         <button type="button" onclick="selectRoadmapPhase('rm-phase-1')" id="btn-rm-phase-1" aria-expanded="true" aria-controls="rm-phase-1" class="rm-tab-btn px-3.5 py-2 rounded-xl text-xs font-semibold ui-accent-soft border whitespace-nowrap">
-          Phase 1: Arrays, Pointers & Windows (W1–3)
+          Phase 1: Arrays, Pointers & Windows (W1-3)
         </button>
         <button type="button" onclick="selectRoadmapPhase('rm-phase-2')" id="btn-rm-phase-2" aria-expanded="false" aria-controls="rm-phase-2" class="rm-tab-btn px-3.5 py-2 rounded-xl text-xs font-semibold ui-card border ui-text-muted whitespace-nowrap">
-          Phase 2: Linked Lists, Stacks & Binary Search (W4–6)
+          Phase 2: Linked Lists, Stacks & Binary Search (W4-6)
         </button>
         <button type="button" onclick="selectRoadmapPhase('rm-phase-3')" id="btn-rm-phase-3" aria-expanded="false" aria-controls="rm-phase-3" class="rm-tab-btn px-3.5 py-2 rounded-xl text-xs font-semibold ui-card border ui-text-muted whitespace-nowrap">
-          Phase 3: Pattern Cheat Sheets (W7–9)
+          Phase 3: Pattern Cheat Sheets (W7-9)
         </button>
         <button type="button" onclick="selectRoadmapPhase('rm-phase-4')" id="btn-rm-phase-4" aria-expanded="false" aria-controls="rm-phase-4" class="rm-tab-btn px-3.5 py-2 rounded-xl text-xs font-semibold ui-card border ui-text-muted whitespace-nowrap">
-          Phase 4: System Design & Architecture (W10–12)
+          Phase 4: System Design & Architecture (W10-12)
+        </button>
+        <button type="button" onclick="selectRoadmapPhase('rm-phase-5')" id="btn-rm-phase-5" aria-expanded="false" aria-controls="rm-phase-5" class="rm-tab-btn px-3.5 py-2 rounded-xl text-xs font-semibold ui-card border ui-text-muted whitespace-nowrap">
+          Phase 5: AI & Machine Learning Systems (W13-14)
         </button>
       </div>
 
@@ -1778,6 +1826,9 @@ def build_html(default_view: str = "concepts") -> str:
       </div>
       <div id="rm-phase-4" class="rm-panel" hidden="until-found">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2" id="rm-phase-4-grid"></div>
+      </div>
+      <div id="rm-phase-5" class="rm-panel" hidden="until-found">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2" id="rm-phase-5-grid"></div>
       </div>
     </div>
   </section>
@@ -3124,13 +3175,14 @@ print("Hello from Python 3 Playground!")
 
     function setSidebarScope(scope, syncNav = true) {{
       sidebarScope = scope;
-      ['concept', 'problem', 'companies', 'system_design'].forEach(s => {{
+      ['concept', 'problem', 'companies', 'system_design', 'ai'].forEach(s => {{
         const btn = document.getElementById(`sb-scope-${{s}}`);
         if (!btn) return;
+        const baseClass = s === 'ai' ? 'col-span-2 py-1 px-2 rounded-lg transition-all text-center flex items-center justify-center gap-1 ' : 'py-1 px-2 rounded-lg transition-all text-center flex items-center justify-center gap-1 ';
         if (s === scope) {{
-          btn.className = 'py-1.5 px-2 rounded-lg font-bold transition-all text-center flex items-center justify-center gap-1.5 ui-accent-btn shadow-sm';
+          btn.className = baseClass + 'font-bold ui-accent-btn shadow-sm';
         }} else {{
-          btn.className = 'py-1.5 px-2 rounded-lg font-medium transition-all text-center flex items-center justify-center gap-1.5 ui-text-muted hover:text-[var(--text)] hover:bg-[var(--surface-hover)]';
+          btn.className = baseClass + 'font-semibold ui-text-muted hover:text-[var(--text)] hover:bg-[var(--surface-hover)]';
         }}
       }});
       renderSidebarTree();
@@ -3140,7 +3192,8 @@ print("Hello from Python 3 Playground!")
           'concept': 'concepts',
           'problem': 'problems',
           'companies': 'companies',
-          'system_design': 'system_design'
+          'system_design': 'system_design',
+          'ai': 'ai'
         }};
         if (viewMap[scope] && currentView !== viewMap[scope]) {{
           switchView(viewMap[scope], false);
@@ -3151,7 +3204,7 @@ print("Hello from Python 3 Playground!")
     // 5. Primary Navigation Switcher
     function switchView(view, syncSidebar = true) {{
       currentView = view;
-      ['concepts', 'problems', 'companies', 'compensation', 'system_design', 'cheatsheets', 'playground', 'tracker', 'pomodoro'].forEach(v => {{
+      ['concepts', 'problems', 'companies', 'compensation', 'system_design', 'ai', 'cheatsheets', 'playground', 'tracker', 'pomodoro'].forEach(v => {{
         const btn = document.getElementById(`nav-btn-${{v}}`);
         if (!btn) return;
         if (v === view) {{
@@ -3175,7 +3228,8 @@ print("Hello from Python 3 Playground!")
         'concepts': 'concept',
         'problems': 'problem',
         'companies': 'companies',
-        'system_design': 'system_design'
+        'system_design': 'system_design',
+        'ai': 'ai'
       }};
 
       if (scopeMap[view]) {{
@@ -3186,7 +3240,7 @@ print("Hello from Python 3 Playground!")
 
         const doc = DOCS_DATA[currentDocPath];
         if (view === 'concepts') {{
-          if (doc?.docType === 'problem' || doc?.category === 'companies' || doc?.category?.startsWith('sd_') || doc?.category === 'system_design') {{
+          if (doc?.docType === 'problem' || doc?.category === 'companies' || doc?.category?.startsWith('sd_') || doc?.category === 'system_design' || doc?.category?.startsWith('ai_') || doc?.category === 'ai_and_ml') {{
             renderDoc("00_foundations/01_algorithms_correctness_efficiency.md");
           }}
         }} else if (view === 'problems') {{
@@ -3200,6 +3254,10 @@ print("Hello from Python 3 Playground!")
         }} else if (view === 'system_design') {{
           if (!doc?.category?.startsWith('sd_') && doc?.category !== 'system_design') {{
             renderDoc("system_design/00_faang_system_design_framework.md");
+          }}
+        }} else if (view === 'ai') {{
+          if (!doc?.category?.startsWith('ai_') && doc?.category !== 'ai_and_ml') {{
+            renderDoc("ai_and_ml/01_transformers_fundamentals_to_genai.md");
           }}
         }}
       }} else if (view === 'cheatsheets') {{
@@ -3241,6 +3299,7 @@ print("Hello from Python 3 Playground!")
       if (doc?.docType === 'problem') targetTab = 'problems';
       else if (doc?.category === 'companies') targetTab = 'companies';
       else if (doc?.category?.startsWith('sd_') || doc?.category === 'system_design') targetTab = 'system_design';
+      else if (doc?.category?.startsWith('ai_') || doc?.category === 'ai_and_ml' || doc?.docType === 'ai') targetTab = 'ai';
       currentDocPath = key;
       switchView(targetTab);
       renderDoc(key);
@@ -3308,10 +3367,11 @@ print("Hello from Python 3 Playground!")
 
     function getFilteredSidebarDocs() {{
       return DOC_KEYS.map(k => DOCS_DATA[k]).filter(d => {{
-        if (sidebarScope === 'concept') return d.docType === 'concept' && d.category !== 'companies' && !d.category.startsWith('sd_') && d.category !== 'system_design';
+        if (sidebarScope === 'concept') return d.docType === 'concept' && d.category !== 'companies' && !d.category.startsWith('sd_') && d.category !== 'system_design' && !d.category.startsWith('ai_') && d.category !== 'ai_and_ml';
         if (sidebarScope === 'problem') return d.docType === 'problem';
         if (sidebarScope === 'companies') return d.category === 'companies';
         if (sidebarScope === 'system_design') return d.category.startsWith('sd_') || d.category === 'system_design';
+        if (sidebarScope === 'ai') return d.category.startsWith('ai_') || d.category === 'ai_and_ml' || d.docType === 'ai';
         return true;
       }});
     }}
@@ -3335,6 +3395,11 @@ print("Hello from Python 3 Playground!")
       else if (doc.category === 'sd_pillars') typeLabel = '🏛️ Distributed System Pillar';
       else if (doc.category === 'sd_cases') typeLabel = '🏗️ Canonical HLD Case Study';
       else if (doc.category === 'sd_lld') typeLabel = '💻 Low-Level Design (LLD)';
+      else if (doc.category === 'ai_genai') typeLabel = '⚡ GenAI & Transformers';
+      else if (doc.category === 'ai_serving') typeLabel = '🚀 LLM Serving System';
+      else if (doc.category === 'ai_rag_agents') typeLabel = '🧠 RAG & Agentic Architecture';
+      else if (doc.category === 'ai_mlops') typeLabel = '🛠️ Production MLOps Platform';
+      else if (doc.category === 'ai_recsys') typeLabel = '🎯 RecSys & Two-Tower Architecture';
       document.getElementById('doc-type-badge').textContent = typeLabel;
       document.getElementById('doc-cat-badge').textContent = `${{doc.categoryIcon}} ${{doc.categoryLabel}}`;
 
@@ -3354,6 +3419,8 @@ print("Hello from Python 3 Playground!")
         diffBadge.className = 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30';
       }} else if (doc.difficulty === 'LLD') {{
         diffBadge.className = 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-teal-500/15 text-teal-400 border border-teal-500/30';
+      }} else if (doc.difficulty === 'Architecture') {{
+        diffBadge.className = 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-400 border border-cyan-500/30';
       }} else {{
         diffBadge.className = 'hidden';
       }}
@@ -3448,7 +3515,7 @@ print("Hello from Python 3 Playground!")
         return d.title.toLowerCase().includes(q) || d.pattern.toLowerCase().includes(q) || d.path.toLowerCase().includes(q);
       }});
 
-      const scopeLabel = sidebarScope === 'concept' ? 'Theory Guides' : (sidebarScope === 'problem' ? 'Problem Solutions' : (sidebarScope === 'companies' ? 'Company Banks' : 'System Design Tracks'));
+      const scopeLabel = sidebarScope === 'concept' ? 'Theory Guides' : (sidebarScope === 'problem' ? 'Problem Solutions' : (sidebarScope === 'companies' ? 'Company Banks' : (sidebarScope === 'ai' ? 'AI & GenAI Systems' : 'System Design Tracks')));
       document.getElementById('sidebar-count-label').textContent = `${{scopedDocs.length}} ${{scopeLabel}}`;
 
       const groups = {{}};
@@ -3779,7 +3846,8 @@ print("Hello from Python 3 Playground!")
         'rm-phase-1-grid': ['00_foundations', '01_arrays_and_pointers'],
         'rm-phase-2-grid': ['02_linked_lists', '03_stacks_and_queues', '04_sorting', '05_binary_search'],
         'rm-phase-3-grid': ['cheat_sheets'],
-        'rm-phase-4-grid': ['sd_framework', 'sd_pillars', 'sd_cases', 'sd_lld', 'system_design']
+        'rm-phase-4-grid': ['sd_framework', 'sd_pillars', 'sd_cases', 'sd_lld', 'system_design'],
+        'rm-phase-5-grid': ['ai_genai', 'ai_serving', 'ai_rag_agents', 'ai_mlops', 'ai_recsys', 'ai_and_ml']
       }};
 
       Object.keys(phaseMapping).forEach(gridId => {{
@@ -3834,7 +3902,7 @@ print("Hello from Python 3 Playground!")
             <div class="text-xs font-semibold">${{d.title}}</div>
             <div class="text-xs ui-text-muted truncate">${{d.categoryLabel}} • ${{d.pattern}}</div>
           </div>
-          <span class="text-xs font-mono px-2 py-0.5 rounded ui-surface border shrink-0">${{d.docType === 'problem' ? '🧩 Problem' : (d.docType === 'cheat_sheet' ? '⚡ Sheet' : '📘 Concept')}}</span>
+          <span class="text-xs font-mono px-2 py-0.5 rounded ui-surface border shrink-0">${{d.docType === 'problem' ? '🧩 Problem' : (d.docType === 'cheat_sheet' ? '⚡ Sheet' : (d.docType === 'ai' ? '🤖 AI/ML' : '📘 Concept'))}}</span>
         </button>
       `).join('');
     }}
@@ -3849,7 +3917,7 @@ print("Hello from Python 3 Playground!")
       }} else if (e.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) {{
         e.preventDefault();
         openCmdK();
-      }} else if ((currentView === 'concepts' || currentView === 'problems') && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) {{
+      }} else if ((currentView === 'concepts' || currentView === 'problems' || currentView === 'system_design' || currentView === 'ai') && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) {{
         if (e.key === '[') document.getElementById('prev-doc-btn').click();
         if (e.key === ']') document.getElementById('next-doc-btn').click();
         if (e.key === 'b') toggleLeftSidebar();
@@ -4123,7 +4191,7 @@ print("Hello from Python 3 Playground!")
 
     if (paramDoc) {{
       openDocInReader(paramDoc);
-    }} else if (paramView && ['concepts', 'problems', 'companies', 'compensation', 'system_design', 'cheatsheets', 'playground', 'tracker', 'pomodoro', 'roadmap'].includes(paramView)) {{
+    }} else if (paramView && ['concepts', 'problems', 'companies', 'compensation', 'system_design', 'ai', 'cheatsheets', 'playground', 'tracker', 'pomodoro', 'roadmap'].includes(paramView)) {{
       renderDoc(currentDocPath);
       switchView(paramView);
     }} else {{
