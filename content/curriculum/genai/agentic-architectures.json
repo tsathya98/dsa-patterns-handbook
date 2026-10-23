@@ -1,0 +1,148 @@
+{
+  "slug": "agentic-architectures",
+  "track": "genai",
+  "title": "Agentic architectures",
+  "summary": "An agent chooses bounded actions from observations; an orchestrator controls state, retries, and termination.",
+  "why": "Handles tasks whose next step depends on intermediate tool results.",
+  "interview": "Specify durable state, tool authority, idempotency, and a termination budget.",
+  "level": "L5 / L6",
+  "targets": [
+    "Microsoft",
+    "Amazon",
+    "Databricks",
+    "OpenAI"
+  ],
+  "equations": [
+    "s_{t+1}=T(s_t,a_t,o_t),\\quad a_t\\sim\\pi(\\cdot\\mid s_t)",
+    "\\mathrm{cost}=\\sum_t(\\mathrm{modelCost}_t+\\mathrm{toolCost}_t)"
+  ],
+  "derivation": [
+    "ReAct interleaves reasoning, action, and observations. A reflection stage can be added but is not required in every ReAct step. Persist concise decisions and tool results rather than exposing private model reasoning.",
+    "A DAG scheduler runs independent nodes when dependencies complete. A supervisor-worker system can create dynamic work; both need durable checkpoints, scoped permissions, and retry semantics."
+  ],
+  "steps": [
+    {
+      "operation": "Load working state",
+      "input": "goal + messages + checkpoint",
+      "output": "state st",
+      "note": "Working memory is bounded; load only relevant long-term records.",
+      "transformation": "Restore checkpoint; retrieve relevant facts"
+    },
+    {
+      "operation": "Choose action",
+      "input": "state st + tool schemas",
+      "output": "validated tool request",
+      "note": "Tool authorization is enforced by the runtime.",
+      "transformation": "Policy(state) -> schema-validated action"
+    },
+    {
+      "operation": "Execute + observe",
+      "input": "request + idempotency key",
+      "output": "observation ot",
+      "note": "Persist side effects and outcomes for safe retry.",
+      "transformation": "Execute authorized tool; record outcome"
+    },
+    {
+      "operation": "Checkpoint + route",
+      "input": "state, observation, budget",
+      "output": "next state or terminal answer",
+      "note": "Stop on completion, failure, budget, or required user input.",
+      "transformation": "Reduce(state, observation); enforce stop conditions"
+    }
+  ],
+  "traps": [
+    "Retrying a non-idempotent tool can duplicate side effects.",
+    "A worker message does not grant new authority.",
+    "Memory retrieval can surface stale facts or untrusted instructions.",
+    "More agents can increase coordination cost without improving quality."
+  ],
+  "tradeoff": "Parallel workers reduce wall time for independent work but spend more tokens and complicate consistency.",
+  "code": "def run_agent(state, policy, execute, max_steps=4):\n    for _ in range(max_steps):\n        action = policy(state)\n        if action[\"kind\"] == \"finish\":\n            return action[\"answer\"]\n        observation = execute(action)\n        state = {**state, \"observation\": observation}\n    raise RuntimeError(\"Step budget exhausted\")\n\nassert run_agent({}, lambda s: {\"kind\": \"finish\", \"answer\": \"done\"}, None) == \"done\"",
+  "variants": [
+    {
+      "title": "ReAct",
+      "flow": "goal -> choose action -> tool -> observation -> update state -> choose action",
+      "detail": "The runtime owns budget and termination; model output alone is not an enforcement boundary."
+    },
+    {
+      "title": "Plan-and-solve",
+      "flow": "goal -> plan -> execute step -> validate -> revise plan",
+      "detail": "Useful when a preliminary decomposition is reliable."
+    },
+    {
+      "title": "Supervisor-worker DAG",
+      "flow": "supervisor -> worker A + worker B -> dependency join -> verifier",
+      "detail": "LangGraph and AutoGen are implementation options; graph structure alone does not provide exactly-once side effects."
+    },
+    {
+      "title": "Memory hierarchy",
+      "flow": "scratchpad -> bounded working state -> retrieval -> episodic/vector store",
+      "detail": "Persist task facts with timestamps and provenance; define update and deletion rules."
+    }
+  ],
+  "sources": [
+    {
+      "title": "ReAct",
+      "url": "https://arxiv.org/abs/2210.03629"
+    },
+    {
+      "title": "Plan-and-Solve",
+      "url": "https://arxiv.org/abs/2305.04091"
+    }
+  ],
+  "lab": null,
+  "order": 3,
+  "figure": {
+    "url": "https://react-lm.github.io/files/diagram.png",
+    "source": "https://react-lm.github.io/",
+    "title": "ReAct project authors",
+    "caption": "Reasoning and acting alternate with environment observations in ReAct."
+  },
+  "explanations": [
+    {
+      "id": "react-loop",
+      "title": "ReAct as a bounded state transition loop",
+      "block": "architecture",
+      "paragraphs": [
+        "An agent receives a goal and state, chooses an action, observes the tool result, and either continues or returns an answer. ReAct interleaves reasoning and action; an explicit reflection step is an optional extension. Persist concise decisions and observable tool results rather than private reasoning traces.",
+        "The runtime owns the tool allowlist, argument validation, authorization, timeout, token budget, and step limit. A model can propose an action, but only the runtime can decide whether to execute it. Tool output becomes evidence in the next state and must be treated as untrusted input.",
+        "A successful HTTP response is not necessarily a successful business action. Normalize results into status, data, errors, and retryability. Exit when the goal is satisfied, the budget is exhausted, a required input is missing, or a terminal error occurs."
+      ],
+      "flow": "goal + state -> choose bounded action -> validate / authorize\n-> execute tool -> observation + updated state\n-> continue, ask for required input, or finish"
+    },
+    {
+      "id": "plans-and-dags",
+      "title": "Plan-and-Solve, DAGs, and supervisor-worker systems",
+      "block": "trace",
+      "paragraphs": [
+        "Plan-and-Solve decomposes a task before execution. A fixed DAG runs a node only when its dependencies complete and can parallelize independent work. A supervisor can create or reassign tasks dynamically, which needs stronger controls against duplicate work and cycles.",
+        "For fetch A and fetch B followed by compare, the first two nodes can run concurrently; compare waits for both. If each fetch takes one second and compare takes 0.2 seconds, the ideal critical path is 1.2 seconds rather than 2.2, excluding scheduling and model overhead.",
+        "Use durable node state and explicit retry policies. Retrying a search is different from retrying a payment. External writes need idempotency keys or reconciliation after ambiguous outcomes. Checkpointing local state alone does not make an external side effect exactly once."
+      ]
+    },
+    {
+      "id": "agent-memory",
+      "title": "Memory hierarchy and evaluation",
+      "block": "math",
+      "paragraphs": [
+        "A short-term scratchpad holds immediate tool results and decisions. Working memory holds the active task state, constraints, and plan. Long-term episodic or vector memory stores selected information across tasks. Each layer needs an owner, retention policy, and permission boundary.",
+        "A retrieved memory can be stale or belong to another tenant. Store provenance and timestamps, scope retrieval, and let current authoritative evidence override stale recollections. Summarization saves context but can erase qualifiers or incorrectly turn a proposal into a completed action.",
+        "Evaluate task success, unsupported claims, tool-call correctness, side-effect correctness, latency, cost, and recovery from injected failures. A benchmark with no tool timeouts or permission failures does not measure orchestration reliability."
+      ]
+    }
+  ],
+  "nextTopicReason": "The agent runtime needs a tool discovery and invocation contract. MCP supplies one such boundary.",
+  "nextTopic": "mcp",
+  "relatedTopics": [
+    {
+      "slug": "mcp",
+      "title": "Model Context Protocol",
+      "reason": "The agent runtime needs a tool discovery and invocation contract. MCP supplies one such boundary."
+    },
+    {
+      "slug": "rag-architectures",
+      "title": "RAG architectures",
+      "reason": "Review this prerequisite for the input representation, assumptions, and core operations used in this lesson."
+    }
+  ]
+}

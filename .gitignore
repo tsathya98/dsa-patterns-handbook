@@ -5,3 +5,11 @@ __pycache__/
 .vscode/
 .idea/
 notes/
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+.env*
+!.env.example
+coverage/
+apps/web/next-env.d.ts

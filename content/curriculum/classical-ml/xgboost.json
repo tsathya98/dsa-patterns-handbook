@@ -1,0 +1,142 @@
+{
+  "slug": "xgboost",
+  "track": "classical-ml",
+  "title": "Gradient boosting & XGBoost",
+  "summary": "Add trees that correct the current ensemble using local gradients and curvature.",
+  "why": "Fits nonlinear tabular relationships through sequential residual correction.",
+  "interview": "Derive optimal leaf weights and regularized split gain.",
+  "level": "L5 / L6",
+  "targets": [
+    "Amazon",
+    "Uber",
+    "Microsoft",
+    "Databricks"
+  ],
+  "equations": [
+    "\\hat y_i^{(t)}=\\hat y_i^{(t-1)}+\\eta f_t(x_i)",
+    "\\widetilde{\\mathcal L}=\\sum_i[g_i f_t(x_i)+\\tfrac12 h_i f_t(x_i)^2]+\\gamma T+\\tfrac\\lambda2\\sum_jw_j^2",
+    "w_j^*=-G_j/(H_j+\\lambda)",
+    "Gain=\\tfrac12\\left[\\frac{G_L^2}{H_L+\\lambda}+\\frac{G_R^2}{H_R+\\lambda}-\\frac{(G_L+G_R)^2}{H_L+H_R+\\lambda}\\right]-\\gamma"
+  ],
+  "derivation": [
+    "For a fixed leaf assignment, group gradients and Hessians into G_j and H_j. Differentiate G_j*w_j + 0.5*(H_j+lambda)*w_j^2; setting the derivative to zero yields the optimal weight.",
+    "Functional gradient descent adds a function in the direction that reduces loss. XGBoost uses a second-order approximation plus explicit tree complexity penalties; histogram search, sparsity handling, and column subsampling improve engineering efficiency."
+  ],
+  "steps": [
+    {
+      "operation": "Current predictions",
+      "input": "X [N,F]",
+      "output": "yhat [N]",
+      "note": "Training state is an additive ensemble.",
+      "transformation": "Sum prior tree outputs"
+    },
+    {
+      "operation": "Gradient + Hessian",
+      "input": "labels,yhat [N]",
+      "output": "g,h [N]",
+      "note": "Derivatives depend on the chosen objective.",
+      "transformation": "Differentiate loss wrt current prediction"
+    },
+    {
+      "operation": "Aggregate candidate split",
+      "input": "g,h per candidate leaf",
+      "output": "GL,HL,GR,HR scalars",
+      "note": "Histogram bins trade split precision for speed.",
+      "transformation": "Sum g,h for left and right leaf partitions"
+    },
+    {
+      "operation": "Add weighted tree",
+      "input": "leaf weights [T]",
+      "output": "updated yhat [N]",
+      "note": "Learning rate shrinks each tree update.",
+      "transformation": "yhat += learning_rate * tree(x)"
+    }
+  ],
+  "traps": [
+    "The split formula shown omits optional L1 regularization.",
+    "Random cross-validation can leak future information in temporal datasets.",
+    "High leaf count and weak regularization can memorize small groups."
+  ],
+  "tradeoff": "Lower learning rates usually require more trees; depth and leaf constraints govern interactions and overfitting.",
+  "code": "def leaf_weight(g, h, reg=1.0):\n    return -g/(h+reg)\n\ndef gain(gl, hl, gr, hr, reg=1.0, gamma=0.0):\n    return 0.5*(gl*gl/(hl+reg)+gr*gr/(hr+reg)-(gl+gr)**2/(hl+hr+reg))-gamma\n\nassert leaf_weight(6, 2) == -2\nassert gain(-4,2,4,2) > 0",
+  "variants": [
+    {
+      "title": "Gradient boosting",
+      "flow": "current ensemble -> loss gradients -> fit weak learner -> shrink update -> ensemble",
+      "detail": "Squared-error gradients correspond to residual correction."
+    },
+    {
+      "title": "XGBoost leaf optimization",
+      "flow": "candidate partition -> sum gradients/Hessians -> closed-form weights -> compare gain",
+      "detail": "Accept a split only when its regularized gain and structural constraints permit it."
+    }
+  ],
+  "sources": [
+    {
+      "title": "XGBoost paper",
+      "url": "https://arxiv.org/abs/1603.02754"
+    },
+    {
+      "title": "XGBoost model tutorial",
+      "url": "https://xgboost.readthedocs.io/en/stable/tutorials/model.html"
+    }
+  ],
+  "lab": null,
+  "order": 4,
+  "figure": {
+    "url": "https://raw.githubusercontent.com/dmlc/web-data/master/xgboost/model/split_find.png",
+    "source": "https://xgboost.readthedocs.io/en/stable/tutorials/model.html",
+    "title": "XGBoost documentation",
+    "caption": "Candidate split evaluation aggregates gradients and Hessians into leaf scores."
+  },
+  "explanations": [
+    {
+      "id": "functional-gradient",
+      "title": "Boosting adds a correction function",
+      "block": "architecture",
+      "paragraphs": [
+        "An additive ensemble predicts F_t(x)=F_(t-1)(x)+eta*f_t(x). Gradient boosting fits the next function to a direction that reduces loss with respect to current predictions. For squared error this direction is the residual; for other losses it is the negative gradient.",
+        "XGBoost approximates the incremental objective using first derivatives g_i and second derivatives h_i of the loss at current predictions. Tree complexity penalties regularize the number of leaves and leaf weights.",
+        "Trees are trained sequentially because each stage depends on the current ensemble. Parallel split evaluation and data processing inside a stage do not make the boosting dependence disappear. Smaller learning rates usually require more trees and validation-based stopping."
+      ]
+    },
+    {
+      "id": "leaf-gain",
+      "title": "Derive leaf weights and split gain",
+      "block": "math",
+      "paragraphs": [
+        "For a fixed tree structure, sum gradients G_j and Hessians H_j inside each leaf. The leaf objective is G_j*w_j + 0.5*(H_j+lambda)*w_j^2 plus the per-leaf complexity cost. Setting the derivative to zero gives w_j=-G_j/(H_j+lambda).",
+        "Substituting optimal weights gives the score improvement from a split. The child score sum must exceed the parent score plus gamma, the extra-leaf penalty. This derivation assumes the stated L2 regularizer; L1 regularization changes the weight formula.",
+        "For GL=4,HL=2,GR=-2,HR=2,lambda=1,gamma=0, the gain is 0.5*(16/3+4/3-4/5), approximately 2.933. Child weights are -1.333 and 0.667. Apply eta when adding their predictions to the ensemble."
+      ],
+      "equations": [
+        "w_j^*=-\\frac{G_j}{H_j+\\lambda}",
+        "Gain=\\frac12\\left[\\frac{G_L^2}{H_L+\\lambda}+\\frac{G_R^2}{H_R+\\lambda}-\\frac{(G_L+G_R)^2}{H_L+H_R+\\lambda}\\right]-\\gamma"
+      ]
+    },
+    {
+      "id": "boosting-engineering",
+      "title": "Split search, missing values, and validation",
+      "block": "trace",
+      "paragraphs": [
+        "Histogram methods bin feature values and aggregate gradient statistics rather than testing every raw threshold. Sparsity-aware handling can learn a default branch for missing values. A missing entry and a measured zero are not automatically equivalent.",
+        "Control overfitting using tree depth or leaf limits, row and column subsampling, regularization, learning rate, and early stopping on a valid split. Do not select the number of rounds on the final test set.",
+        "For temporal prediction, training rows and features must respect event time. A boosted tree can exploit future-derived aggregates as efficiently as any other model. Compare ranking, probability calibration, and business thresholds under the deployment distribution."
+      ]
+    }
+  ],
+  "nextTopicReason": "Move from supervised additive trees to clustering and variance-based representation learning.",
+  "nextTopic": "kmeans-pca",
+  "relatedTopics": [
+    {
+      "slug": "kmeans-pca",
+      "title": "K-Means & PCA",
+      "reason": "Move from supervised additive trees to clustering and variance-based representation learning."
+    },
+    {
+      "slug": "trees-random-forest",
+      "title": "Decision trees & random forests",
+      "reason": "Review this prerequisite for the input representation, assumptions, and core operations used in this lesson."
+    }
+  ]
+}

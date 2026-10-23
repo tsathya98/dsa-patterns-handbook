@@ -1,0 +1,140 @@
+{
+  "slug": "human-pose",
+  "track": "computer-vision",
+  "title": "Human pose estimation",
+  "summary": "Predict joint positions and group them into people.",
+  "why": "Supports motion understanding with a compact geometric representation.",
+  "interview": "Compare top-down and bottom-up scaling and decode heatmaps without losing coordinates.",
+  "level": "L5 / L6",
+  "targets": [
+    "Apple",
+    "Meta",
+    "Google",
+    "Uber"
+  ],
+  "equations": [
+    "H_j(u,v)=\\exp\\left(-\\frac{(u-x_j)^2+(v-y_j)^2}{2\\sigma^2}\\right)",
+    "(\\hat x_j,\\hat y_j)=\\arg\\max_{u,v}\\hat H_j(u,v)"
+  ],
+  "derivation": [
+    "Top-down detects people and estimates one pose per crop. Bottom-up predicts all joints and then groups them into people. The cost and error profile changes with person count and crowding.",
+    "HRNet keeps a high-resolution stream while repeatedly exchanging information with lower-resolution branches, instead of recovering all detail after one low-resolution bottleneck."
+  ],
+  "steps": [
+    {
+      "operation": "Locate / encode people",
+      "input": "image [B,3,H,W]",
+      "output": "crops [R,3,Hc,Wc] or full-image features",
+      "note": "Top-down recall is bounded by the person detector.",
+      "transformation": "Detect and crop, or encode full image"
+    },
+    {
+      "operation": "Multi-resolution fusion",
+      "input": "parallel spatial feature maps",
+      "output": "high-resolution features [R,C,h,w]",
+      "note": "HRNet exchanges information across scales.",
+      "transformation": "Repeated upsample/downsample fusion across streams"
+    },
+    {
+      "operation": "Joint heatmaps",
+      "input": "features [R,C,h,w]",
+      "output": "[R,J,h,w]",
+      "note": "Gaussian targets encode joint location uncertainty.",
+      "transformation": "Spatial projection to J Gaussian-target maps"
+    },
+    {
+      "operation": "Decode + invert crop",
+      "input": "heatmap maxima [R,J,2]",
+      "output": "image joints [R,J,2]",
+      "note": "Undo resize, crop, and any affine transformation.",
+      "transformation": "argmax heatmap; inverse affine crop transform"
+    }
+  ],
+  "traps": [
+    "Heatmap argmax loses subpixel precision.",
+    "Occluded and unlabeled joints need explicit supervision masks.",
+    "Two overlapping people can create ambiguous joint associations."
+  ],
+  "tradeoff": "Top-down allocates compute per detected person; bottom-up adds grouping complexity in crowded scenes.",
+  "code": "import torch\n\nheatmaps = torch.zeros(2, 17, 64, 48)\nheatmaps[:, :, 20, 10] = 1\nflat = heatmaps.flatten(-2).argmax(-1)\ny, x = flat // 48, flat % 48\njoints = torch.stack((x, y), dim=-1)\nassert joints.shape == (2, 17, 2)\nassert joints[0,0].tolist() == [10,20]",
+  "variants": [
+    {
+      "title": "Top-down",
+      "flow": "image -> person detector -> R person crops -> J joint heatmaps per crop",
+      "detail": "Missed people cannot be recovered by the pose head."
+    },
+    {
+      "title": "Bottom-up",
+      "flow": "image -> all joint candidates + association features -> group people",
+      "detail": "Grouping must separate nearby same-type joints."
+    },
+    {
+      "title": "HRNet",
+      "flow": "high-res stream <-> medium-res stream <-> low-res stream -> fused joint heatmaps",
+      "detail": "Repeated exchanges preserve spatial precision while adding context."
+    }
+  ],
+  "sources": [
+    {
+      "title": "HRNet",
+      "url": "https://arxiv.org/abs/1902.09212"
+    }
+  ],
+  "lab": null,
+  "order": 5,
+  "figure": {
+    "url": "https://jingdongwang2017.github.io/Projects/HRNet/images/HRNet.jpg",
+    "source": "https://jingdongwang2017.github.io/Projects/HRNet/",
+    "title": "HRNet project authors",
+    "caption": "High-resolution and lower-resolution streams exchange features throughout HRNet."
+  },
+  "explanations": [
+    {
+      "id": "pose-approaches",
+      "title": "Top-down versus bottom-up pose estimation",
+      "block": "architecture",
+      "paragraphs": [
+        "Top-down first detects each person and crops a region for a single-person pose model. It simplifies joint-to-person assignment, but a missed detection loses the entire pose and inference cost grows with the number of crops.",
+        "Bottom-up predicts joints across the image and then groups them into people using associations, embeddings, or related representations. It avoids one full pose pass per person but grouping becomes difficult for overlap, occlusion, and scale variation.",
+        "State the output convention: K joint coordinates, confidence or visibility, left/right labels, and coordinate system. An invisible labeled joint is different from a joint with no annotation and may need a different loss mask."
+      ]
+    },
+    {
+      "id": "heatmap-regression",
+      "title": "Gaussian targets and coordinate decoding",
+      "block": "math",
+      "paragraphs": [
+        "A heatmap model predicts [B,K,Hh,Wh]. For each visible joint, place a Gaussian centered at its downsampled coordinate. Mean squared error against that target supervises a spatial neighborhood instead of only one pixel.",
+        "Argmax converts a heatmap to a discrete coordinate and introduces grid quantization. Local refinement or soft-argmax can improve precision, but soft-argmax can average separate peaks into a location with little actual support. Decoder behavior belongs in the evaluation contract.",
+        "A 256x192 crop with a 64x48 heatmap has scale factor four on each axis. Undo the crop transform to recover image coordinates. A good heatmap prediction with a wrong crop inverse transform produces a wrong final pose."
+      ],
+      "equations": [
+        "H_k(u,v)=\\exp\\left(-\\frac{(u-u_k)^2+(v-v_k)^2}{2\\sigma^2}\\right)"
+      ]
+    },
+    {
+      "id": "hrnet",
+      "title": "HRNet preserves spatial detail through parallel streams",
+      "block": "trace",
+      "paragraphs": [
+        "HRNet keeps a high-resolution stream while adding parallel lower-resolution streams. Repeated exchange units fuse information across resolutions. It avoids forcing all spatial detail through a single low-resolution bottleneck before reconstructing it.",
+        "Occlusion and small people require different checks from large visible subjects. Use an appropriate joint metric, such as an OKS-based AP protocol, with its keypoint-specific scale and visibility conventions. Inspect left/right swaps and crowd grouping failures directly.",
+        "Horizontal flip augmentation must swap left/right joint channels as well as coordinates. A flipped wrist heatmap with an unchanged semantic channel silently trains contradictory labels."
+      ]
+    }
+  ],
+  "nextTopicReason": "Pose estimation predicts structured outputs; latent-variable models instead learn a distribution for generating data.",
+  "nextTopic": "vae",
+  "relatedTopics": [
+    {
+      "slug": "vae",
+      "title": "Autoencoders & variational autoencoders",
+      "reason": "Pose estimation predicts structured outputs; latent-variable models instead learn a distribution for generating data."
+    },
+    {
+      "slug": "image-processing",
+      "title": "Image processing & convolution",
+      "reason": "Review this prerequisite for the input representation, assumptions, and core operations used in this lesson."
+    }
+  ]
+}

@@ -1,0 +1,174 @@
+{
+  "slug": "object-detection",
+  "track": "computer-vision",
+  "title": "Object detection",
+  "summary": "Predict object categories and bounding boxes from image features.",
+  "why": "Localizes multiple objects rather than producing one image-level label.",
+  "interview": "Compare proposal-based, dense single-stage, and set-prediction detectors.",
+  "level": "L5 / L6",
+  "targets": [
+    "Apple",
+    "Meta",
+    "Google",
+    "Uber"
+  ],
+  "equations": [
+    "\\operatorname{IoU}(A,B)=\\frac{|A\\cap B|}{|A\\cup B|}",
+    "\\hat\\sigma=\\arg\\min_\\sigma\\sum_i\\mathcal L_{match}(y_i,\\hat y_{\\sigma(i)})"
+  ],
+  "derivation": [
+    "Faster R-CNN generates proposals then classifies and refines aligned region features. YOLO and SSD predict densely at feature locations. Anchor-free heads regress distances or boxes without a predefined anchor shape set.",
+    "DETR predicts a fixed-size set through learned queries and uses bipartite matching to assign ground truth during training. The no-object class handles unmatched queries."
+  ],
+  "steps": [
+    {
+      "operation": "Backbone + pyramid",
+      "input": "image [B,3,H,W]",
+      "output": "feature maps [B,C,H/s,W/s]",
+      "note": "Multi-scale maps help small-object recall.",
+      "transformation": "Convolutional / Transformer feature extraction"
+    },
+    {
+      "operation": "Generate candidates",
+      "input": "features",
+      "output": "proposals [B,R,4] or queries [B,Q,D]",
+      "note": "RPN proposals differ from DETR learned query slots.",
+      "transformation": "RPN proposal generation or query initialization"
+    },
+    {
+      "operation": "Predict class + box",
+      "input": "region/query features",
+      "output": "class [B,Q,K+1], box [B,Q,4]",
+      "note": "Dense detectors have candidates over spatial locations.",
+      "transformation": "Heads(features) -> class logits and box coordinates"
+    },
+    {
+      "operation": "Match / postprocess",
+      "input": "predictions + targets",
+      "output": "detections per image",
+      "note": "Conventional dense heads use NMS; DETR set training targets duplicate suppression.",
+      "transformation": "Assign targets during train; select predictions at infer"
+    }
+  ],
+  "traps": [
+    "Coordinate formats xyxy and cxcywh are not interchangeable.",
+    "Resize and padding transforms must be inverted before reporting boxes.",
+    "Anchor-free does not automatically mean NMS-free.",
+    "DETR matching is discrete; gradients flow through the selected prediction losses."
+  ],
+  "tradeoff": "Two-stage refinement adds latency; dense prediction is efficient; set prediction changes training and duplicate handling.",
+  "code": "def iou(a, b):\n    iw = max(0, min(a[2], b[2]) - max(a[0], b[0]))\n    ih = max(0, min(a[3], b[3]) - max(a[1], b[1]))\n    area = lambda x: max(0, x[2]-x[0]) * max(0, x[3]-x[1])\n    inter = iw*ih\n    union = area(a)+area(b)-inter\n    return inter/union if union else 0.0\n\nassert iou((0,0,2,2), (1,1,3,3)) == 1/7",
+  "variants": [
+    {
+      "title": "Faster R-CNN",
+      "flow": "image -> backbone -> RPN anchors -> proposals -> RoI features -> class + box",
+      "detail": "Separate proposal generation and region classification."
+    },
+    {
+      "title": "YOLO / SSD",
+      "flow": "image -> multi-scale features -> dense class + box heads -> postprocess",
+      "detail": "SSD uses default boxes. YOLOv8 has anchor-free heads; YOLOv10 adds an end-to-end NMS-free design."
+    },
+    {
+      "title": "DETR",
+      "flow": "CNN -> Transformer encoder -> decoder object queries -> class + box\nground truth + predictions -> Hungarian matching -> loss",
+      "detail": "Set-based assignment replaces hand-designed proposal matching."
+    }
+  ],
+  "sources": [
+    {
+      "title": "Faster R-CNN",
+      "url": "https://arxiv.org/abs/1506.01497"
+    },
+    {
+      "title": "DETR",
+      "url": "https://arxiv.org/abs/2005.12872"
+    },
+    {
+      "title": "YOLOv10",
+      "url": "https://arxiv.org/abs/2405.14458"
+    }
+  ],
+  "lab": null,
+  "order": 2,
+  "figure": {
+    "url": "https://d2l.ai/_images/faster-rcnn.svg",
+    "source": "https://d2l.ai/chapter_computer-vision/rcnn.html",
+    "title": "Dive into Deep Learning",
+    "caption": "Faster R-CNN backbone, region proposal network, and detection heads."
+  },
+  "explanations": [
+    {
+      "id": "detector-families",
+      "title": "Two-stage, dense, and set-prediction detectors",
+      "block": "architecture",
+      "paragraphs": [
+        "Faster R-CNN uses a backbone to compute feature maps, an RPN to propose candidate regions, then region features for class and box prediction. An anchor parameterizes a reference box. The RPN predicts objectness and refinements; later heads refine selected proposals again.",
+        "SSD and many YOLO designs make dense predictions on feature grids, often at multiple scales. Anchor-free heads avoid predefined anchor shapes but still need an assignment rule and box parameterization. YOLO generations differ; a family name alone does not specify the training or postprocessing contract.",
+        "DETR uses image features and learned object queries to predict a fixed set. Its decoder queries cross-attend to image features and output class logits and boxes. Bipartite matching assigns predictions to ground-truth objects during training, which supports set prediction without the usual hand-designed NMS step in the original model."
+      ],
+      "table": {
+        "headers": [
+          "Family",
+          "Candidate mechanism",
+          "Main output"
+        ],
+        "rows": [
+          [
+            "Faster R-CNN",
+            "RPN proposals then regional heads",
+            "Classes + refined proposal boxes"
+          ],
+          [
+            "YOLO / SSD",
+            "Dense feature locations",
+            "Classes / confidence + boxes"
+          ],
+          [
+            "DETR",
+            "Learned object queries",
+            "N class distributions + N boxes"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "matching-losses",
+      "title": "IoU, box loss, and Hungarian matching",
+      "block": "math",
+      "paragraphs": [
+        "IoU is intersection area divided by union area. Ordinary IoU is zero for disjoint boxes, so its gradient can be uninformative there. L1 coordinates and generalized IoU provide complementary localization signals in DETR-style training.",
+        "Hungarian matching minimizes a pairwise cost between predictions and targets. With N query slots and M objects, match M predictions and supervise unmatched slots as no-object. The matching cost chooses the assignment; the differentiable losses train the matched outputs.",
+        "For ordinary dense detectors, distinguish the positive assignment policy, classification loss, confidence construction, and inference NMS. Changing any one can affect recall for crowded or small objects. End-to-end detector variants can use different duplication controls."
+      ],
+      "equations": [
+        "IoU(A,B)=\\frac{|A\\cap B|}{|A\\cup B|}",
+        "\\hat\\sigma=\\arg\\min_\\sigma\\sum_{i=1}^{M}\\mathcal{C}(y_i,\\hat y_{\\sigma(i)})"
+      ]
+    },
+    {
+      "id": "detection-evaluation",
+      "title": "Trace coordinates all the way back to the original image",
+      "block": "trace",
+      "paragraphs": [
+        "Suppose an 800x600 image is letterboxed into 640x640. Store the scale and offsets used by preprocessing. Boxes predicted in the resized coordinate system must undo both padding and scale before evaluation or visualization.",
+        "Report AP across IoU thresholds, class-level results, small-object recall, and end-to-end latency including preprocessing and postprocessing. A high confidence threshold can improve precision while reducing recall. NMS can suppress nearby distinct objects in crowds.",
+        "For an interview design, state the object size distribution, crowd density, target hardware, batch size, and acceptable miss rate before choosing a detector. A raw model FLOP count does not include memory movement, dynamic proposals, or NMS cost."
+      ]
+    }
+  ],
+  "nextTopicReason": "Boxes locate objects. Dense prediction adds a class decision at every pixel.",
+  "nextTopic": "semantic-segmentation",
+  "relatedTopics": [
+    {
+      "slug": "semantic-segmentation",
+      "title": "Semantic segmentation",
+      "reason": "Boxes locate objects. Dense prediction adds a class decision at every pixel."
+    },
+    {
+      "slug": "image-processing",
+      "title": "Image processing & convolution",
+      "reason": "Review this prerequisite for the input representation, assumptions, and core operations used in this lesson."
+    }
+  ]
+}

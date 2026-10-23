@@ -1,0 +1,147 @@
+{
+  "slug": "semantic-segmentation",
+  "track": "computer-vision",
+  "title": "Semantic segmentation",
+  "summary": "Assign a class to every pixel using spatial features and contextual information.",
+  "why": "Produces dense boundaries that a single class label or bounding box cannot represent.",
+  "interview": "Trace U-Net skips and explain atrous convolution and output stride.",
+  "level": "L5 / L6",
+  "targets": [
+    "Apple",
+    "Meta",
+    "Google",
+    "Uber"
+  ],
+  "equations": [
+    "Y\\in\\mathbb R^{B\\times K\\times H\\times W}",
+    "\\mathcal L_{CE}=-\\frac1{|\\Omega|}\\sum_{p\\in\\Omega}\\log P(y_p\\mid x)",
+    "k_{eff}=k+(k-1)(d-1)"
+  ],
+  "derivation": [
+    "A U-Net encoder reduces resolution while increasing channels. Decoder upsampling restores resolution and concatenates same-scale encoder features. Those horizontal skips carry spatial detail across the bottleneck.",
+    "FCN replaces fully connected classification with dense prediction. DeepLabv3+ combines dilated features, ASPP at multiple rates, and a decoder for boundary refinement."
+  ],
+  "steps": [
+    {
+      "operation": "Encode",
+      "input": "[B,3,H,W]",
+      "output": "[B,C,H/16,W/16]",
+      "note": "Save intermediate maps for skip connections.",
+      "transformation": "Convolution + downsample; retain skip features"
+    },
+    {
+      "operation": "Bottleneck / ASPP",
+      "input": "low-resolution features",
+      "output": "context [B,Cb,H/16,W/16]",
+      "note": "Dilation gathers context without further downsampling.",
+      "transformation": "Dilated convolutions at multiple rates"
+    },
+    {
+      "operation": "Upsample + skip",
+      "input": "decoder [B,Cd,h,w], skip [B,Cs,2h,2w]",
+      "output": "[B,Cd+Cs,2h,2w]",
+      "note": "Align spatial shapes before concatenation.",
+      "transformation": "interpolate(decoder); concat(skip, decoder)"
+    },
+    {
+      "operation": "Pixel head",
+      "input": "[B,C,H,W]",
+      "output": "logits [B,K,H,W]",
+      "note": "Cross-entropy takes integer targets [B,H,W].",
+      "transformation": "1x1 projection to K class logits per pixel"
+    }
+  ],
+  "traps": [
+    "Interpolation of label masks must preserve class IDs; use nearest neighbor.",
+    "Class imbalance can hide poor foreground quality behind high pixel accuracy.",
+    "Padding and odd dimensions can break skip concatenation."
+  ],
+  "tradeoff": "High-resolution feature maps improve boundaries but consume activation memory.",
+  "code": "import torch\nimport torch.nn.functional as F\n\nlow = torch.randn(2, 64, 16, 16)\nskip = torch.randn(2, 32, 32, 32)\nup = F.interpolate(low, size=skip.shape[-2:], mode=\"bilinear\", align_corners=False)\nfused = torch.cat((up, skip), dim=1)\nassert fused.shape == (2, 96, 32, 32)",
+  "variants": [
+    {
+      "title": "U-Net",
+      "flow": "[H,W] -> [H/2,W/2] -> bottleneck -> upsample -> [H,W]\nencoder [H,W] ---------------------------> concat decoder [H,W]",
+      "detail": "Repeat horizontal skips at each scale, then project channels to classes."
+    },
+    {
+      "title": "FCN",
+      "flow": "image -> convolutional encoder -> class score maps -> upsample",
+      "detail": "Dense predictions replace a fixed-size fully connected head."
+    },
+    {
+      "title": "DeepLabv3+",
+      "flow": "backbone -> atrous rates r1/r2/r3 + image pooling -> ASPP concat -> decoder",
+      "detail": "Multiple dilation rates capture context at different effective scales."
+    }
+  ],
+  "sources": [
+    {
+      "title": "U-Net",
+      "url": "https://arxiv.org/abs/1505.04597"
+    },
+    {
+      "title": "DeepLabv3+",
+      "url": "https://arxiv.org/abs/1802.02611"
+    }
+  ],
+  "lab": null,
+  "order": 3,
+  "figure": {
+    "url": "https://lmb.informatik.uni-freiburg.de/people/ronneber/u-net/u-net-architecture.png",
+    "source": "https://lmb.informatik.uni-freiburg.de/people/ronneber/u-net/",
+    "title": "Olaf Ronneberger, Philipp Fischer, and Thomas Brox",
+    "caption": "Original U-Net architecture, with spatial dimensions and horizontal skip connections."
+  },
+  "explanations": [
+    {
+      "id": "dense-labels",
+      "title": "One label per pixel: FCN and U-Net",
+      "block": "architecture",
+      "paragraphs": [
+        "Semantic segmentation produces logits [B,K,H,W], where K is the class count. Argmax across K yields one class ID per pixel. It does not identify separate instances of the same class.",
+        "FCN replaces classification-only dense layers with spatial predictions and upsamples low-resolution features. U-Net has an encoder, bottleneck, and decoder with same-scale encoder-to-decoder skip connections. Concatenation along channels preserves fine detail that a low-resolution bottleneck may lose.",
+        "For a stage with decoder [B,128,64,64] and encoder skip [B,64,64,64], concatenation creates [B,192,64,64]. Upsampling does not create missing evidence by itself. Crop, pad, or resize carefully if odd spatial dimensions make skip tensors disagree."
+      ],
+      "flow": "image -> encoder 1 -> encoder 2 -> bottleneck\n          | skip         | skip         |\n          +--> decoder 1 <- decoder 2 <--+\n                  -> per-pixel class logits"
+    },
+    {
+      "id": "deeplab-aspp",
+      "title": "Dilated convolution and DeepLabv3+",
+      "block": "math",
+      "paragraphs": [
+        "Dilation increases a kernel receptive field by spacing sample points. For a 3x3 kernel with dilation 2, effective width is 5 although there are still nine weights per input/output channel pair. It does not increase feature resolution by itself.",
+        "ASPP evaluates parallel branches at different dilation rates and may include image-level context. Their features are combined so a location receives context at several scales. DeepLabv3+ adds a decoder that mixes contextual features with lower-level spatial detail for boundary refinement.",
+        "Very large dilation rates on a small feature map can sample mostly padding. A small output stride preserves resolution at higher activation cost. Compare boundary quality, mIoU, and latency at the actual input size."
+      ],
+      "equations": [
+        "k_{effective}=d(k-1)+1",
+        "IoU_c=\\frac{TP_c}{TP_c+FP_c+FN_c}"
+      ]
+    },
+    {
+      "id": "segmentation-loss",
+      "title": "Train and evaluate dense outputs correctly",
+      "block": "trace",
+      "paragraphs": [
+        "Multiclass cross-entropy accepts [B,K,H,W] raw logits and integer targets [B,H,W]. Ignore labels exclude unknown or padded pixels. Multilabel masks use a different target and loss contract, typically independent binary logits.",
+        "Class imbalance can make background-heavy pixel accuracy misleading. Inspect per-class IoU and Dice, and consider class weighting or overlap losses when justified. Report how empty classes and ignore regions are handled in the metric.",
+        "Apply geometric augmentations consistently to image and mask. Interpolate discrete label masks with nearest-neighbor sampling, not bilinear class-ID mixing. Split at patient, scene, or source level when neighboring images share content."
+      ]
+    }
+  ],
+  "nextTopicReason": "Semantic classes merge same-class objects. Add regional masks to distinguish separate instances.",
+  "nextTopic": "instance-segmentation",
+  "relatedTopics": [
+    {
+      "slug": "instance-segmentation",
+      "title": "Instance segmentation & RoIAlign",
+      "reason": "Semantic classes merge same-class objects. Add regional masks to distinguish separate instances."
+    },
+    {
+      "slug": "image-processing",
+      "title": "Image processing & convolution",
+      "reason": "Review this prerequisite for the input representation, assumptions, and core operations used in this lesson."
+    }
+  ]
+}

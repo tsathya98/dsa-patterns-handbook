@@ -1,0 +1,135 @@
+{
+  "slug": "instance-segmentation",
+  "track": "computer-vision",
+  "title": "Instance segmentation & RoIAlign",
+  "summary": "Predict a separate binary mask for each detected object instance.",
+  "why": "Distinguishes touching objects that share the same semantic class.",
+  "interview": "Explain why RoIAlign preserves alignment and how mask targets are assigned.",
+  "level": "L5 / L6",
+  "targets": [
+    "Apple",
+    "Meta",
+    "Google",
+    "Uber"
+  ],
+  "equations": [
+    "f(x,y)=\\sum_{i,j\\in\\{0,1\\}}w_{ij}f(x_i,y_j)",
+    "\\mathcal L=\\mathcal L_{cls}+\\mathcal L_{box}+\\mathcal L_{mask}"
+  ],
+  "derivation": [
+    "RoIPooling quantizes region/bin coordinates. RoIAlign samples at fractional feature-map locations and uses bilinear interpolation. Sampling ratio, spatial scale, and alignment offsets are part of the contract.",
+    "Mask R-CNN adds a parallel mask branch to Faster R-CNN. During training, the mask loss is computed for the ground-truth class of positive regions."
+  ],
+  "steps": [
+    {
+      "operation": "Detect proposals",
+      "input": "image [B,3,H,W]",
+      "output": "RoIs [R,5]",
+      "note": "Each RoI includes its batch index.",
+      "transformation": "RPN(features) -> candidate boxes"
+    },
+    {
+      "operation": "Align features",
+      "input": "feature map [B,C,h,w], RoIs",
+      "output": "[R,C,7,7] or [R,C,14,14]",
+      "note": "Fractional samples avoid coordinate rounding.",
+      "transformation": "Bilinear samples at fractional RoI coordinates"
+    },
+    {
+      "operation": "Parallel heads",
+      "input": "aligned regions",
+      "output": "class [R,K+1], boxes [R,4K], masks [R,K,m,m]",
+      "note": "Mask branch preserves a spatial grid.",
+      "transformation": "Apply classification, regression, and mask branches"
+    },
+    {
+      "operation": "Paste masks",
+      "input": "selected class masks [R,m,m]",
+      "output": "instance masks [R,H,W]",
+      "note": "Resize into each predicted box and clip to image boundaries.",
+      "transformation": "Resize chosen class mask into original image box"
+    }
+  ],
+  "traps": [
+    "RoI coordinates are in image space before applying spatial_scale.",
+    "Aligned=True changes the half-pixel offset convention.",
+    "A class-agnostic mask head has a different output shape."
+  ],
+  "tradeoff": "Per-region masks localize instances precisely but add cost as proposal count grows.",
+  "code": "import torch\n\ndef bilinear_center(grid):\n    # Sampling the center of a 2x2 cell gives equal weights.\n    return grid[0,0]*0.25 + grid[0,1]*0.25 + grid[1,0]*0.25 + grid[1,1]*0.25\n\nassert bilinear_center(torch.tensor([[1.,3.],[5.,7.]])).item() == 4.0",
+  "variants": [
+    {
+      "title": "Mask R-CNN",
+      "flow": "backbone -> RPN -> RoIAlign -> class head + box head + mask head",
+      "detail": "The mask branch operates in parallel to class and box prediction."
+    },
+    {
+      "title": "Pooling vs alignment",
+      "flow": "fractional RoI -> round bins -> max pool\nfractional RoI -> sample floating coordinates -> bilinear interpolate",
+      "detail": "Rounding can shift small masks; interpolation preserves coordinate alignment."
+    }
+  ],
+  "sources": [
+    {
+      "title": "Mask R-CNN",
+      "url": "https://arxiv.org/abs/1703.06870"
+    }
+  ],
+  "lab": null,
+  "order": 4,
+  "figure": {
+    "url": "https://d2l.ai/_images/mask-rcnn.svg",
+    "source": "https://d2l.ai/chapter_computer-vision/rcnn.html",
+    "title": "Dive into Deep Learning",
+    "caption": "Mask R-CNN adds an instance mask branch alongside class and box prediction."
+  },
+  "explanations": [
+    {
+      "id": "mask-rcnn-heads",
+      "title": "Mask R-CNN adds a parallel pixel branch",
+      "block": "architecture",
+      "paragraphs": [
+        "Mask R-CNN extends a regional detector with a mask branch alongside class and box heads. Each positive region produces K spatial mask logits, typically at a fixed mask resolution. During training only the ground-truth class channel contributes to that region mask loss.",
+        "The class head chooses the category, the box head refines location, and the mask head predicts shape inside the region. Mask channels use independent binary predictions rather than a class softmax over the entire image.",
+        "After inference, choose the predicted class mask for each surviving region and project it into image coordinates. Instance identities distinguish two overlapping people even though both belong to the same semantic class."
+      ]
+    },
+    {
+      "id": "roi-align",
+      "title": "Why RoIAlign samples fractional coordinates",
+      "block": "math",
+      "paragraphs": [
+        "RoIPooling quantizes region boundaries and bins onto feature cells. Small shifts in the original box may map to the same quantized region, which loses spatial alignment. Mask boundaries are sensitive to this error.",
+        "RoIAlign maps the continuous box into feature coordinates, samples fractional locations in each bin, and bilinearly interpolates neighboring values. If a sample lies at x=2.25,y=3.5, the neighboring x weights are 0.75 and 0.25 and the y weights are 0.5 and 0.5.",
+        "The four interpolation weights are 0.375,0.125,0.375,0.125 for the corresponding corners and sum to one. Library spatial_scale, sampling_ratio, and aligned half-pixel conventions change the precise locations. Match those conventions when comparing implementations."
+      ],
+      "equations": [
+        "f(x,y)=\\sum_{i\\in\\{x_0,x_1\\}}\\sum_{j\\in\\{y_0,y_1\\}}w_{ij}(x,y)f(i,j)"
+      ]
+    },
+    {
+      "id": "instance-contract",
+      "title": "Loss and evaluation include the region assignment",
+      "block": "trace",
+      "paragraphs": [
+        "The training path assigns proposals to ground-truth boxes, selects positives for mask learning, and crops the corresponding target masks. A perfect mask head cannot recover an object that the proposal stage missed.",
+        "Evaluate instance mask AP with matching by class and overlap. Semantic mIoU answers a different question and can conceal merged instances. Track missed proposals, box errors, class errors, and mask boundary errors separately.",
+        "ROI feature tensors scale with retained region count R, such as [R,C,7,7] for a box head. Crowded images can increase region processing and memory even at fixed image resolution."
+      ]
+    }
+  ],
+  "nextTopicReason": "Move from object masks to structured joint locations and person-level grouping.",
+  "nextTopic": "human-pose",
+  "relatedTopics": [
+    {
+      "slug": "human-pose",
+      "title": "Human pose estimation",
+      "reason": "Move from object masks to structured joint locations and person-level grouping."
+    },
+    {
+      "slug": "object-detection",
+      "title": "Object detection",
+      "reason": "Review this prerequisite for the input representation, assumptions, and core operations used in this lesson."
+    }
+  ]
+}

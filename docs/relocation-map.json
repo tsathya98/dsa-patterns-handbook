@@ -1,0 +1,22 @@
+{
+  "00_foundations": "content/dsa/00_foundations",
+  "01_arrays_and_pointers": "content/dsa/01_arrays_and_pointers",
+  "02_linked_lists": "content/dsa/02_linked_lists",
+  "03_stacks_and_queues": "content/dsa/03_stacks_and_queues",
+  "04_sorting": "content/dsa/04_sorting",
+  "05_binary_search": "content/dsa/05_binary_search",
+  "06_recursion_and_backtracking": "content/dsa/06_recursion_and_backtracking",
+  "system_design": "content/system-design",
+  "ai_and_ml": "content/ai-ml",
+  "cheat_sheets": "content/cheat-sheets",
+  "companies": "content/companies",
+  "static": "generated/legacy/static",
+  "viewer.html": "generated/legacy/viewer.html",
+  "tracker.html": "generated/legacy/tracker.html",
+  "faang_plan.html": "generated/legacy/faang_plan.html",
+  "build_viewer.py": "scripts/legacy/build_viewer.py",
+  "faang_preparation_plan.md": "content/plans/faang_preparation_plan.md",
+  "dsa_patterns_study_guide.md": "content/plans/dsa_patterns_study_guide.md",
+  "big_tech_ai_interview_helper_prompt.md": "docs/briefs/big_tech_ai_interview_helper_prompt.md",
+  "README.md": "docs/study-index.md"
+}

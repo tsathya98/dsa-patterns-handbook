@@ -1,0 +1,162 @@
+{
+  "slug": "mcp",
+  "track": "genai",
+  "title": "Model Context Protocol",
+  "summary": "MCP standardizes how hosts discover and invoke server tools, resources, and prompts through clients.",
+  "why": "Reuses integrations across compatible hosts instead of writing a separate adapter for every model application.",
+  "interview": "Draw the host/client/server boundary, negotiate capabilities, and distinguish transports.",
+  "level": "L5 / L6",
+  "targets": [
+    "Microsoft",
+    "Amazon",
+    "Databricks",
+    "OpenAI"
+  ],
+  "equations": [
+    "\\mathrm{Host}\\supset\\{\\mathrm{Client}_1\\leftrightarrow\\mathrm{Server}_1,\\ldots\\}",
+    "\\mathrm{request}=\\{jsonrpc:\"2.0\",id,method,params\\}"
+  ],
+  "derivation": [
+    "A host may own several clients; each client maintains a dedicated logical connection to a server. Initialization negotiates protocol version and capabilities before normal operations.",
+    "The standard transports in the 2025-11-25 specification are stdio and Streamable HTTP. Streamable HTTP can return SSE. The older HTTP+SSE transport is a compatibility path, not the current default."
+  ],
+  "steps": [
+    {
+      "operation": "Initialize",
+      "input": "client version + capabilities",
+      "output": "negotiated session",
+      "note": "Follow initialize with initialized notification.",
+      "transformation": "initialize request; initialized notification"
+    },
+    {
+      "operation": "Discover primitives",
+      "input": "tools/list, resources/list, prompts/list",
+      "output": "schemas + descriptors",
+      "note": "Tools execute functions; resources expose data; prompts provide templates.",
+      "transformation": "List advertised tools, resources, prompts"
+    },
+    {
+      "operation": "Validate + authorize",
+      "input": "tools/call + arguments",
+      "output": "authorized execution request",
+      "note": "Schema validation is separate from authentication and user consent.",
+      "transformation": "Validate arguments and enforce host policy"
+    },
+    {
+      "operation": "Return typed result",
+      "input": "tool output / resource contents",
+      "output": "content blocks or protocol error",
+      "note": "A tool-level failure and a JSON-RPC error have different envelopes.",
+      "transformation": "Serialize content blocks with correlated request ID"
+    }
+  ],
+  "traps": [
+    "MCP does not make a server trustworthy or grant blanket permission.",
+    "Logging to stdout corrupts stdio message framing; use stderr.",
+    "Treat remote resource and tool output as untrusted data.",
+    "Session IDs are not a replacement for authentication."
+  ],
+  "tradeoff": "Local stdio simplifies process ownership; remote HTTP requires transport security, authentication, origin validation, and session handling.",
+  "code": "import json\n\nrequest = {\"jsonrpc\": \"2.0\", \"id\": 1, \"method\": \"tools/list\", \"params\": {}}\nwire = json.dumps(request, separators=(\",\", \":\")) + \"\\n\"\nparsed = json.loads(wire)\nassert parsed[\"id\"] == 1 and parsed[\"method\"] == \"tools/list\"\n# Minimal JSON-RPC framing example; a full MCP client also negotiates a session.",
+  "variants": [
+    {
+      "title": "Host / client / server",
+      "flow": "Host [model + policy]\n  Client A <-> Server A [tools/resources/prompts]\n  Client B <-> Server B [tools/resources/prompts]",
+      "detail": "Clients isolate connections; the host coordinates model context and permissions."
+    },
+    {
+      "title": "Transport choice",
+      "flow": "local: stdin/stdout newline JSON-RPC\nremote: POST/GET /mcp -> JSON or SSE",
+      "detail": "Legacy HTTP+SSE uses a separate transport pattern; support it only when needed."
+    }
+  ],
+  "sources": [
+    {
+      "title": "MCP architecture",
+      "url": "https://modelcontextprotocol.io/docs/learn/architecture"
+    },
+    {
+      "title": "MCP transport specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/transports"
+    }
+  ],
+  "lab": null,
+  "order": 4,
+  "figure": {
+    "url": "https://huggingface.co/datasets/mcp-course/images/resolve/main/unit1/4.png",
+    "source": "https://huggingface.co/learn/mcp-course/en/unit1/architectural-components",
+    "title": "Hugging Face MCP Course",
+    "caption": "MCP host, clients, servers, and external data connections."
+  },
+  "explanations": [
+    {
+      "id": "mcp-components",
+      "title": "Host, client, and server responsibilities",
+      "block": "architecture",
+      "paragraphs": [
+        "The host is the application that manages user interaction, model calls, policy, and connections. It creates clients that maintain dedicated logical connections to servers. A server exposes capabilities; it is not necessarily a language model or an autonomous agent.",
+        "Tools describe executable operations with schemas. Resources identify readable data. Prompts provide reusable message templates. Their conventional control roles differ: the application chooses resources, the user can select prompts, and the model may propose tool use under host policy.",
+        "A host can connect to a filesystem server and a database server through separate clients. Authentication to one server does not authorize access to the other. Permissions must be enforced by the host and server using the actual user and resource context."
+      ],
+      "table": {
+        "headers": [
+          "Primitive",
+          "Example",
+          "Typical interaction"
+        ],
+        "rows": [
+          [
+            "Tool",
+            "search_orders(customer_id)",
+            "tools/list then tools/call"
+          ],
+          [
+            "Resource",
+            "file or catalog URI",
+            "resources/list then resources/read"
+          ],
+          [
+            "Prompt",
+            "Review a query plan",
+            "prompts/list then prompts/get"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "mcp-lifecycle",
+      "title": "Initialization and a tool-call trace",
+      "block": "trace",
+      "paragraphs": [
+        "Initialization exchanges the protocol version, client and server information, and supported capabilities. The client then sends an initialized notification before normal operations. A negotiated capability is not a guarantee that every operation will succeed.",
+        "For a tool call, list available tools, choose one, validate its input schema, then send tools/call with a request ID. Match the response ID to the pending call. A protocol error differs from a tool result describing an execution failure; handle both explicitly.",
+        "Tool descriptions and outputs are untrusted content. Enforce authorization outside the model, scope credentials to the intended server, and avoid forwarding unrelated bearer tokens. A timeout can leave a mutating action with an unknown outcome, so use application idempotency and reconciliation."
+      ],
+      "flow": "client -> initialize -> server\nclient <- version + capabilities <- server\nclient -> notifications/initialized\nclient -> tools/list -> tools/call(name, arguments)\nclient <- result or error with matching request id"
+    },
+    {
+      "id": "mcp-transports",
+      "title": "stdio, Streamable HTTP, and legacy HTTP+SSE",
+      "block": "math",
+      "paragraphs": [
+        "The referenced 2025-11-25 specification defines stdio and Streamable HTTP. In stdio, a client launches a local process and exchanges newline-delimited JSON-RPC messages over standard input and output. Diagnostic logs belong on stderr, not stdout.",
+        "Streamable HTTP uses HTTP requests and can return a JSON response or an SSE stream. A transport stream is not itself the MCP message schema. Older HTTP+SSE deployments use a compatibility design and should be identified as such when discussing the master prompt transport list.",
+        "Separate transport reconnection, session lifecycle, request cancellation, and business retries. Test origin validation and authentication for remote servers. A local process has the permissions of its execution environment, so local transport alone does not provide isolation."
+      ]
+    }
+  ],
+  "nextTopicReason": "Separate the MCP capability contract from JSON-RPC message semantics and HTTP streaming transports.",
+  "nextTopic": "communication-protocols",
+  "relatedTopics": [
+    {
+      "slug": "communication-protocols",
+      "title": "AI communication protocols",
+      "reason": "Separate the MCP capability contract from JSON-RPC message semantics and HTTP streaming transports."
+    },
+    {
+      "slug": "agentic-architectures",
+      "title": "Agentic architectures",
+      "reason": "Review this prerequisite for the input representation, assumptions, and core operations used in this lesson."
+    }
+  ]
+}

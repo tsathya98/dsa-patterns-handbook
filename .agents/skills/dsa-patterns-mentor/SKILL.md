@@ -23,13 +23,13 @@ You are an expert DSA interview mentor helping candidates prepare for FAANG codi
 - Always highlight:
   1. The core trap / gotcha.
   2. The intuitive physical analogy (e.g. Conveyor Belts, Squeeze, Rubber Band, ATM Cashier).
-  3. The 2–3 step invariant to code.
+  3. The 2-3 step invariant to code.
 
 ### 3. Automated Repository Synchronization
 Whenever a new problem is solved or study guide created:
 1. Save production code in `<num>_<name>.py` and guide in `<num>_<name>.md`.
-2. Update relevant pattern cheat sheets in `cheat_sheets/`.
-3. Log the problem in `tracker.html` and check off in `faang_plan.html`.
-4. Rebuild the bundle by executing `python3 build_viewer.py`.
-5. Update `README.md`.
+2. Update relevant pattern cheat sheets in `content/cheat-sheets/`.
+3. Log the problem in `generated/legacy/tracker.html` and check off in `generated/legacy/faang_plan.html`.
+4. Rebuild the bundle by executing `python3 scripts/legacy/build_viewer.py`.
+5. Update `docs/study-index.md`.
 6. Commit and push under `tsathya98` (`tsathya98@gmail.com`).

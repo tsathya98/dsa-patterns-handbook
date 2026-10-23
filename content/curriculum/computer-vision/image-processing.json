@@ -1,0 +1,133 @@
+{
+  "slug": "image-processing",
+  "track": "computer-vision",
+  "title": "Image processing & convolution",
+  "summary": "Slide a local kernel over an image to measure patterns such as smooth regions, edges, or curvature.",
+  "why": "Encodes local spatial structure with shared weights.",
+  "interview": "Calculate output sizes and distinguish cross-correlation, convolution, and Canny stages.",
+  "level": "L5 / L6",
+  "targets": [
+    "Apple",
+    "Meta",
+    "Google",
+    "Uber"
+  ],
+  "equations": [
+    "H_{out}=\\left\\lfloor\\frac{H+2p-d(k-1)-1}{s}\\right\\rfloor+1",
+    "Y_{n,o,i,j}=\\sum_{c,u,v}W_{o,c,u,v}X_{n,c,is+u,js+v}",
+    "S_x=\\begin{bmatrix}-1&0&1\\\\-2&0&2\\\\-1&0&1\\end{bmatrix},\\quad L=\\begin{bmatrix}0&1&0\\\\1&-4&1\\\\0&1&0\\end{bmatrix}"
+  ],
+  "derivation": [
+    "Deep-learning Conv2d usually implements cross-correlation: it does not flip the kernel. Mathematical convolution flips spatial kernel axes. Dilation increases effective kernel size to d(k-1)+1.",
+    "Canny smooths noise, computes gradient magnitude/direction, suppresses non-maxima along gradient direction, and applies double thresholds plus connectivity-based hysteresis."
+  ],
+  "steps": [
+    {
+      "operation": "Pad input",
+      "input": "X [B,C,H,W]",
+      "output": "[B,C,H+2p,W+2p]",
+      "note": "Valid uses p=0; same padding depends on stride and kernel.",
+      "transformation": "Pad spatial axes according to boundary policy"
+    },
+    {
+      "operation": "Slide kernel",
+      "input": "weights [O,C,k,k]",
+      "output": "patches [B,Hout,Wout,C,k,k]",
+      "note": "Unfold materialization can consume large memory.",
+      "transformation": "Select receptive fields at stride s"
+    },
+    {
+      "operation": "Contract channels",
+      "input": "patches and weights",
+      "output": "Y [B,O,Hout,Wout]",
+      "note": "Optimized kernels avoid explicit full patch copies.",
+      "transformation": "Sum over input channels and kernel axes"
+    },
+    {
+      "operation": "Detect edges",
+      "input": "smoothed grayscale [B,1,H,W]",
+      "output": "edge map [B,1,H,W]",
+      "note": "Gradient thresholds depend on intensity scale.",
+      "transformation": "Smooth -> gradient -> NMS -> hysteresis"
+    }
+  ],
+  "traps": [
+    "Sobel and Laplacian respond differently to noise and edge orientation.",
+    "Same padding with stride >1 does not preserve the original resolution.",
+    "A threshold alone does not implement Canny hysteresis."
+  ],
+  "tradeoff": "Gaussian smoothing suppresses noise but blurs fine detail; kernel size sets the spatial scale.",
+  "code": "def output_size(size, kernel, stride=1, padding=0, dilation=1):\n    if min(size, kernel, stride, dilation) <= 0 or padding < 0:\n        raise ValueError(\"Invalid convolution geometry\")\n    return (size + 2*padding - dilation*(kernel-1) - 1)//stride + 1\n\nassert output_size(224, 3, 2, 1) == 112\nassert output_size(7, 3, dilation=2) == 3",
+  "variants": [
+    {
+      "title": "Gaussian / Laplacian / Sobel",
+      "flow": "image -> Gaussian weighted average -> denoised image\nimage -> Laplacian second derivative -> curvature\nimage -> Sobel x,y -> magnitude + direction",
+      "detail": "Sobel combines differentiation and smoothing; the Laplacian is orientation independent."
+    },
+    {
+      "title": "Canny",
+      "flow": "Gaussian -> gradient -> non-maximum suppression -> double threshold -> hysteresis",
+      "detail": "Keep weak edges only when connected to strong edges."
+    }
+  ],
+  "sources": [
+    {
+      "title": "OpenCV Canny tutorial",
+      "url": "https://docs.opencv.org/4.x/da/d22/tutorial_py_canny.html"
+    }
+  ],
+  "lab": "convolution",
+  "order": 1,
+  "figure": {
+    "url": "https://d2l.ai/_images/correlation.svg",
+    "source": "https://d2l.ai/chapter_convolutional-neural-networks/conv-layer.html",
+    "title": "Dive into Deep Learning",
+    "caption": "A kernel slides across an input and contracts each receptive field into an output value."
+  },
+  "explanations": [
+    {
+      "id": "spatial-contract",
+      "title": "Convolution, cross-correlation, and output size",
+      "block": "architecture",
+      "paragraphs": [
+        "A Conv2d layer typically computes cross-correlation: it slides a kernel without flipping its spatial coordinates. Mathematical convolution flips the kernel. For learned weights the distinction is a convention; for a fixed Sobel filter it changes the gradient direction sign.",
+        "Each output channel sums over all input channels and kernel locations, plus a bias if configured. A grouped convolution limits those channel connections. Stride controls output sampling; dilation spaces kernel samples without increasing the number of learned coefficients.",
+        "For H=7, kernel=3, dilation=1, padding=1, and stride=2, output height is 4. The same formula applies independently to width. SAME padding aims for ceil(H/stride); even kernels and nonunit stride can require asymmetric padding."
+      ],
+      "equations": [
+        "H_{out}=\\left\\lfloor\\frac{H+2p-d(k-1)-1}{s}\\right\\rfloor+1",
+        "W_{kernel}\\in\\mathbb{R}^{C_{out}\\times(C_{in}/g)\\times k_H\\times k_W}"
+      ]
+    },
+    {
+      "id": "filters",
+      "title": "What Gaussian, Sobel, and Laplacian filters measure",
+      "block": "math",
+      "paragraphs": [
+        "Gaussian smoothing averages nearby intensities with distance-dependent weights, reducing high-frequency noise while blurring fine boundaries. A separable Gaussian can apply one horizontal and one vertical kernel instead of a full two-dimensional kernel.",
+        "Sobel estimates first derivatives along x and y. Combine Gx and Gy into magnitude sqrt(Gx^2+Gy^2) and direction atan2(Gy,Gx). Use signed or floating-point intermediates; unsigned image arithmetic can clip negative gradients.",
+        "The Laplacian sums second spatial derivatives and responds to rapid changes in slope. It amplifies noise, so smoothing before a second-derivative detector matters. Boundary padding can create artificial edges and should match the task."
+      ]
+    },
+    {
+      "id": "canny-trace",
+      "title": "Canny: keep thin edges that connect to strong evidence",
+      "block": "trace",
+      "paragraphs": [
+        "Canny first suppresses noise, computes gradient magnitude and direction, then performs non-maximum suppression along the gradient direction. This thins a wide gradient ridge into candidate edge pixels.",
+        "Double thresholds classify strong and weak candidates. Hysteresis keeps weak pixels connected to strong edges and discards isolated weak responses. It is a connectivity process, not simply applying one threshold twice.",
+        "For a noisy image, increasing smoothing can stabilize gradients while removing fine structures. Lower thresholds recover faint edges but increase texture responses. Evaluate edge localization and continuity on the intended image scale rather than copying thresholds between datasets."
+      ],
+      "flow": "image -> Gaussian -> Gx,Gy -> magnitude,direction\n-> directional non-maximum suppression\n-> high/low thresholds -> connectivity hysteresis -> edges"
+    }
+  ],
+  "nextTopicReason": "Local spatial operators become backbones and feature maps for locating objects.",
+  "nextTopic": "object-detection",
+  "relatedTopics": [
+    {
+      "slug": "object-detection",
+      "title": "Object detection",
+      "reason": "Local spatial operators become backbones and feature maps for locating objects."
+    }
+  ]
+}

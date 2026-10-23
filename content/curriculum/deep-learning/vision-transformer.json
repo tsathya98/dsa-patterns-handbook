@@ -1,0 +1,135 @@
+{
+  "slug": "vision-transformer",
+  "track": "deep-learning",
+  "title": "Vision Transformer",
+  "summary": "Turn fixed-size image patches into tokens and run a Transformer encoder over them.",
+  "why": "Allows global interactions without a convolution at each layer.",
+  "interview": "Trace patch shapes and compare data efficiency, resolution scaling, and CNN inductive bias.",
+  "level": "L5 / L6",
+  "targets": [
+    "Google",
+    "Meta",
+    "OpenAI",
+    "Anthropic"
+  ],
+  "equations": [
+    "N=HW/P^2,\\quad X_p\\in\\mathbb{R}^{B\\times N\\times(P^2 C)}",
+    "Z_0=[x_{cls};X_pE]+E_{pos}\\in\\mathbb{R}^{B\\times(N+1)\\times D}"
+  ],
+  "derivation": [
+    "The patch projection is equivalent to a convolution with kernel and stride P. At 224x224 and P=16, N=196. Increasing both spatial dimensions by 2 makes N four times larger and dense attention scores sixteen times larger."
+  ],
+  "steps": [
+    {
+      "operation": "Extract patches",
+      "input": "image [B,C,H,W]",
+      "output": "[B,N,P*P*C]",
+      "note": "Require divisible dimensions or explicitly pad/crop.",
+      "transformation": "unfold P x P non-overlapping patches"
+    },
+    {
+      "operation": "Linear projection",
+      "input": "[B,N,P*P*C]",
+      "output": "[B,N,D]",
+      "note": "A strided Conv2d can perform extraction and projection together.",
+      "transformation": "patches @ E"
+    },
+    {
+      "operation": "CLS + positions",
+      "input": "[B,N,D]",
+      "output": "[B,N+1,D]",
+      "note": "Position embeddings encode patch layout.",
+      "transformation": "concat(CLS, patches) + position"
+    },
+    {
+      "operation": "Encoder + head",
+      "input": "[B,N+1,D]",
+      "output": "logits [B,K]",
+      "note": "Use CLS output or specify a pooling alternative.",
+      "transformation": "Encoder(z)[:,0,:] @ classifier"
+    }
+  ],
+  "traps": [
+    "Patch order must agree with positional embedding order.",
+    "Changing resolution requires positional handling and changes attention cost.",
+    "A plain ViT has weaker locality priors than a CNN; data and pretraining affect the comparison."
+  ],
+  "tradeoff": "Smaller patches preserve spatial detail while increasing token count and attention memory.",
+  "code": "import torch\nfrom torch import nn\n\npatch = nn.Conv2d(3, 192, kernel_size=16, stride=16)\nx = torch.randn(2, 3, 224, 224)\ntokens = patch(x).flatten(2).transpose(1, 2)\ncls = nn.Parameter(torch.zeros(1, 1, 192))\nz = torch.cat((cls.expand(2, -1, -1), tokens), dim=1)\nassert z.shape == (2, 197, 192)",
+  "variants": [
+    {
+      "title": "CNN",
+      "flow": "image -> local shared kernels -> feature pyramid -> pooled logits",
+      "detail": "Translation equivariance is approximate once padding, striding, and pooling enter the pipeline."
+    },
+    {
+      "title": "ViT",
+      "flow": "image -> patches -> global self-attention -> CLS logits",
+      "detail": "Global token interactions appear immediately; patching still imposes a spatial partition."
+    }
+  ],
+  "sources": [
+    {
+      "title": "An Image is Worth 16x16 Words",
+      "url": "https://arxiv.org/abs/2010.11929"
+    }
+  ],
+  "lab": null,
+  "order": 5,
+  "figure": {
+    "url": "https://d2l.ai/_images/vit.svg",
+    "source": "https://d2l.ai/chapter_attention-mechanisms-and-transformers/vision-transformer.html",
+    "title": "Dive into Deep Learning",
+    "caption": "Image patches become token embeddings before Transformer encoding and classification."
+  },
+  "explanations": [
+    {
+      "id": "patch-pipeline",
+      "title": "From pixels to a classification token",
+      "block": "architecture",
+      "paragraphs": [
+        "For a 224x224 RGB image and 16x16 patches, the grid contains 14x14=196 patches. Flattening produces [B,196,768] because each patch has 16*16*3 values. A learned projection maps that last dimension to D; it need not equal 768.",
+        "Prepend a learned CLS token, yielding [B,197,D], then add learned position embeddings of the same token dimension. Encoder blocks use bidirectional self-attention. A classifier consumes the final CLS representation; other variants pool patch tokens.",
+        "Patch projection can be implemented with Conv2d(kernel_size=16,stride=16). It performs local projection; subsequent self-attention connects all patch tokens. For variable-resolution images, patch count and positional embedding handling must be explicit."
+      ],
+      "flow": "[B,3,224,224] -> patches [B,196,768]\n-> projection [B,196,D] -> prepend CLS [B,197,D]\n-> add positions -> encoder stack -> CLS [B,D] -> logits [B,K]"
+    },
+    {
+      "id": "vit-cost",
+      "title": "Token count, inductive bias, and resolution cost",
+      "block": "math",
+      "paragraphs": [
+        "A convolution shares a local filter across locations, which builds in locality and approximate translation equivariance subject to stride and boundary effects. A plain ViT has weaker image-specific priors and usually relies more heavily on pretraining and augmentation.",
+        "Doubling image height and width quadruples patch count at fixed patch size. The logical attention matrix then has sixteen times as many entries. Flash-style kernels can avoid materializing all entries, but the dense attention arithmetic still grows quadratically in token count.",
+        "Smaller patches preserve detail and increase latency and memory. Larger patches reduce tokens and may lose small objects. Classification quality at one resolution does not establish dense prediction quality; detection and segmentation need spatial token features and suitable heads."
+      ],
+      "equations": [
+        "N=HW/P^2,\\quad X_{tokens}\\in\\mathbb{R}^{B\\times(N+1)\\times D}",
+        "\\text{attention work}=O(BHN^2d_h)"
+      ]
+    },
+    {
+      "id": "vit-transfer",
+      "title": "Transfer a pretrained ViT without breaking its input contract",
+      "block": "trace",
+      "paragraphs": [
+        "Resize or interpolate the two-dimensional grid of positional embeddings when the patch grid changes, treating CLS separately. Match image normalization and channel order used during pretraining. Padding patches should not become unmasked visual evidence.",
+        "For dense tasks, discard or supplement the CLS classifier and reshape patch features back into the image grid. A flat ViT is not automatically a multiscale feature pyramid. Compare frozen-backbone probing with full fine-tuning to separate representation quality from adaptation capacity."
+      ]
+    }
+  ],
+  "nextTopicReason": "A ViT emits visual tokens. Connect those tokens to a language model without losing the shape contract.",
+  "nextTopic": "multimodal-connectors",
+  "relatedTopics": [
+    {
+      "slug": "multimodal-connectors",
+      "title": "Multimodal LLM connectors",
+      "reason": "A ViT emits visual tokens. Connect those tokens to a language model without losing the shape contract."
+    },
+    {
+      "slug": "transformer-architectures",
+      "title": "Transformer architectures",
+      "reason": "Review this prerequisite for the input representation, assumptions, and core operations used in this lesson."
+    }
+  ]
+}

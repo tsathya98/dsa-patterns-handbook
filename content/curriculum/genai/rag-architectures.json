@@ -1,0 +1,175 @@
+{
+  "slug": "rag-architectures",
+  "track": "genai",
+  "title": "RAG architectures",
+  "summary": "Retrieve external evidence and condition generation on a bounded set of source passages.",
+  "why": "Supplies information absent from model weights and makes source attribution possible.",
+  "interview": "Separate retrieval failure, evidence insufficiency, and unsupported generation.",
+  "level": "L5 / L6",
+  "targets": [
+    "Microsoft",
+    "Amazon",
+    "Databricks",
+    "OpenAI"
+  ],
+  "equations": [
+    "D_k=\\operatorname{TopK}_{d\\in\\mathcal D}s(q,d)",
+    "p(y\\mid q)\\approx\\sum_{d\\in D_k}p_\\eta(d\\mid q)p_\\theta(y\\mid q,d)"
+  ],
+  "derivation": [
+    "The marginalization equation describes latent-document RAG. Many production pipelines instead concatenate a reranked evidence set into one prompt. Keep those implementations distinct.",
+    "Evaluate retrieval recall separately from grounded-answer quality. ACL and tenant filters must apply before evidence reaches the generator."
+  ],
+  "steps": [
+    {
+      "operation": "Rewrite query",
+      "input": "question string",
+      "output": "queries [R]",
+      "note": "Expansion or HyDE can improve recall but can introduce drift.",
+      "transformation": "Rewrite or generate hypothetical document"
+    },
+    {
+      "operation": "Retrieve + filter",
+      "input": "queries + corpus embeddings [N,E]",
+      "output": "passages [K]",
+      "note": "Use metadata constraints and hybrid lexical/vector candidates.",
+      "transformation": "Hybrid search with ACL filters"
+    },
+    {
+      "operation": "Rerank + budget",
+      "input": "pairs (q,passage) [K]",
+      "output": "evidence [k], k<=K",
+      "note": "Cross-encoder scores cost per candidate; deduplicate evidence.",
+      "transformation": "score(query, chunk); truncate to token budget"
+    },
+    {
+      "operation": "Generate + verify",
+      "input": "question + evidence [S tokens]",
+      "output": "answer + citations",
+      "note": "Verify that cited passages support the actual claim.",
+      "transformation": "LLM(question, evidence); validate citations"
+    }
+  ],
+  "traps": [
+    "Similarity is not truth or access authorization.",
+    "Chunk boundaries can split the fact from its qualifier.",
+    "A low-confidence retriever score is not calibrated answer uncertainty."
+  ],
+  "tradeoff": "Reranking improves precision at additional latency; expansion increases recall and candidate cost.",
+  "code": "def pack_evidence(ranked, budget):\n    selected, used = [], 0\n    for doc_id, token_count in ranked:\n        if token_count <= 0:\n            raise ValueError(\"Token counts must be positive\")\n        if used + token_count <= budget:\n            selected.append(doc_id)\n            used += token_count\n    return selected\n\nassert pack_evidence([(\"a\", 80), (\"b\", 90), (\"c\", 20)], 100) == [\"a\", \"c\"]",
+  "variants": [
+    {
+      "title": "Naive RAG",
+      "flow": "query -> embedding -> top-k chunks -> prompt -> answer",
+      "detail": "Baseline for measuring the value of each added stage."
+    },
+    {
+      "title": "Advanced / modular RAG",
+      "flow": "query expansion / HyDE -> hybrid retrieval -> rerank -> context compression -> generation",
+      "detail": "Modules can be composed and evaluated independently."
+    },
+    {
+      "title": "Self-RAG",
+      "flow": "input -> retrieve? -> passage -> generate -> critique/support tokens -> selected answer",
+      "detail": "Reflection tokens are learned behavior in the Self-RAG method, not a guarantee from adding a reflection prompt."
+    },
+    {
+      "title": "Corrective RAG",
+      "flow": "retrieve -> evaluator -> correct / ambiguous / incorrect -> refine or web fallback -> generate",
+      "detail": "Fallback needs trusted sources, access checks, and an explicit latency budget."
+    }
+  ],
+  "sources": [
+    {
+      "title": "RAG",
+      "url": "https://arxiv.org/abs/2005.11401"
+    },
+    {
+      "title": "Self-RAG",
+      "url": "https://arxiv.org/abs/2310.11511"
+    },
+    {
+      "title": "CRAG",
+      "url": "https://arxiv.org/abs/2401.15884"
+    }
+  ],
+  "lab": null,
+  "order": 1,
+  "figure": {
+    "url": "https://mintcdn.com/langchain-5e9cc07a/I6RpA28iE233vhYX/images/rag_retrieval_generation.png?fit=max&auto=format&n=I6RpA28iE233vhYX&q=85&s=994c3585cece93c80873d369960afd44",
+    "source": "https://docs.langchain.com/oss/python/langchain/rag",
+    "title": "LangChain documentation",
+    "caption": "Retrieve evidence from an index, construct a prompt, and generate an answer."
+  },
+  "explanations": [
+    {
+      "id": "rag-stages",
+      "title": "Naive, advanced, and modular RAG",
+      "block": "architecture",
+      "paragraphs": [
+        "Ingestion extracts source text, chunks it with stable IDs, embeds chunks, and indexes vectors with metadata. At query time the retriever returns candidates; the generator receives a bounded evidence set and produces an answer with source references. Ingestion and answering have different freshness and latency requirements.",
+        "Naive RAG embeds the original question, retrieves top-k chunks, and concatenates them. Advanced RAG may rewrite the question, combine sparse and dense candidates, deduplicate, rerank, and compress evidence. Modular RAG makes those operations replaceable or conditional instead of prescribing one fixed pipeline.",
+        "A cross-encoder scores the question and candidate passage jointly. Reranking a small candidate set costs less than cross-encoding the whole corpus. Query expansion improves recall but can dilute intent. HyDE embeds a hypothetical answer document; that generated text is a retrieval aid, not verified answer evidence."
+      ],
+      "flow": "sources -> chunks + provenance -> embeddings + index\nquestion -> rewrite / HyDE -> sparse + dense candidates\n-> ACL filter -> rerank -> evidence budget -> generate + citations"
+    },
+    {
+      "id": "adaptive-retrieval",
+      "title": "Self-RAG and Corrective RAG",
+      "block": "architecture",
+      "paragraphs": [
+        "Self-RAG trains a model to use retrieval and critique tokens that control retrieval and assess evidence relevance, support, and answer utility. Adding a generic self-reflection prompt to an ordinary pipeline does not reproduce that training procedure.",
+        "Corrective RAG evaluates retrieval quality and chooses whether to retain, refine, or replace retrieved evidence, including web-search fallback. A retrieval score is not a calibrated probability that an answer is correct. Learn or validate thresholds on representative queries.",
+        "Both approaches need budgets and termination rules. Repeated retrieval can improve coverage while increasing latency and introducing conflicting evidence. A failed evidence check should permit an explicit insufficient-evidence response instead of forcing an answer."
+      ]
+    },
+    {
+      "id": "rag-evaluation",
+      "title": "Separate retrieval, evidence selection, and answer quality",
+      "block": "trace",
+      "paragraphs": [
+        "For a held-out question, first ask whether the relevant source exists in the corpus. Then measure retrieval recall@k, reranker quality, context precision, answer correctness, and support for each cited claim. These measurements isolate which stage failed.",
+        "Suppose a question needs two passages and only one reaches the prompt. The language model may produce a fluent unsupported join. Increasing generation temperature cannot repair missing evidence. Increase retrieval coverage or explicitly identify the missing fact.",
+        "Apply access rules before content reaches the model, including through query expansion, graph traversal, caches, and observability logs. Preserve document versions and offsets so a citation resolves to the text used for the answer. Retrieved text is untrusted data and can contain instructions that conflict with the task."
+      ],
+      "table": {
+        "headers": [
+          "Observed failure",
+          "First stage to inspect",
+          "Useful metric"
+        ],
+        "rows": [
+          [
+            "No relevant candidates",
+            "Ingestion / retriever",
+            "Corpus coverage and recall@k"
+          ],
+          [
+            "Relevant candidate excluded",
+            "Reranker / context packing",
+            "Recall after rerank, token budget"
+          ],
+          [
+            "Evidence present, claim wrong",
+            "Generator / grounding",
+            "Answer accuracy and citation support"
+          ]
+        ]
+      }
+    }
+  ],
+  "nextTopicReason": "Similarity retrieval can miss relationship chains and corpus-wide themes. Graph retrieval adds those structures.",
+  "nextTopic": "knowledge-graphs",
+  "relatedTopics": [
+    {
+      "slug": "knowledge-graphs",
+      "title": "Knowledge graphs & GraphRAG",
+      "reason": "Similarity retrieval can miss relationship chains and corpus-wide themes. Graph retrieval adds those structures."
+    },
+    {
+      "slug": "embedding-training",
+      "title": "Embedding model training",
+      "reason": "Review this prerequisite for the input representation, assumptions, and core operations used in this lesson."
+    }
+  ]
+}

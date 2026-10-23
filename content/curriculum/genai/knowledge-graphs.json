@@ -1,0 +1,133 @@
+{
+  "slug": "knowledge-graphs",
+  "track": "genai",
+  "title": "Knowledge graphs & GraphRAG",
+  "summary": "Represent entities and typed relationships, then combine neighborhood evidence with semantic retrieval.",
+  "why": "Recovers explicit multi-hop relations and corpus-level themes that nearest-neighbor chunks can miss.",
+  "interview": "Choose graph traversal for relational questions and explain extraction errors and community summaries.",
+  "level": "L5 / L6",
+  "targets": [
+    "Microsoft",
+    "Amazon",
+    "Databricks",
+    "OpenAI"
+  ],
+  "equations": [
+    "G=(V,E),\\quad E\\subseteq V\\times\\mathcal R\\times V",
+    "\\operatorname{triple}=(subject,predicate,object)"
+  ],
+  "derivation": [
+    "Entity resolution determines whether two mentions refer to the same node. Provenance must attach to extracted claims so graph edges can be checked against source text.",
+    "Global GraphRAG summarizes graph communities. Local graph retrieval expands entity neighborhoods. A hybrid vector-plus-graph query does not automatically implement community-based global search."
+  ],
+  "steps": [
+    {
+      "operation": "Extract + resolve",
+      "input": "documents [N]",
+      "output": "entities V, triples E",
+      "note": "Deduplicate aliases and retain source IDs.",
+      "transformation": "NER + relationship extraction + entity resolution"
+    },
+    {
+      "operation": "Index graph + vectors",
+      "input": "G and chunks [N,Eembed]",
+      "output": "adjacency + ANN index",
+      "note": "Graph updates and embedding updates need consistency.",
+      "transformation": "Build adjacency; embed source chunks"
+    },
+    {
+      "operation": "Retrieve + traverse",
+      "input": "query -> entity seeds [k]",
+      "output": "bounded neighborhood",
+      "note": "Cap hop count and fan-out to control explosion.",
+      "transformation": "Expand approved edges up to hop/fan-out limit"
+    },
+    {
+      "operation": "Summarize evidence",
+      "input": "subgraph or community summaries",
+      "output": "answer + provenance",
+      "note": "Community summaries can be stale or lossy.",
+      "transformation": "Retrieve source claims; synthesize with citations"
+    }
+  ],
+  "traps": [
+    "An extracted edge is a claim, not verified ground truth.",
+    "Entity collisions can join unrelated people or products.",
+    "Unbounded traversal grows rapidly and can cross access boundaries."
+  ],
+  "tradeoff": "Graphs add extraction and maintenance cost; use them when relationship structure improves the question class.",
+  "code": "def two_hop(graph, start):\n    first = set(graph.get(start, []))\n    second = {v for u in first for v in graph.get(u, [])}\n    return (first | second) - {start}\n\ngraph = {\"A\": [\"B\"], \"B\": [\"C\"], \"C\": [\"A\"]}\nassert two_hop(graph, \"A\") == {\"B\", \"C\"}",
+  "variants": [
+    {
+      "title": "Vector + graph",
+      "flow": "query -> vector chunks + entity seeds -> Cypher traversal -> evidence union -> rerank",
+      "detail": "Example: MATCH (a:Entity {id:$id})-[:SUPPLIES]->()-[:USED_BY]->(p) RETURN p LIMIT 20."
+    },
+    {
+      "title": "Global GraphRAG",
+      "flow": "entity graph -> communities -> community reports -> query map/reduce -> thematic answer",
+      "detail": "Global summarization answers broad corpus questions, with indexing-time cost and summary fidelity limits."
+    }
+  ],
+  "sources": [
+    {
+      "title": "GraphRAG",
+      "url": "https://arxiv.org/abs/2404.16130"
+    }
+  ],
+  "lab": null,
+  "order": 2,
+  "figure": {
+    "url": "https://microsoft.github.io/graphrag/img/GraphRag-Figure1.jpg",
+    "source": "https://microsoft.github.io/graphrag/",
+    "title": "Microsoft GraphRAG",
+    "caption": "An extracted entity graph with visible communities; see the trace below for the retrieval flow."
+  },
+  "explanations": [
+    {
+      "id": "triples-provenance",
+      "title": "Triples are claims with identity and provenance",
+      "block": "architecture",
+      "paragraphs": [
+        "A graph triple has subject, predicate, and object, such as (Acme, acquired, Beta). Subjects and entity objects should refer to stable IDs; a literal object can be a date or number. Relation direction and type are part of the schema.",
+        "Entity resolution decides whether Acme Inc and ACME denote the same company. A wrong merge can invent a path between unrelated facts. Store the source document, passage, extraction version, and relevant dates on claims so a traversal can be audited.",
+        "A graph can store contradictory or time-dependent edges. Acme employs Dana in one year and another employer does later. Query-time temporal filters and relation semantics determine whether these paths answer the question."
+      ]
+    },
+    {
+      "id": "hybrid-traversal",
+      "title": "Hybrid vector search and bounded multi-hop retrieval",
+      "block": "trace",
+      "paragraphs": [
+        "Vector search finds semantically related passages or entity descriptions. Graph traversal follows explicit typed edges, such as person -> employer -> product. A query about the product of a specific employer needs relationship composition that passage similarity alone may miss.",
+        "A bounded read query can match (p:Person {id:$id})-[:WORKS_AT]->(c:Company)-[:BUILDS]->(product), then return product IDs plus source claims. Parameterize IDs and use an allowlisted relation vocabulary. Do not execute arbitrary model-generated Cypher with write permissions.",
+        "A high-degree node causes neighborhood expansion to explode. Limit hop count, edge types, dates, and candidate count. Score path evidence and retrieve its original passages; graph connectivity does not establish that every implied natural-language claim is supported."
+      ],
+      "flow": "question -> entity linking + vector candidates\n-> bounded typed traversal -> source passage lookup\n-> evidence ranking -> supported answer"
+    },
+    {
+      "id": "global-communities",
+      "title": "Local retrieval versus global GraphRAG",
+      "block": "math",
+      "paragraphs": [
+        "Local retrieval starts from an entity or a small set of passages and expands a neighborhood. A corpus-wide question such as common risks across all reports asks for aggregation over many sources, so top-k local similarity results can miss entire themes.",
+        "The GraphRAG approach constructs communities in an extracted entity graph and summarizes them. Global search combines relevant community reports to answer broad questions. This adds expensive extraction and summarization work to indexing and creates derived evidence that must retain source traceability.",
+        "Compare a graph design with simpler metadata filtering and vector-plus-keyword retrieval on the actual query set. Track extraction accuracy, entity-linking accuracy, freshness, retrieval coverage, and answer support separately. GraphRAG is useful when the relationships or global summarization justify that added maintenance."
+      ]
+    }
+  ],
+  "nextTopicReason": "An orchestrator can choose vector retrieval, graph traversal, or another tool based on the current task state.",
+  "nextTopic": "agentic-architectures",
+  "relatedTopics": [
+    {
+      "slug": "agentic-architectures",
+      "title": "Agentic architectures",
+      "reason": "An orchestrator can choose vector retrieval, graph traversal, or another tool based on the current task state."
+    },
+    {
+      "slug": "rag-architectures",
+      "title": "RAG architectures",
+      "reason": "Review this prerequisite for the input representation, assumptions, and core operations used in this lesson."
+    }
+  ]
+}

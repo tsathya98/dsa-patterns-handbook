@@ -1,0 +1,144 @@
+{
+  "slug": "svm",
+  "track": "classical-ml",
+  "title": "Support vector machines",
+  "summary": "Find a separating hyperplane with a large margin, optionally in an implicit feature space.",
+  "why": "Controls decision-boundary complexity through margin and regularization.",
+  "interview": "Derive the margin, dual constraints, and kernel validity.",
+  "level": "L5 / L6",
+  "targets": [
+    "Amazon",
+    "Uber",
+    "Microsoft",
+    "Databricks"
+  ],
+  "equations": [
+    "\\min_{w,b,\\xi}\\ \\tfrac12\\|w\\|^2+C\\sum_i\\xi_i\\quad s.t.\\ y_i(w^\\top x_i+b)\\ge1-\\xi_i",
+    "\\max_\\alpha\\ \\sum_i\\alpha_i-\\tfrac12\\sum_{ij}\\alpha_i\\alpha_jy_iy_jK(x_i,x_j),\\quad0\\le\\alpha_i\\le C,\\ \\sum_i\\alpha_i y_i=0",
+    "\\mathrm{margin}=2/\\|w\\|,\\quad K_{RBF}(x,x\\prime)=\\exp(-\\gamma\\|x-x\\prime\\|^2)",
+    "\\alpha_i[y_i(w^\\top x_i+b)-1+\\xi_i]=0,\\quad (C-\\alpha_i)\\xi_i=0"
+  ],
+  "derivation": [
+    "The canonical planes w.x+b=+1 and -1 are each 1/||w|| from the decision plane, giving width 2/||w||. This uses the canonical scaling of w and b.",
+    "KKT conditions include primal feasibility, dual feasibility, stationarity, and complementary slackness. A valid kernel produces positive semidefinite Gram matrices; Mercer conditions provide a classic characterization under regularity assumptions."
+  ],
+  "steps": [
+    {
+      "operation": "Scale features",
+      "input": "X [N,F]",
+      "output": "scaled X [N,F]",
+      "note": "RBF distance is highly sensitive to feature scale.",
+      "transformation": "Apply training location/scale statistics"
+    },
+    {
+      "operation": "Choose kernel",
+      "input": "pair of examples [F]",
+      "output": "Gram matrix [N,N] or implicit products",
+      "note": "Linear dot, polynomial (gamma*x.y+c)^degree, or RBF.",
+      "transformation": "Evaluate K(xi,xj)"
+    },
+    {
+      "operation": "Solve constrained objective",
+      "input": "Gram + labels [N]",
+      "output": "support vectors [Ns,F], coefficients [Ns]",
+      "note": "Kernel training can become expensive at large N.",
+      "transformation": "Optimize primal or box-constrained dual"
+    },
+    {
+      "operation": "Predict signed score",
+      "input": "query [B,F] + support vectors",
+      "output": "score [B]",
+      "note": "Sign gives class; probabilities need separate calibration.",
+      "transformation": "sum(alpha_i*y_i*K(xi,x)) + b"
+    }
+  ],
+  "traps": [
+    "Larger C penalizes slack more strongly and may overfit.",
+    "Large gamma creates very local RBF influence.",
+    "Kernel similarity scores are not calibrated probabilities."
+  ],
+  "tradeoff": "Linear solvers scale well on sparse high-dimensional data; nonlinear kernels can require many support-vector comparisons.",
+  "code": "from math import exp, sqrt\n\ndef rbf(x, y, gamma=0.5):\n    return exp(-gamma*sum((a-b)**2 for a,b in zip(x,y)))\n\ndef margin(w):\n    return 2/sqrt(sum(a*a for a in w))\n\nassert rbf([1,2], [1,2]) == 1\nassert margin([3,4]) == 0.4",
+  "variants": [
+    {
+      "title": "Primal",
+      "flow": "features -> hyperplane w,b -> hinge violations + norm penalty -> optimum",
+      "detail": "Slack variables allow a soft margin."
+    },
+    {
+      "title": "Dual / kernel",
+      "flow": "examples -> kernel Gram matrix -> constrained alpha -> support-vector decision",
+      "detail": "The kernel substitutes inner products without explicitly constructing the feature map."
+    }
+  ],
+  "sources": [
+    {
+      "title": "scikit-learn SVM",
+      "url": "https://scikit-learn.org/stable/modules/svm.html"
+    }
+  ],
+  "lab": null,
+  "order": 3,
+  "figure": {
+    "url": "https://scikit-learn.org/stable/_images/sphx_glr_plot_separating_hyperplane_001.png",
+    "source": "https://scikit-learn.org/stable/auto_examples/svm/plot_separating_hyperplane.html",
+    "title": "scikit-learn documentation",
+    "caption": "A maximum-margin hyperplane and its supporting observations."
+  },
+  "explanations": [
+    {
+      "id": "svm-margin",
+      "title": "Canonical margin and soft-margin slack",
+      "block": "architecture",
+      "paragraphs": [
+        "A linear classifier uses sign(w dot x + b). Under canonical scaling, margin planes are w dot x+b=+1 and -1. Distance to a plane divides the score by ||w||, so the full margin width is 2/||w||.",
+        "Minimizing half the squared norm maximizes this margin subject to correct separation. Soft-margin SVM adds nonnegative slack and a C penalty so noisy or overlapping data can violate the margin. Larger C penalizes violations more strongly.",
+        "A point can be correctly classified while lying inside the margin. Margin violation and classification error are therefore different. Feature scaling changes the geometry of the margin, making a train-fitted scaler part of an SVM pipeline."
+      ],
+      "equations": [
+        "\\min_{w,b,\\xi\\geq0}\\frac12\\|w\\|^2+C\\sum_i\\xi_i\\quad\\text{s.t. }y_i(w^Tx_i+b)\\geq1-\\xi_i"
+      ]
+    },
+    {
+      "id": "dual-kkt",
+      "title": "The dual, support vectors, and KKT conditions",
+      "block": "math",
+      "paragraphs": [
+        "Introduce multipliers alpha_i for margin constraints. Stationarity gives w=sum alpha_i*y_i*x_i and sum alpha_i*y_i=0, with 0<=alpha_i<=C. The dual depends on pairwise dot products, which permits a kernel substitution.",
+        "KKT includes primal feasibility, dual feasibility, stationarity, and complementary slackness. Points with alpha=0 do not contribute to the decision function. With 0<alpha<C, a point lies on the margin under the standard soft-margin solution; alpha=C can indicate a margin violation.",
+        "The prediction is a weighted sum over support-vector kernel evaluations plus b. The number of support vectors directly affects nonlinear SVM inference cost. A linear model can collapse that sum into one weight vector."
+      ],
+      "equations": [
+        "\\max_\\alpha\\sum_i\\alpha_i-\\frac12\\sum_{i,j}\\alpha_i\\alpha_jy_iy_jK(x_i,x_j)",
+        "f(x)=\\sum_{i\\in SV}\\alpha_i y_iK(x_i,x)+b"
+      ]
+    },
+    {
+      "id": "kernels",
+      "title": "Linear, polynomial, and RBF kernel behavior",
+      "block": "trace",
+      "paragraphs": [
+        "A kernel computes an inner product in an implicit feature space. For finite sample sets its Gram matrix should be positive semidefinite; classic Mercer conditions provide a characterization under regularity assumptions. An arbitrary similarity is not automatically a valid kernel.",
+        "Linear kernels use x dot xprime. Polynomial kernels use (gamma*x dot xprime+coef0)^degree. RBF uses exp(-gamma*||x-xprime||^2). Large gamma gives narrow influence and potentially complex boundaries; small gamma gives broader influence. Tune gamma together with C.",
+        "For large datasets, storing and optimizing a dense kernel matrix can be prohibitive. Compare a linear SVM or approximate features. SVM decision scores are not calibrated probabilities by default; probability calibration needs separate validation."
+      ],
+      "equations": [
+        "K_{RBF}(x,x^\\prime)=\\exp(-\\gamma\\|x-x^\\prime\\|^2)"
+      ]
+    }
+  ],
+  "nextTopicReason": "Compare a margin-based boundary with sequential tree corrections and second-order loss optimization.",
+  "nextTopic": "xgboost",
+  "relatedTopics": [
+    {
+      "slug": "xgboost",
+      "title": "Gradient boosting & XGBoost",
+      "reason": "Compare a margin-based boundary with sequential tree corrections and second-order loss optimization."
+    },
+    {
+      "slug": "statistics-preprocessing",
+      "title": "Preprocessing & hypothesis tests",
+      "reason": "Review this prerequisite for the input representation, assumptions, and core operations used in this lesson."
+    }
+  ]
+}

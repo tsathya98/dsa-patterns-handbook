@@ -1,0 +1,135 @@
+{
+  "slug": "naive-bayes",
+  "track": "classical-ml",
+  "title": "Naive Bayes",
+  "summary": "Use Bayes rule with feature independence conditional on the class.",
+  "why": "Makes high-dimensional likelihood estimation tractable with limited labeled data.",
+  "interview": "Explain zero-count failures and choose Gaussian versus count-based likelihoods.",
+  "level": "L5 / L6",
+  "targets": [
+    "Amazon",
+    "Uber",
+    "Microsoft",
+    "Databricks"
+  ],
+  "equations": [
+    "P(y\\mid x)\\propto P(y)\\prod_j P(x_j\\mid y)",
+    "P(w\\mid y)=\\frac{count(w,y)+\\alpha}{\\sum_v count(v,y)+\\alpha|V|}",
+    "\\hat y=\\arg\\max_y\\left[\\log P(y)+\\sum_j\\log P(x_j\\mid y)\\right]",
+    "P(x_j\\mid y)=\\frac1{\\sqrt{2\\pi\\sigma_{yj}^2}}\\exp\\left(-\\frac{(x_j-\\mu_{yj})^2}{2\\sigma_{yj}^2}\\right)"
+  ],
+  "derivation": [
+    "The independence assumption is conditional on y, not unconditional independence of input features. Correlated features can double-count evidence and produce poorly calibrated probabilities.",
+    "Gaussian NB models continuous features with per-class means and variances. Multinomial NB models nonnegative token counts. Laplace smoothing with alpha=1 prevents an unseen class-token combination from forcing the whole likelihood to zero."
+  ],
+  "steps": [
+    {
+      "operation": "Estimate class prior",
+      "input": "labels [N]",
+      "output": "prior [K]",
+      "note": "Class imbalance affects the posterior before evidence.",
+      "transformation": "Count examples per class; normalize"
+    },
+    {
+      "operation": "Fit feature likelihood",
+      "input": "X [N,F], labels [N]",
+      "output": "parameters [K,F]",
+      "note": "Gaussian stores means/variances; multinomial stores smoothed counts.",
+      "transformation": "Fit means/variances or smoothed token frequencies"
+    },
+    {
+      "operation": "Log-score classes",
+      "input": "query [B,F]",
+      "output": "scores [B,K]",
+      "note": "Summing log likelihoods avoids product underflow.",
+      "transformation": "log(prior) + sum(log likelihoods)"
+    },
+    {
+      "operation": "Choose / normalize",
+      "input": "scores [B,K]",
+      "output": "labels [B] / posterior [B,K]",
+      "note": "Use log-sum-exp when normalized posteriors are required.",
+      "transformation": "argmax or log-sum-exp normalization"
+    }
+  ],
+  "traps": [
+    "Zero variance in Gaussian NB requires smoothing.",
+    "Negative standardized counts violate a multinomial feature model.",
+    "Strong classification accuracy does not establish posterior calibration."
+  ],
+  "tradeoff": "Fast fitting and inference make a useful baseline; dependency assumptions can limit accuracy and calibration.",
+  "code": "from math import log\n\ndef score(counts, class_counts, alpha=1.0):\n    total = sum(class_counts) + alpha*len(class_counts)\n    return sum(n*log((c+alpha)/total) for n,c in zip(counts,class_counts))\n\nassert score([1,0], [10,0]) > score([1,0], [0,10])",
+  "variants": [
+    {
+      "title": "Gaussian NB",
+      "flow": "continuous x [F] -> class-specific Gaussian densities -> log sum -> class",
+      "detail": "Use variance smoothing for near-constant features."
+    },
+    {
+      "title": "Multinomial NB",
+      "flow": "token counts [V] -> smoothed class token likelihoods -> weighted log sum -> class",
+      "detail": "Vocabulary and preprocessing must match between fit and inference."
+    }
+  ],
+  "sources": [
+    {
+      "title": "scikit-learn Naive Bayes",
+      "url": "https://scikit-learn.org/stable/modules/naive_bayes.html"
+    }
+  ],
+  "lab": null,
+  "order": 1,
+  "figure": {
+    "url": "https://jakevdp.github.io/PythonDataScienceHandbook/figures/05.05-gaussian-NB.png",
+    "source": "https://jakevdp.github.io/PythonDataScienceHandbook/05.05-naive-bayes.html",
+    "title": "Jake VanderPlas / Python Data Science Handbook",
+    "caption": "Gaussian Naive Bayes models class-conditional feature distributions and derives a decision boundary."
+  },
+  "explanations": [
+    {
+      "id": "bayes-factorization",
+      "title": "From Bayes rule to a class score",
+      "block": "architecture",
+      "paragraphs": [
+        "Bayes rule gives P(y|x) proportional to P(y)P(x|y). Naive Bayes assumes features are independent conditional on the class, so the likelihood factorizes across features. The denominator P(x) is shared across classes and can be omitted for argmax classification.",
+        "Compute scores in log space: add log prior and feature log-likelihoods instead of multiplying many tiny probabilities. Normalize scores with log-sum-exp if probabilities are needed. Correlated features can count the same evidence repeatedly and make posterior estimates overconfident.",
+        "The assumption is about dependence after conditioning on y. Two word counts can be marginally correlated because both are common in one class while still being modeled as conditionally independent. Good classification accuracy does not guarantee calibrated probabilities."
+      ],
+      "equations": [
+        "\\hat y=\\arg\\max_y\\left[\\log P(y)+\\sum_j\\log P(x_j\\mid y)\\right]"
+      ]
+    },
+    {
+      "id": "nb-likelihoods",
+      "title": "Gaussian versus multinomial likelihoods",
+      "block": "math",
+      "paragraphs": [
+        "Gaussian NB estimates a mean and variance for each feature in each class. Variance smoothing prevents nearly constant features from producing extreme densities. A density can exceed one; it is not the probability mass at a single point.",
+        "Multinomial NB models count vectors with nonnegative entries. Estimate a class-token probability from token counts plus alpha smoothing. With V vocabulary entries, the denominator adds alpha*V. Features with negative values from standardization violate this likelihood contract.",
+        "For one class with counts red=3 and blue=1, alpha=1 gives probabilities red=4/6 and blue=2/6. A document containing red twice and blue once contributes 2*log(4/6)+log(2/6), plus the class log prior."
+      ],
+      "equations": [
+        "P(w=j\\mid y)=\\frac{N_{yj}+\\alpha}{\\sum_kN_{yk}+\\alpha V}"
+      ]
+    },
+    {
+      "id": "nb-pipeline",
+      "title": "Smoothing, leakage, and decision thresholds",
+      "block": "trace",
+      "paragraphs": [
+        "Fit the vocabulary and feature statistics using training data only. A test-only word must follow the trained vocabulary policy rather than expand the feature space at prediction time. Keep tokenization and class order stable.",
+        "Zero probability for one unseen class-token pair can annihilate a likelihood without smoothing. Very large alpha flattens token evidence toward uniformity. Tune it on validation data and inspect classes with few observations.",
+        "For rare positive events, the maximum-posterior class can still yield poor recall under asymmetric costs. Evaluate precision, recall, calibration, and task-specific thresholds using held-out data. Compare against a simple linear baseline before adding model complexity."
+      ]
+    }
+  ],
+  "nextTopicReason": "A likelihood model is only as useful as its features and evaluation. Check scaling, assumptions, and statistical evidence.",
+  "nextTopic": "statistics-preprocessing",
+  "relatedTopics": [
+    {
+      "slug": "statistics-preprocessing",
+      "title": "Preprocessing & hypothesis tests",
+      "reason": "A likelihood model is only as useful as its features and evaluation. Check scaling, assumptions, and statistical evidence."
+    }
+  ]
+}

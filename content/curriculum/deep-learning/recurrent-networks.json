@@ -1,0 +1,127 @@
+{
+  "slug": "recurrent-networks",
+  "track": "deep-learning",
+  "title": "RNNs & LSTM cells",
+  "summary": "Recurrence carries a hidden state through time; the LSTM adds a gated cell state.",
+  "why": "The cell-state path gives gradients an additive route through long sequences.",
+  "interview": "Derive the gate equations and identify when the gradient highway still decays.",
+  "level": "L5 / L6",
+  "targets": [
+    "Google",
+    "Meta",
+    "OpenAI",
+    "Anthropic"
+  ],
+  "equations": [
+    "h_t=\\tanh(W_{xh}x_t+W_{hh}h_{t-1}+b)",
+    "f_t=\\sigma(a_f),\\ i_t=\\sigma(a_i),\\ o_t=\\sigma(a_o),\\ \\widetilde c_t=\\tanh(a_c)",
+    "c_t=f_t\\odot c_{t-1}+i_t\\odot\\widetilde c_t,\\quad h_t=o_t\\odot\\tanh(c_t)",
+    "a_g=W_g[x_t;h_{t-1}]+b_g,\\quad g\\in\\{f,i,o,c\\}"
+  ],
+  "derivation": [
+    "A vanilla RNN gradient contains products of recurrent Jacobians, including W_hh transpose and activation derivatives. Repeated singular values below or above one produce decay or explosion.",
+    "The direct cell path derivative contains products of forget gates. Gates near one help preserve gradients, but LSTMs do not eliminate all vanishing gradients."
+  ],
+  "steps": [
+    {
+      "operation": "Concatenate state",
+      "input": "x [B,D], hprev [B,H]",
+      "output": "[B,D+H]",
+      "note": "Sequence dependency prevents full time-step parallelism.",
+      "transformation": "concat(x, hprev)"
+    },
+    {
+      "operation": "Compute four gates",
+      "input": "[B,D+H]",
+      "output": "four [B,H] tensors",
+      "note": "One fused matrix multiply can produce 4H activations.",
+      "transformation": "linear -> split -> sigmoid / tanh"
+    },
+    {
+      "operation": "Update cell highway",
+      "input": "cprev [B,H], f,i,candidate",
+      "output": "c [B,H]",
+      "note": "Additive path combines retained and written content.",
+      "transformation": "f*cprev + i*candidate"
+    },
+    {
+      "operation": "Expose hidden state",
+      "input": "c,o [B,H]",
+      "output": "h [B,H]",
+      "note": "Both h and c must be carried to the next step.",
+      "transformation": "o*tanh(c)"
+    }
+  ],
+  "traps": [
+    "Forgetting to detach carried states grows the autograd graph across batches.",
+    "Padding needs packing or a mask so it does not overwrite valid states.",
+    "Gradient clipping handles explosions, not missing long-range signal."
+  ],
+  "tradeoff": "Recurrence has compact persistent state but serial time dependence limits training parallelism.",
+  "code": "import torch\nfrom torch import nn\n\ncell = nn.LSTMCell(16, 32)\nh = torch.zeros(2, 32)\nc = torch.zeros_like(h)\nfor x in torch.randn(5, 2, 16):\n    h, c = cell(x, (h, c))\nassert h.shape == c.shape == (2, 32)",
+  "variants": [
+    {
+      "title": "Cell-state highway",
+      "flow": "c[t-1] -- multiply f -- add (i * candidate) --> c[t]\nc[t] -- tanh -- multiply o --> h[t]",
+      "detail": "Forget, input, candidate, and output branches are computed from x[t] and h[t-1]."
+    }
+  ],
+  "sources": [
+    {
+      "title": "Long Short-Term Memory",
+      "url": "https://www.bioinf.jku.at/publications/older/2604.pdf"
+    }
+  ],
+  "lab": null,
+  "order": 7,
+  "figure": {
+    "url": "https://d2l.ai/_images/lstm-3.svg",
+    "source": "https://d2l.ai/chapter_recurrent-modern/lstm.html",
+    "title": "Dive into Deep Learning",
+    "caption": "LSTM cell with gated memory update and hidden-state output."
+  },
+  "explanations": [
+    {
+      "id": "rnn-unrolling",
+      "title": "Unroll the recurrence before reasoning about gradients",
+      "block": "architecture",
+      "paragraphs": [
+        "A vanilla RNN reads x_t [B,Din] and h_(t-1) [B,Dh], then produces h_t [B,Dh]. The same recurrent parameters are reused at every time step. Sequence classification may consume the last valid state; token labeling consumes all states.",
+        "Backpropagation through time multiplies recurrent Jacobians. tanh derivatives are at most one, while the recurrent matrix can contract or amplify directions. Repeated products can make early-token gradients vanish or explode. Gradient clipping controls large gradients but does not restore vanished ones.",
+        "Padded batches need lengths or masks. Reading the final padded state as the sentence representation changes the computation. A bidirectional RNN reads future context and is unsuitable for strictly causal online generation without changing the task."
+      ]
+    },
+    {
+      "id": "lstm-gates",
+      "title": "Four gates and the cell-state path",
+      "block": "math",
+      "paragraphs": [
+        "Concatenate x_t and h_(t-1), then project to four Dh-wide vectors. Sigmoid produces forget f_t, input i_t, and output o_t gates in [0,1]. tanh produces the candidate g_t. The cell update adds retained memory and new content.",
+        "The direct path through cell state multiplies by f_t rather than a full recurrent matrix at every step. Forget gates near one can preserve a gradient over many steps. Indirect paths still exist through the gates and hidden states, so LSTMs do not guarantee perfect memory.",
+        "Both c_t and h_t must be carried between chunks for stateful inference. Truncated backprop detaches the state at chunk boundaries to limit the graph; it intentionally removes gradient paths across those boundaries."
+      ],
+      "equations": [
+        "\\begin{bmatrix}f_t\\\\i_t\\\\o_t\\end{bmatrix}=\\sigma\\!\\left(W[x_t;h_{t-1}]+b\\right),\\quad g_t=\\tanh(W_g[x_t;h_{t-1}]+b_g)",
+        "c_t=f_t\\odot c_{t-1}+i_t\\odot g_t,\\quad h_t=o_t\\odot\\tanh(c_t)"
+      ]
+    },
+    {
+      "id": "lstm-numbers",
+      "title": "Trace a single cell coordinate",
+      "block": "trace",
+      "paragraphs": [
+        "Suppose c_prev=2, f=0.9, i=0.2, candidate=0.5, and o=0.8. The new cell is 0.9*2 + 0.2*0.5 = 1.9. The visible hidden coordinate is 0.8*tanh(1.9), approximately 0.765. Cell memory and exposed hidden state serve different roles.",
+        "Recurrence is sequential along time even when gates within a step are matrix products. Transformers parallelize training token positions at the cost of attention work; RNN inference carries a fixed-size state but may compress away information needed much later."
+      ]
+    }
+  ],
+  "nextTopicReason": "Before either recurrent or attention models can consume text, a tokenizer must define the token IDs.",
+  "nextTopic": "subword-tokenization",
+  "relatedTopics": [
+    {
+      "slug": "subword-tokenization",
+      "title": "Subword tokenization",
+      "reason": "Before either recurrent or attention models can consume text, a tokenizer must define the token IDs."
+    }
+  ]
+}

@@ -1,0 +1,168 @@
+{
+  "slug": "multimodal-connectors",
+  "track": "deep-learning",
+  "title": "Multimodal LLM connectors",
+  "summary": "Map vision, audio, or video features into a representation the language model can consume.",
+  "why": "Bridges continuous encoder features and language token embeddings.",
+  "interview": "Compare projection, resampling, and query-based bottlenecks under a fixed token budget.",
+  "level": "L5 / L6",
+  "targets": [
+    "Google",
+    "Meta",
+    "OpenAI",
+    "Anthropic"
+  ],
+  "equations": [
+    "Z_{vision}\\in\\mathbb{R}^{B\\times N\\times D_v},\\quad Z_{llm}=Z_{vision}W\\in\\mathbb{R}^{B\\times N\\times D}",
+    "\\operatorname{CrossAttn}(Q,K,V)=\\operatorname{softmax}(QK^\\top/\\sqrt{d})V"
+  ],
+  "derivation": [
+    "A connector aligns feature dimensions, while training aligns meaning. A frozen image or audio encoder does not imply that the connector or language model is frozen. Video adds a temporal ordering and token-budget problem."
+  ],
+  "steps": [
+    {
+      "operation": "Encode modality",
+      "input": "image [B,C,H,W] or audio [B,T,F]",
+      "output": "features [B,N,Dv]",
+      "note": "CLIP ViT or an audio encoder such as Whisper supplies features.",
+      "transformation": "Encoder(modality)"
+    },
+    {
+      "operation": "Select connector",
+      "input": "features [B,N,Dv]",
+      "output": "[B,M,D]",
+      "note": "Linear maps often keep M=N; learned query modules can bound M.",
+      "transformation": "Project(features) or CrossAttn(queries, features)"
+    },
+    {
+      "operation": "Fuse with text",
+      "input": "text [B,S,D] + modality [B,M,D]",
+      "output": "[B,S+M,D] or cross-attention state",
+      "note": "Concatenation and gated cross-attention are distinct designs.",
+      "transformation": "concat(modality, text) or gated cross-attention"
+    },
+    {
+      "operation": "Autoregressive decode",
+      "input": "fused context",
+      "output": "logits [B,T,V]",
+      "note": "Track causal and modality masks plus temporal metadata.",
+      "transformation": "next_token_head(LLM(context))"
+    }
+  ],
+  "traps": [
+    "Matching dimensions does not establish semantic alignment.",
+    "Audio sample rate and video frame sampling change the meaning of features.",
+    "Flattening many video frames can exhaust the context before useful text arrives."
+  ],
+  "tradeoff": "More modality tokens retain detail but increase prefill work and cache memory.",
+  "code": "import torch\nfrom torch import nn\n\nfeatures = torch.randn(2, 196, 768)\nconnector = nn.Linear(768, 1024)\nvisual_tokens = connector(features)\ntext_tokens = torch.randn(2, 32, 1024)\nfused = torch.cat((visual_tokens, text_tokens), dim=1)\nassert fused.shape == (2, 228, 1024)",
+  "variants": [
+    {
+      "title": "LLaVA projection",
+      "flow": "CLIP patches [B,N,Dv] -> projector -> visual tokens [B,N,D] -> LLM",
+      "detail": "Projection preserves patch count; projector architecture depends on the model version."
+    },
+    {
+      "title": "Flamingo resampler",
+      "flow": "features [B,N,Dv] + learned queries [M,D] -> Perceiver -> [B,M,D] -> gated cross-attention",
+      "detail": "A fixed latent budget compresses variable input length."
+    },
+    {
+      "title": "BLIP-2 Q-Former",
+      "flow": "frozen image encoder -> query Transformer -> projection -> frozen LLM",
+      "detail": "Learned queries extract language-relevant information in staged training."
+    }
+  ],
+  "sources": [
+    {
+      "title": "LLaVA",
+      "url": "https://arxiv.org/abs/2304.08485"
+    },
+    {
+      "title": "Flamingo",
+      "url": "https://arxiv.org/abs/2204.14198"
+    },
+    {
+      "title": "BLIP-2",
+      "url": "https://arxiv.org/abs/2301.12597"
+    }
+  ],
+  "lab": null,
+  "order": 6,
+  "figure": {
+    "url": "https://llava-vl.github.io/images/llava_arch.png",
+    "source": "https://llava-vl.github.io/",
+    "title": "LLaVA project authors",
+    "caption": "A visual encoder and projection connect image features to a language model."
+  },
+  "explanations": [
+    {
+      "id": "connector-layouts",
+      "title": "Projection, resampling, and query tokens",
+      "block": "architecture",
+      "paragraphs": [
+        "A vision encoder emits visual features [B,Nv,Dv]. A linear LLaVA-style connector maps each feature to Dllm, preserving Nv. Those projected visual tokens join text tokens in the language model input. The learned mapping aligns dimensions; paired training teaches semantic alignment.",
+        "A Flamingo-style Perceiver Resampler compresses a variable number of visual features into a fixed number M of latent vectors. Language model layers use gated cross-attention to those visual latents. This is a different insertion point from simply appending image tokens.",
+        "BLIP-2 uses learned query tokens in a Q-Former to extract a bounded visual representation from a frozen image encoder, then projects those query outputs for a language model. The number of query tokens controls the visual bandwidth reaching the language model."
+      ],
+      "table": {
+        "headers": [
+          "Connector",
+          "Output token count",
+          "Language integration"
+        ],
+        "rows": [
+          [
+            "Linear projection",
+            "Nv",
+            "Projected input embeddings"
+          ],
+          [
+            "Perceiver Resampler",
+            "Fixed M",
+            "Cross-attention visual latents"
+          ],
+          [
+            "Q-Former",
+            "Learned query count M",
+            "Projected query representations"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "alignment-training",
+      "title": "What is frozen and what receives gradients?",
+      "block": "math",
+      "paragraphs": [
+        "Freezing a vision encoder means its parameters do not update. Gradients can still flow through its fixed outputs into a trainable connector. A frozen language model can also consume trainable continuous inputs; its weights remain fixed while the input bridge learns.",
+        "Separate representation alignment from instruction tuning. Alignment can train the connector on image-text pairs; instruction tuning teaches response behavior on multimodal conversations. Loss masking must identify text targets and avoid treating a visual embedding slot as an ordinary vocabulary target.",
+        "A model can answer using language priors while ignoring the image. Evaluate interventions such as swapping images with the same prompt and asking grounded spatial questions. Image-text contrastive quality alone does not establish faithful visual reasoning."
+      ]
+    },
+    {
+      "id": "audio-video",
+      "title": "Audio, video, and token budgets",
+      "block": "trace",
+      "paragraphs": [
+        "An audio encoder converts waveform frames or a spectrogram into [B,Taudio,Daudio]; an adapter aligns or compresses those features for language generation. A Whisper-style encoder-decoder ASR model has its own training and decoding contract; using audio features in a separate LLM requires an explicit connector.",
+        "Video adds frame sampling, temporal ordering, and potentially audio synchronization. Eight frames with 196 patch tokens each create 1568 visual tokens before text. Resampling, pooling, or token selection trades temporal and spatial detail for context cost.",
+        "Report end-to-end latency including media decoding and encoders, then language-model prefill and decode. Missing audio, blank frames, and modality-specific padding require explicit masks and fallback behavior."
+      ]
+    }
+  ],
+  "nextTopicReason": "Compare token attention with recurrent state and examine the gradient paths that LSTMs preserve.",
+  "nextTopic": "recurrent-networks",
+  "relatedTopics": [
+    {
+      "slug": "recurrent-networks",
+      "title": "RNNs & LSTM cells",
+      "reason": "Compare token attention with recurrent state and examine the gradient paths that LSTMs preserve."
+    },
+    {
+      "slug": "vision-transformer",
+      "title": "Vision Transformer",
+      "reason": "Review this prerequisite for the input representation, assumptions, and core operations used in this lesson."
+    }
+  ]
+}

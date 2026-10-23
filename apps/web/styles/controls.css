@@ -1,0 +1,218 @@
+/* Keep the native menu and keyboard behavior, with one visible chevron. */
+select:not([multiple]):not([size]) {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: var(--control-bg);
+  background-image: var(--select-chevron);
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 12px 8px;
+  border: 1px solid var(--control-line);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: var(--font-sm);
+  line-height: 1.5;
+  padding: 10px 44px 10px 14px;
+  min-height: 44px;
+  min-width: 7.5rem;
+  max-width: 100%;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+select option,
+select optgroup {
+  color: var(--text);
+  background: var(--control-bg);
+}
+select:not([multiple]):not([size]):hover {
+  border-color: var(--accent);
+}
+select:not([multiple]):not([size]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+select:disabled {
+  cursor: default;
+}
+.catalog-search,
+.workspace-search-form input,
+.focus-custom input,
+.focus-panel > label input,
+.custom-problem input,
+.reader-notes textarea,
+.problem-notes textarea {
+  background-color: var(--control-bg);
+  border-color: var(--control-line);
+}
+.catalog-search {
+  min-height: 44px;
+}
+.catalog-search input,
+.global-search input {
+  font-size: var(--font-sm);
+}
+.catalog-search:focus-within,
+.global-search:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.primary-button,
+.secondary-button {
+  min-height: 44px;
+}
+.study-tabs > button,
+.study-tabs > a {
+  min-height: 44px;
+}
+.problem-filters > .catalog-search {
+  flex-basis: 100%;
+  min-width: 0;
+}
+.problem-filters > select {
+  flex: 1 1 150px;
+  max-width: 100%;
+}
+.study-table select {
+  width: 100%;
+}
+.study-table {
+  min-width: 940px;
+}
+.catalog-toolbar > select {
+  max-width: 260px;
+}
+.playground-toolbar label {
+  min-width: 0;
+  max-width: 100%;
+}
+.playground-toolbar select {
+  min-width: 220px;
+  max-width: min(100%, 480px);
+}
+.note-card-bottom {
+  flex-wrap: wrap;
+}
+.document-tool-row label {
+  flex-wrap: wrap;
+}
+.figure-toolbar {
+  flex-wrap: wrap;
+}
+.figure-toolbar a {
+  flex-shrink: 0;
+}
+.document-list h3 {
+  white-space: normal;
+  line-height: 1.5;
+}
+.sidebar .nav-item {
+  font-size: var(--font-sm);
+  min-height: 40px;
+}
+.sidebar .nav-item > svg {
+  flex-shrink: 0;
+}
+.sidebar-label {
+  font-size: var(--font-xs);
+  letter-spacing: 0.08em;
+}
+.brand {
+  letter-spacing: -0.8px;
+}
+.nav-count {
+  font-size: var(--font-xs);
+}
+.topbar {
+  min-height: 72px;
+}
+.global-search {
+  min-height: 40px;
+}
+.theme-toggle {
+  min-height: 40px;
+}
+.markdown,
+.markdown p,
+.markdown li {
+  font-size: var(--font-base);
+}
+.markdown pre,
+.markdown table,
+.trace-table,
+.lesson-table {
+  font-size: var(--font-sm);
+}
+.markdown pre code,
+.code-block pre code {
+  font-size: inherit;
+}
+code {
+  font-size: 0.9em;
+}
+.eyebrow {
+  font-size: var(--font-xs);
+  letter-spacing: 0.08em;
+}
+.source-figure figcaption p,
+.company-card p,
+.study-table p {
+  font-size: var(--font-sm);
+}
+.lab p,
+.implementation-note,
+.study-data-note {
+  font-size: var(--font-sm);
+  line-height: 1.8;
+}
+.lesson-section li {
+  font-size: var(--font-base);
+}
+.sidebar-bottom > p {
+  font-size: var(--font-xs);
+}
+@media (max-width: 1200px) and (min-width: 701px) {
+  :root {
+    --sidebar: 244px;
+  }
+}
+@media (max-width: 700px) {
+  .sidebar {
+    width: 280px;
+  }
+  .topbar {
+    min-height: 64px;
+  }
+  .topbar .breadcrumbs {
+    display: none;
+  }
+  .topbar .global-search {
+    min-height: 40px;
+  }
+  .study-filters > select {
+    flex: 1 1 150px;
+    max-width: 100%;
+  }
+  .catalog-toolbar > select {
+    width: 100%;
+    max-width: 100%;
+  }
+  .playground-toolbar select {
+    min-width: 0;
+    width: 100%;
+  }
+  .playground-toolbar > label {
+    flex: 1 1 100%;
+  }
+  .learning-path-grid .workspace-module > a {
+    white-space: normal;
+  }
+}
+@media (forced-colors: active) {
+  select:not([multiple]):not([size]) {
+    appearance: auto;
+    -webkit-appearance: auto;
+    background-image: none;
+    border-color: ButtonText;
+    forced-color-adjust: auto;
+  }
+}

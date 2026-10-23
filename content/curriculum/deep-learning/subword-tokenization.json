@@ -1,0 +1,139 @@
+{
+  "slug": "subword-tokenization",
+  "track": "deep-learning",
+  "title": "Subword tokenization",
+  "summary": "Represent text using a finite vocabulary of reusable pieces, with an explicit policy for unseen text.",
+  "why": "Balances character sequence length against word-level vocabulary explosion.",
+  "interview": "Compare training objectives, reversibility, and byte fallback.",
+  "level": "L5 / L6",
+  "targets": [
+    "Google",
+    "Meta",
+    "OpenAI",
+    "Anthropic"
+  ],
+  "equations": [
+    "P(x)=\\sum_{s\\in\\mathcal{S}(x)}\\prod_{u\\in s}p(u)",
+    "\\operatorname{BPEmerge}=\\arg\\max_{(a,b)}\\operatorname{count}(a,b)"
+  ],
+  "derivation": [
+    "BPE repeatedly merges frequent adjacent symbols. WordPiece uses a likelihood-oriented vocabulary construction; the frequently taught pair score is a heuristic description, not every implementation. Unigram starts with a large vocabulary and prunes pieces by likelihood impact.",
+    "SentencePiece is a toolkit that supports both BPE and Unigram. Byte-level coverage or byte fallback prevents unknown characters only when the tokenizer is configured to represent all bytes."
+  ],
+  "steps": [
+    {
+      "operation": "Normalize + pretokenize",
+      "input": "Unicode string",
+      "output": "normalized pieces",
+      "note": "Normalization can make the process non-reversible.",
+      "transformation": "Normalize text; identify initial symbols"
+    },
+    {
+      "operation": "Segment subwords",
+      "input": "pieces + learned vocabulary",
+      "output": "token strings [S]",
+      "note": "BPE uses merge ranks; Unigram can use Viterbi segmentation.",
+      "transformation": "Apply merge ranks or likelihood segmentation"
+    },
+    {
+      "operation": "Map to IDs",
+      "input": "token strings [S]",
+      "output": "integer IDs [S]",
+      "note": "Special tokens need separate handling and stable IDs.",
+      "transformation": "vocabulary[token]"
+    },
+    {
+      "operation": "Decode",
+      "input": "IDs [S]",
+      "output": "text",
+      "note": "Preserve byte sequences; distinguish raw bytes from Unicode characters.",
+      "transformation": "IDs -> subword pieces -> text bytes"
+    }
+  ],
+  "traps": [
+    "Token counts differ across languages and code.",
+    "Byte fallback can expand one character into several tokens.",
+    "Using a tokenizer from another checkpoint silently changes embedding semantics."
+  ],
+  "tradeoff": "Larger vocabulary shortens many sequences but enlarges embedding and output matrices.",
+  "code": "def apply_merge(tokens, pair):\n    out, i = [], 0\n    while i < len(tokens):\n        if i+1 < len(tokens) and (tokens[i], tokens[i+1]) == pair:\n            out.append(tokens[i] + tokens[i+1])\n            i += 2\n        else:\n            out.append(tokens[i])\n            i += 1\n    return out\n\nassert apply_merge(list(\"banana\"), (\"a\", \"n\")) == [\"b\", \"an\", \"an\", \"a\"]",
+  "variants": [
+    {
+      "title": "BPE",
+      "flow": "characters/bytes -> count pairs -> merge frequent pair -> merge-ranked vocabulary",
+      "detail": "Modern tokenizer details vary by model; do not infer an unpublished tokenizer recipe."
+    },
+    {
+      "title": "WordPiece",
+      "flow": "candidate pieces -> likelihood-oriented selection -> vocabulary -> greedy segmentation",
+      "detail": "BERT commonly uses longest-match tokenization with continuation markers."
+    },
+    {
+      "title": "Unigram",
+      "flow": "large piece vocabulary -> estimate probabilities -> prune -> Viterbi tokens",
+      "detail": "Probabilistic alternatives also support subword sampling during training."
+    }
+  ],
+  "sources": [
+    {
+      "title": "Subword units / BPE",
+      "url": "https://arxiv.org/abs/1508.07909"
+    },
+    {
+      "title": "SentencePiece",
+      "url": "https://arxiv.org/abs/1808.06226"
+    }
+  ],
+  "lab": null,
+  "order": 8,
+  "figure": {
+    "url": "https://huggingface.co/datasets/huggingface-course/documentation-images/resolve/main/en/chapter2/bpe_subword.svg",
+    "source": "https://huggingface.co/learn/llm-course/en/chapter2/4",
+    "title": "Hugging Face LLM Course",
+    "caption": "Subword tokenization preserves frequent pieces and decomposes less frequent words."
+  },
+  "explanations": [
+    {
+      "id": "tokenizer-pipeline",
+      "title": "Normalization, segmentation, vocabulary, and IDs",
+      "block": "architecture",
+      "paragraphs": [
+        "A tokenizer is a versioned pipeline: optional normalization, pre-tokenization, subword segmentation, ID lookup, and special-token insertion. Decoding reverses the representational steps where possible. Lowercasing or Unicode normalization can be lossy, so exact byte round-tripping is not universal.",
+        "Token IDs index the model embedding table [V,D]. A tokenizer vocabulary change without a compatible embedding and output head changes the meaning of IDs. BOS, EOS, chat-role markers, padding, and attention masks belong to the model input contract.",
+        "Token counts vary by language and text type. Measure actual tokens when setting chunk sizes, context budgets, and price estimates. Character counts or an English word-to-token heuristic can fail badly on source code and multilingual input."
+      ]
+    },
+    {
+      "id": "three-algorithms",
+      "title": "BPE, WordPiece, and Unigram: three training procedures",
+      "block": "math",
+      "paragraphs": [
+        "BPE starts from an initial symbol inventory and repeatedly merges the most frequent adjacent pair in the training corpus. Encoding applies the learned merge priorities. A toy vocabulary containing l,o,w and a learned merge l+o lets low become lo,w; a later lo+w merge makes low one token.",
+        "WordPiece chooses a vocabulary to improve a language-model likelihood criterion. A common educational pair score divides pair frequency by the individual piece frequencies. Encoding often uses greedy longest-match segmentation with continuation markers; that inference procedure is distinct from vocabulary training.",
+        "Unigram starts with a large set of candidate pieces and learns a probabilistic segmentation model, pruning pieces while retaining enough alternatives. A word can have multiple valid segmentations. SentencePiece implements Unigram and BPE; the toolkit name does not identify which algorithm a model uses."
+      ],
+      "equations": [
+        "P(s_1,\\ldots,s_m)=\\prod_{i=1}^{m}p(s_i),\\quad s^*=\\arg\\max_{s:\\,concat(s)=x}\\sum_i\\log p(s_i)"
+      ]
+    },
+    {
+      "id": "byte-fallback",
+      "title": "Byte fallback, boundaries, and truncation failures",
+      "block": "trace",
+      "paragraphs": [
+        "A byte-level vocabulary or configured byte fallback can represent unseen Unicode through its encoded bytes. It prevents unknown-character failures only when the complete byte inventory and decoder behavior are supported. It does not imply one token per character.",
+        "Whitespace markers and word-boundary conventions affect whether the same visible substring receives the same ID in different contexts. Never reconstruct offsets by counting token strings. Use the tokenizer offset mapping and retain source provenance for retrieval citations.",
+        "Truncation can remove an EOS or a chat closing marker. Padding masks distinguish unused positions from real content, while loss masks distinguish context from supervised targets. Test empty input, emoji, combining characters, mixed scripts, and literal special-token-looking text."
+      ]
+    }
+  ],
+  "nextTopicReason": "Token IDs feed an encoder. Next, train pooled representations for similarity and retrieval.",
+  "nextTopic": "embedding-training",
+  "relatedTopics": [
+    {
+      "slug": "embedding-training",
+      "title": "Embedding model training",
+      "reason": "Token IDs feed an encoder. Next, train pooled representations for similarity and retrieval."
+    }
+  ]
+}

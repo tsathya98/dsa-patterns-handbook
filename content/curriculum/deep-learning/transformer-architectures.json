@@ -1,0 +1,500 @@
+{
+  "slug": "transformer-architectures",
+  "track": "deep-learning",
+  "title": "Transformer architectures",
+  "summary": "A Transformer converts token IDs into contextual hidden states. A GPT-style decoder then projects each state into vocabulary logits and generates by repeatedly appending a next-token prediction.",
+  "why": "Causal self-attention trains many next-token positions in parallel while preserving the left-to-right dependency needed for generation.",
+  "interview": "Trace a prompt through a complete decoder-only language model, align inputs and targets, explain BOS/EOS, derive the vocabulary head, and connect autoregressive decoding to KV caching.",
+  "level": "L5 / L6",
+  "targets": [
+    "Google",
+    "Meta",
+    "OpenAI",
+    "Anthropic"
+  ],
+  "equations": [
+    "Q=XW_Q,\\ K=XW_K,\\ V=XW_V,\\quad X\\in\\mathbb R^{B\\times S\\times D}",
+    "A=\\operatorname{softmax}(QK^\\top/\\sqrt{d_h}+M),\\quad head=AV",
+    "M_{ij}=\\begin{cases}0&j\\le i\\\\-\\infty&j>i\\end{cases}",
+    "\\operatorname{Var}(q^\\top k)=d_h,\\quad J_{ij}=p_i(\\delta_{ij}-p_j)"
+  ],
+  "derivation": [
+    "Under independent zero-mean, unit-variance q and k coordinates, Var(sum q_i*k_i) = dh. Dividing by sqrt(dh) returns logit variance to 1 under those assumptions. When a logit dominates, the softmax Jacobian approaches zero as probabilities approach a one-hot vector; scaling reduces that tendency but does not guarantee non-saturation.",
+    "For multi-head attention, H*dh=D. Concatenate the H head outputs, then multiply by W_O [D,D]. MHA uses H KV heads; MQA uses one; GQA shares fewer KV heads across query groups. The vocabulary head discussed below is a separate projection."
+  ],
+  "steps": [
+    {
+      "operation": "Token IDs and positions",
+      "input": "IDs [B,S]",
+      "output": "X [B,S,D]",
+      "note": "Lookup gathers embedding rows; position handling must match the model.",
+      "transformation": "E[ids] + P[positions] for the GPT-2-style example"
+    },
+    {
+      "operation": "Pre-normalize and project Q,K,V",
+      "input": "X [B,S,D]",
+      "output": "Q,K,V [B,H,S,dh]",
+      "note": "A fused linear projection can produce 3D features per token.",
+      "transformation": "LN1(X) -> linear(D,3D) -> split and transpose"
+    },
+    {
+      "operation": "Causal attention",
+      "input": "Q,K,V [B,H,S,dh]",
+      "output": "heads [B,H,S,dh]",
+      "note": "The conceptual score tensor is [B,H,S,S]; fused kernels can avoid storing it.",
+      "transformation": "softmax(Q @ K.T / sqrt(dh) + causal_mask) @ V"
+    },
+    {
+      "operation": "Merge and attention residual",
+      "input": "heads [B,H,S,dh]",
+      "output": "U [B,S,D]",
+      "note": "W_O maps hidden features, not vocabulary entries.",
+      "transformation": "X + merge(heads) @ W_O"
+    },
+    {
+      "operation": "FFN and residual",
+      "input": "U [B,S,D]",
+      "output": "Xnext [B,S,D]",
+      "note": "Intermediate [B,S,4D] activations add training memory.",
+      "transformation": "U + GELU(LN2(U) @ W1 + b1) @ W2 + b2"
+    },
+    {
+      "operation": "Repeat blocks, then final norm",
+      "input": "Xnext [B,S,D]",
+      "output": "Z [B,S,D]",
+      "note": "Each block has separate parameters; final LN reduces only D.",
+      "transformation": "Repeat N blocks; Z = LN_final(H_N)"
+    },
+    {
+      "operation": "Unembed to vocabulary",
+      "input": "Z [B,S,D]",
+      "output": "logits [B,S,V]",
+      "note": "Tied W_U=E.T saves parameters; logits still cost B*S*V elements.",
+      "transformation": "Z @ W_U, with W_U [D,V]"
+    },
+    {
+      "operation": "Train or generate",
+      "input": "logits [B,S,V]",
+      "output": "scalar loss or next ID [B,1]",
+      "note": "Training uses all valid positions; generation reads the last position.",
+      "transformation": "Cross-entropy against shifted targets, or select(logits[:, -1, :])"
+    },
+    {
+      "operation": "Append and stop",
+      "input": "prefix [B,S] + next ID [B,1]",
+      "output": "prefix [B,S+1] or completed output",
+      "note": "KV caching avoids repeated projection of old tokens; retain a token budget.",
+      "transformation": "Append ID; stop at EOS or max_new_tokens; otherwise decode again"
+    }
+  ],
+  "traps": [
+    "Unshifted labels let a model learn to copy the current token. Shift once, according to the model API contract. A bidirectional training mask also leaks the next-token target.",
+    "SOS/BOS, EOS, end-of-turn, and PAD are tokenizer and format choices. Do not assume all GPT-style models have distinct BOS/EOS IDs.",
+    "Do not mask real EOS targets when EOS is also used as the padding token. Use actual sequence lengths or a position-level loss mask.",
+    "The last decoder layer outputs D features, not a V-way probability distribution. Distinguish final normalization, the LM head, attention W_O, attention softmax, and vocabulary softmax.",
+    "A causal mask alone does not handle left padding or cross-document isolation in a packed sample. Add the corresponding position and attention constraints.",
+    "Cross-attention in T5 uses decoder Q [B,H,T,dh] and encoder K,V [B,H,S,dh], producing scores [B,H,T,S]. Decoder-only GPT has no such sublayer.",
+    "Boolean mask conventions differ across attention APIs. Avoid completely masked rows and use numerically stable attention kernels.",
+    "Appending sampled IDs makes standard decoding sequential. Parallel training does not imply that an ordinary generator knows future output tokens.",
+    "Caches must match the model weights, prefix, and position IDs. Left-padding, positional conventions, and growing context lengths can break an otherwise shape-correct cache.",
+    "The runnable model uses a toy vocabulary and random weights. It demonstrates computation and gradient flow; fluent output requires training and a matching tokenizer."
+  ],
+  "tradeoff": "Autoregression supports flexible continuation but makes ordinary generation sequential. KV caching reduces repeated prefix computation at the cost of memory that grows with retained context; vocabulary projection and sampling remain separate costs.",
+  "code": "import torch\nfrom torch import nn\nimport torch.nn.functional as F\n\nPAD, BOS, EOS = 0, 1, 2\n# Toy vocabulary: PAD, SOS, EOS, I, like, tea, coffee, .\n\nclass DecoderBlock(nn.Module):\n    def __init__(self, width=32, heads=4):\n        super().__init__()\n        if width % heads:\n            raise ValueError(\"width must be divisible by heads\")\n        self.heads = heads\n        self.ln1, self.ln2 = nn.LayerNorm(width), nn.LayerNorm(width)\n        self.qkv = nn.Linear(width, 3 * width)\n        self.attention_out = nn.Linear(width, width)\n        self.ffn = nn.Sequential(\n            nn.Linear(width, 4 * width), nn.GELU(), nn.Linear(4 * width, width)\n        )\n\n    def forward(self, x):\n        batch, length, width = x.shape\n        head_dim = width // self.heads\n        q, k, v = self.qkv(self.ln1(x)).chunk(3, dim=-1)\n        def split(t):\n            return t.reshape(batch, length, self.heads, head_dim).transpose(1, 2)\n        # [B,H,S,dh] -> [B,H,S,dh], with future positions masked.\n        attention = F.scaled_dot_product_attention(\n            split(q), split(k), split(v), is_causal=True, dropout_p=0.0\n        )\n        merged = attention.transpose(1, 2).reshape(batch, length, width)\n        x = x + self.attention_out(merged)\n        return x + self.ffn(self.ln2(x))\n\nclass TinyGPT(nn.Module):\n    def __init__(self, vocab=8, width=32, heads=4, layers=2, context=12):\n        super().__init__()\n        self.context = context\n        self.token = nn.Embedding(vocab, width)        # E: [V,D]\n        self.position = nn.Embedding(context, width)  # learned absolute positions\n        self.blocks = nn.Sequential(*[DecoderBlock(width, heads) for _ in range(layers)])\n        self.final_norm = nn.LayerNorm(width)\n        self.lm_head = nn.Linear(width, vocab, bias=False)\n        self.lm_head.weight = self.token.weight       # W_U = E transpose in the math\n\n    def forward(self, ids):\n        length = ids.shape[1]\n        if not 1 <= length <= self.context:\n            raise ValueError(\"Input must fit the context and contain at least one token\")\n        positions = torch.arange(length, device=ids.device)\n        x = self.token(ids) + self.position(positions)\n        hidden = self.final_norm(self.blocks(x))      # [B,S,D]\n        return self.lm_head(hidden)                    # [B,S,V], raw logits\n\n@torch.no_grad()\ndef generate(model, prompt, max_new_tokens=4, eos_id=EOS):\n    # Single-sequence greedy reference. Recomputes the prefix; no KV cache yet.\n    if prompt.ndim != 2 or prompt.shape[0] != 1:\n        raise ValueError(\"This reference generator expects one sequence\")\n    if not 1 <= prompt.shape[1] <= model.context or max_new_tokens < 0:\n        raise ValueError(\"Invalid prompt length or generation budget\")\n    out = prompt.clone()\n    if out[0, -1].item() == eos_id:\n        return out\n    was_training = model.training\n    model.eval()\n    try:\n        for _ in range(min(max_new_tokens, model.context - out.shape[1])):\n            scores = model(out)[:, -1, :].clone()     # [1,V], after the prompt\n            scores[:, PAD] = scores[:, BOS] = -torch.inf\n            next_id = scores.argmax(dim=-1, keepdim=True)\n            out = torch.cat((out, next_id), dim=1)\n            if next_id.item() == eos_id:\n                break\n        return out\n    finally:\n        model.train(was_training)\n\ntorch.manual_seed(7)\nmodel = TinyGPT()\nsequence = torch.tensor([[BOS, 3, 4, 5, EOS, PAD], [BOS, 3, 4, 6, EOS, PAD]])\ninputs, targets = sequence[:, :-1], sequence[:, 1:]  # shift exactly once\nlogits = model(inputs)\nassert logits.shape == (2, 5, 8)\nloss = F.cross_entropy(logits.reshape(-1, 8), targets.reshape(-1), ignore_index=PAD)\nloss.backward()\nassert torch.isfinite(loss) and model.token.weight.grad.abs().sum() > 0\nassert model.lm_head.weight is model.token.weight\n\n# A future token must not change an earlier prediction.\nmodel.eval()\nchanged = inputs.clone()\nchanged[:, 3] = 7\nwith torch.no_grad():\n    assert torch.allclose(model(inputs)[:, :3], model(changed)[:, :3], atol=1e-5)\n    prefix = inputs[:1, :3]\n    assert torch.allclose(model(inputs[:1])[:, 2], model(prefix)[:, -1], atol=1e-5)\n\noutput = generate(model, inputs[:1, :3], max_new_tokens=3)\nassert 3 <= output.shape[1] <= 6  # random weights demonstrate shapes, not fluent text\n\n# Verify that EOS stops generation immediately, even with a larger token budget.\nclass AlwaysEOS(nn.Module):\n    context = 12\n    def forward(self, ids):\n        scores = torch.zeros(*ids.shape, 8, device=ids.device)\n        scores[..., EOS] = 10\n        return scores\n\nstopped = generate(AlwaysEOS(), inputs[:1, :3], max_new_tokens=4)\nassert stopped.shape == (1, 4) and stopped[0, -1].item() == EOS\nassert generate(model, inputs[:1, :3], max_new_tokens=0).shape == (1, 3)",
+  "variants": [
+    {
+      "title": "Encoder only / BERT",
+      "flow": "IDs [B,S] -> token + position embeddings\n  -> bidirectional self-attention + FFN, repeated\n  -> contextual features [B,S,D]\n  -> task head (for example, masked-token logits [B,S,V])",
+      "detail": "A token can use left and right non-padding context. Masked-language-model training predicts selected missing tokens. The head depends on the task; this is not ordinary left-to-right autoregressive generation."
+    },
+    {
+      "title": "Decoder only / GPT-2-style",
+      "flow": "prefix IDs [B,S] -> token + learned position embeddings\n  -> causal self-attention + FFN, repeated\n  -> final LayerNorm [B,S,D] -> LM head [B,S,V]\n  -> next ID from last row -> append -> repeat",
+      "detail": "One causal stream contains both prompt and continuation. There is no encoder output to cross-attend to. Full-prefix training uses shifted next-token targets."
+    },
+    {
+      "title": "Encoder-decoder / T5-style",
+      "flow": "source IDs -> encoder -> states [B,S,D] -> cross-attention K,V\nBOS + target prefix -> decoder causal self-attention\n  -> cross-attention Q [B,H,T,dh] with source K,V [B,H,S,dh]\n  -> FFN -> task-specific final norm + LM head [B,T,V]",
+      "detail": "The encoder reads the source bidirectionally. Target self-attention is causal; cross-attention normally sees all non-padding source tokens. Source and target lengths can differ. Exact normalization and positional schemes are model-specific."
+    },
+    {
+      "title": "MHA / MQA / GQA",
+      "flow": "Q [B,Hq,S,dh], K,V [B,Hkv,S,dh]\n  -> share KV within query groups\n  -> attention output [B,Hq,S,dh]",
+      "detail": "MHA: Hkv=Hq. MQA: Hkv=1. GQA: 1<Hkv<Hq, with Hq divisible by Hkv. This changes attention/cache layout while the LM head still maps D features to V token scores."
+    }
+  ],
+  "sources": [
+    {
+      "title": "Attention Is All You Need",
+      "url": "https://arxiv.org/abs/1706.03762"
+    },
+    {
+      "title": "GQA",
+      "url": "https://arxiv.org/abs/2305.13245"
+    },
+    {
+      "title": "GPT-2 paper: autoregressive objective and pre-LN architecture",
+      "url": "https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf"
+    },
+    {
+      "title": "Hugging Face: causal language modeling",
+      "url": "https://huggingface.co/docs/transformers/tasks/language_modeling"
+    },
+    {
+      "title": "Dive into Deep Learning: BOS, EOS, and teacher forcing",
+      "url": "https://d2l.ai/chapter_recurrent-modern/seq2seq.html"
+    },
+    {
+      "title": "LLaMA paper: architecture differences",
+      "url": "https://arxiv.org/abs/2302.13971"
+    }
+  ],
+  "lab": "attention",
+  "order": 1,
+  "figure": {
+    "url": "https://jalammar.github.io/images/gpt2/gpt-2-layers-2.png",
+    "source": "https://jalammar.github.io/illustrated-gpt2/",
+    "title": "Jay Alammar / The Illustrated GPT-2",
+    "caption": "GPT-2 uses a stack of decoder-only Transformer blocks. Final normalization, vocabulary projection, training targets, and the generation loop are made explicit below."
+  },
+  "explanations": [
+    {
+      "id": "encoder-decoder-comparison",
+      "block": "architecture",
+      "title": "BERT, GPT, and T5: who can attend to what?",
+      "paragraphs": [
+        "An encoder-only BERT-style model applies bidirectional self-attention to an input [B,S,D]. A masked language modeling head predicts selected masked tokens during pretraining. Classification or retrieval adds an appropriate task head. Bidirectional access makes this unsuitable for ordinary causal next-token prediction without changing the attention and training contract.",
+        "A decoder-only GPT-style model applies causal self-attention to one token stream. Each position predicts its next token through a vocabulary head. Prompt tokens and generated continuation share this stream; there is no separate encoder memory or decoder cross-attention.",
+        "An encoder-decoder T5-style model encodes the source [B,Ssrc,D] bidirectionally, then decodes shifted target tokens [B,Stgt,D] causally. Decoder cross-attention uses queries from the target states and keys/values from encoded source states. Its score shape is [B,H,Stgt,Ssrc], so source length and target length are separate axes."
+      ],
+      "table": {
+        "headers": [
+          "Family",
+          "Self-attention visibility",
+          "Cross-attention",
+          "Typical prediction"
+        ],
+        "rows": [
+          [
+            "BERT encoder",
+            "All permitted source positions",
+            "None",
+            "Masked tokens or task head"
+          ],
+          [
+            "GPT decoder",
+            "Current and earlier positions",
+            "None",
+            "Next token"
+          ],
+          [
+            "T5 encoder-decoder",
+            "Bidirectional source; causal target",
+            "Target Q reads source K,V",
+            "Next target token"
+          ]
+        ]
+      },
+      "flow": "BERT: source -> bidirectional encoder -> masked-token / task head\nGPT: prompt + prefix -> causal decoder stack -> vocabulary head\nT5: source -> encoder memory -> decoder cross-attention\n    shifted target -> causal self-attention -> vocabulary head"
+    },
+    {
+      "id": "decoder-only-gpt",
+      "block": "architecture",
+      "title": "Decoder-only GPT: from token IDs to logits",
+      "paragraphs": [
+        "GPT means Generative Pre-trained Transformer. The concrete architecture here is a small GPT-2-style causal language model: token embeddings plus learned position embeddings, a stack of pre-normalized decoder blocks, a final LayerNorm, and a vocabulary projection. It is an architectural teaching example, not a description of every model with GPT in its name.",
+        "Every block receives [B,S,D] and returns [B,S,D]. Its parameters differ from those of other blocks. Attention mixes information across allowed token positions; the feed-forward network transforms each position independently using shared weights. Residual additions preserve a direct path through the stack.",
+        "Decoder-only blocks have masked self-attention and an FFN. They have no encoder stack and no encoder-decoder cross-attention sublayer. In an encoder-decoder model, that extra sublayer takes queries from the decoder and keys/values from the encoded source. A GPT prompt is part of the same causal stream as the generated continuation."
+      ],
+      "flow": "token IDs [B,S]\n  -> token lookup E [V,D] + learned positions [S,D]\n  -> hidden states [B,S,D]\n  -> N x {pre-LN -> causal MHA -> residual -> pre-LN -> FFN -> residual}\n  -> final LayerNorm [B,S,D]\n  -> vocabulary projection W_U [D,V]\n  -> logits [B,S,V]\n  -> select last prompt position [B,V] -> choose token [B,1]\n  -> append token to input -> repeat until EOS or budget",
+      "bullets": [
+        "B is batch size; S is the number of input tokens; D is hidden width; V is vocabulary size; H is attention heads; dh = D/H. A token can be a subword or byte sequence, not necessarily a word. In Q,K,V, the letter V instead names the attention value tensor; the surrounding shape or equation identifies which meaning is intended.",
+        "GPT-2 uses learned absolute positions, LayerNorm, and a GELU FFN. LLaMA-style models change components such as RoPE, RMSNorm, and gated FFNs while retaining a causal decoder backbone. Model-family details must be named explicitly."
+      ]
+    },
+    {
+      "id": "autoregression",
+      "block": "architecture",
+      "title": "Autoregression: feed the prediction back",
+      "paragraphs": [
+        "A language model factorizes a sequence probability into conditional next-token probabilities. At generation time, the next input depends on the token just selected. This dependency makes ordinary token-by-token generation sequential even though attention calculations inside a forward pass are parallel.",
+        "For the illustrative prompt [SOS, I, like], use the logits at the like position to choose tea. Append tea, run the next step, and use the tea position to choose EOS. The sequence ends because the generation loop recognizes EOS; an attention block does not stop itself.",
+        "During training, the correct continuation is already in the dataset. A causal mask lets the model compute predictions for all positions in one pass without exposing future labels. During generation, those future tokens do not exist yet. A cached implementation reuses prior K,V instead of recomputing the whole prefix."
+      ],
+      "equations": [
+        "p(x_{1:T},EOS\\mid BOS)=\\left[\\prod_{t=1}^{T}p(x_t\\mid BOS,x_{<t})\\right]p(EOS\\mid BOS,x_{1:T})"
+      ],
+      "table": {
+        "headers": [
+          "Generation step",
+          "Known input prefix",
+          "Read this logit row",
+          "Illustrative choice"
+        ],
+        "rows": [
+          [
+            "Prefill",
+            "[SOS, I, like]",
+            "logits[:,2,:] [B,V]",
+            "tea"
+          ],
+          [
+            "Decode 1",
+            "[SOS, I, like, tea]",
+            "last position [B,V]",
+            "EOS"
+          ],
+          [
+            "Stop",
+            "EOS was appended",
+            "No further prediction needed",
+            "Return the completed sequence"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "sequence-boundaries",
+      "block": "architecture",
+      "title": "SOS / BOS, EOS, and PAD",
+      "paragraphs": [
+        "SOS (start of sequence) and BOS (beginning of sequence) name the same role: a boundary token that can seed the first prediction. In a sequence-to-sequence decoder, target inputs commonly begin with BOS. A causal language model may use a BOS token, a document separator, or a supplied prompt according to its tokenizer and training format.",
+        "EOS is a learned vocabulary item. Training teaches the model when to assign it probability, and inference code decides whether that item ends a sequence or an assistant turn. Some formats have separate end-of-turn and end-of-document IDs. The text shown here uses SOS and EOS as readable toy tokens.",
+        "There is no universal pair of distinct SOS/EOS IDs across GPT models. GPT-2 commonly reuses <|endoftext|> in boundary roles. Use the checkpoint tokenizer and generation configuration rather than inventing special tokens at inference time."
+      ],
+      "table": {
+        "headers": [
+          "Token",
+          "Training role",
+          "Generation role"
+        ],
+        "rows": [
+          [
+            "SOS / BOS",
+            "Optional seed before the first supervised token",
+            "May initialize an empty continuation or a target-side decoder"
+          ],
+          [
+            "EOS",
+            "A supervised target after the final content token",
+            "Stop this sequence when an accepted stop ID is produced"
+          ],
+          [
+            "PAD",
+            "Fills a batch to a common length; exclude padded targets from loss",
+            "Not a normal token to sample; mask padding where required"
+          ]
+        ]
+      },
+      "bullets": [
+        "If PAD and EOS share an ID, do not mask every occurrence by token ID: that can remove real EOS supervision. Build the loss mask from actual sequence lengths or the data attention mask.",
+        "If EOS never appears, a maximum-new-token budget or context limit still ends generation. In a batch, track completion per sequence; do not stop every sequence when the first one reaches EOS."
+      ]
+    },
+    {
+      "id": "decoder-block",
+      "block": "architecture",
+      "title": "Inside a decoder block",
+      "paragraphs": [
+        "For a pre-LN block, normalize the residual stream before each sublayer, then add the sublayer result back to the unnormalized residual. LayerNorm acts over D separately for each [batch,position] pair. The FFN expands D to a wider intermediate representation, applies a nonlinearity, and projects back to D.",
+        "In MHA, Q, K, and V each have shape [B,H,S,dh]. QK transpose forms [B,H,S,S]; the causal mask blocks columns j greater than row i. Softmax normalizes the allowed key positions for each query. The weighted value sum is merged back to [B,S,D] before W_O projects within hidden space.",
+        "The original encoder-decoder Transformer uses a different normalization placement from this GPT-2-style pre-LN example. That choice affects gradient flow and training behavior; it is not a cosmetic rearrangement."
+      ],
+      "equations": [
+        "U=X+\\operatorname{MHA}(\\operatorname{LN}_1(X))",
+        "X_{next}=U+\\operatorname{FFN}(\\operatorname{LN}_2(U))",
+        "\\operatorname{FFN}(z)=\\operatorname{GELU}(zW_1+b_1)W_2+b_2,\\quad W_1\\in\\mathbb R^{D\\times4D},\\ W_2\\in\\mathbb R^{4D\\times D}"
+      ]
+    },
+    {
+      "id": "final-layer",
+      "block": "math",
+      "title": "Final layer: hidden state to vocabulary",
+      "paragraphs": [
+        "The last decoder block still outputs [B,S,D]. Those D coordinates are learned features, not token probabilities. In this GPT-2-style example, a final LayerNorm prepares that residual stream for the language-model head.",
+        "The unembedding matrix W_U has shape [D,V]. Multiplying a hidden state by W_U gives one logit per vocabulary entry. A softmax over V converts those scores into a categorical distribution. This differs from the attention softmax, which normalizes over S key positions. The attention output projection W_O [D,D] is also a different matrix from the vocabulary projection W_U [D,V].",
+        "If input and output weights are tied, E has shape [V,D] and W_U = E transpose. Tying saves a separate D-by-V parameter matrix; it is a model design choice. Vocabulary logits may still be expensive to materialize for every training position.",
+        "At inference, logits[:, -1, :] predicts the token after the prompt. Greedy decoding takes argmax. Sampling uses softmax(logits / temperature), optionally after top-k or top-p filtering. Argmax can use raw logits because softmax preserves their order. Token selection belongs to the generation policy, not the Transformer block. Temperature tau is positive in that sampling formula; ordinary training uses tau=1. A zero-temperature setting means a separate greedy selection rule, not division by zero."
+      ],
+      "equations": [
+        "Z=\\operatorname{LN}_f(H_N)\\in\\mathbb R^{B\\times S\\times D}",
+        "L=ZW_U+b_U\\in\\mathbb R^{B\\times S\\times V},\\quad W_U=E^\\top\\ \\text{when tied}",
+        "p(x_{t+1}=v\\mid x_{\\le t})=\\frac{\\exp(L_{t,v}/\\tau)}{\\sum_{u=1}^{V}\\exp(L_{t,u}/\\tau)}"
+      ],
+      "table": {
+        "headers": [
+          "Stage",
+          "Shape in a small example",
+          "Meaning"
+        ],
+        "rows": [
+          [
+            "Last decoder output",
+            "[1,4,32]",
+            "One 32-dimensional state for each of four input tokens"
+          ],
+          [
+            "Final LayerNorm",
+            "[1,4,32]",
+            "Normalize the feature axis without mixing positions"
+          ],
+          [
+            "Vocabulary head, V=8",
+            "[1,4,8]",
+            "Eight candidate next-token scores at each position"
+          ],
+          [
+            "Last position only",
+            "[1,8]",
+            "Distribution for the token after the four-token prompt"
+          ],
+          [
+            "Choose and append",
+            "[1,1] -> input [1,5]",
+            "The selected ID becomes part of the next prefix"
+          ]
+        ]
+      },
+      "figure": {
+        "url": "https://jalammar.github.io/images/gpt2/gpt2-output-projection-2.png",
+        "source": "https://jalammar.github.io/illustrated-gpt2/",
+        "title": "Jay Alammar / The Illustrated GPT-2",
+        "caption": "Vocabulary scoring from the final hidden state. The equations below specify the final normalization, matrix orientations, and optional weight tying."
+      }
+    },
+    {
+      "id": "teacher-forcing",
+      "block": "math",
+      "title": "Teacher forcing and shifted targets",
+      "paragraphs": [
+        "Take the toy sequence [SOS, I, like, tea, EOS, PAD]. Feed every token except the last as input, and use every token except the first as its next-token target. The model is trained to predict I from SOS, like from SOS I, tea from SOS I like, and EOS from SOS I like tea.",
+        "All five input positions are computed in parallel. The upper-triangular causal mask prevents a position from seeing its target in the next input slot. Right-padding targets are ignored in the loss; the EOS target is retained. In the loss equation, Omega is the set of supervised batch-position pairs, including the EOS target and excluding padding.",
+        "The loss consumes raw logits and integer target IDs. A fused cross-entropy implementation includes log-softmax; do not apply a second softmax first. In the code below the shift is explicit. Some model APIs shift labels internally, so inspect that contract to avoid shifting twice.",
+        "Teacher forcing means conditioning on the correct previous tokens in training. At inference, the model conditions on its own earlier selections, so an early mistake can change later predictions. Evaluation should measure generated continuations as well as next-token loss."
+      ],
+      "equations": [
+        "\\mathcal L=-\\frac1{|\\Omega|}\\sum_{(b,t)\\in\\Omega}\\log\\operatorname{softmax}(L_{b,t,:})_{target_{b,t}},\\quad target_{b,t}=sequence_{b,t+1}"
+      ],
+      "table": {
+        "headers": [
+          "Position",
+          "Input token",
+          "Visible prefix",
+          "Target token",
+          "Loss"
+        ],
+        "rows": [
+          [
+            "0",
+            "SOS",
+            "SOS",
+            "I",
+            "Include"
+          ],
+          [
+            "1",
+            "I",
+            "SOS I",
+            "like",
+            "Include"
+          ],
+          [
+            "2",
+            "like",
+            "SOS I like",
+            "tea",
+            "Include"
+          ],
+          [
+            "3",
+            "tea",
+            "SOS I like tea",
+            "EOS",
+            "Include"
+          ],
+          [
+            "4",
+            "EOS",
+            "SOS I like tea EOS",
+            "PAD",
+            "Ignore"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "prefill-to-decode",
+      "block": "trace",
+      "title": "Prefill to decode: why KV caching follows",
+      "paragraphs": [
+        "Suppose B=1, S=4, D=32, H=4, dh=8, V=8, and there are two decoder blocks. Prefill processes all four prompt tokens: each layer forms Q,K,V [1,4,4,8] and outputs [1,4,32]. The final head returns [1,4,8], and the last row selects token five.",
+        "For the next step, a cached implementation projects only token five into Q,K,V [1,4,1,8] per layer. It appends the new K,V to cache tensors [1,4,5,8]. The query attends across those five keys, producing scores [1,4,1,5], then a single hidden state [1,1,32] and vocabulary logits [1,1,8].",
+        "Earlier token states do not acquire new future context in a causal model. Their keys and values can therefore be reused for the same prefix, model weights, and position conventions. Queries are needed for the current prediction; the next step primarily needs the stored keys and values.",
+        "The example implementation recomputes the full prefix during generation so the causal logic stays inspectable. The next guide replaces that repeated work with per-layer caches, then derives the memory cost and block allocation strategy."
+      ],
+      "flow": "Prefill: prompt [1,4] -> decoder states [1,4,32] -> logits [1,4,8]\n                                         last row -> token 5\nCached decode: token 5 [1,1] + per-layer past K,V\n  -> Q [1,4,1,8], K/V cache [1,4,5,8]\n  -> scores [1,4,1,5] -> hidden [1,1,32] -> logits [1,1,8]\n  -> token 6 or EOS"
+    },
+    {
+      "id": "head-sharing",
+      "block": "math",
+      "title": "MHA, MQA, and GQA: the KV axes change",
+      "paragraphs": [
+        "Let Hq be the number of query heads, Hkv the number of key/value heads, and dh the head dimension. Query projection produces [B,Hq,S,dh]; keys and values produce [B,Hkv,S,dh]. Grouped attention maps each query head to a shared KV head, normally with Hq divisible by Hkv.",
+        "MHA uses Hkv=Hq. MQA uses Hkv=1. GQA lies between them. For Hq=32 and dh=128, GQA with Hkv=8 stores one quarter as many KV elements as MHA at the same sequence length and dtype. It still has 32 query-head outputs to concatenate.",
+        "Conceptually repeating shared K/V across query heads makes the math clear, but physically materializing those repeats can erase memory benefits. Use a kernel with the intended grouped layout. Sharing changes model capacity as well as bandwidth, so compare quality under the actual training and serving setup."
+      ],
+      "table": {
+        "headers": [
+          "Layout",
+          "Q shape",
+          "K,V shape",
+          "KV elements per token/layer"
+        ],
+        "rows": [
+          [
+            "MHA",
+            "[B,32,S,128]",
+            "[B,32,S,128]",
+            "2*B*32*128"
+          ],
+          [
+            "GQA",
+            "[B,32,S,128]",
+            "[B,8,S,128]",
+            "2*B*8*128"
+          ],
+          [
+            "MQA",
+            "[B,32,S,128]",
+            "[B,1,S,128]",
+            "2*B*128"
+          ]
+        ]
+      }
+    }
+  ],
+  "nextTopicReason": "Autoregression repeatedly attends to the same prefix. Continue to KV caching to see which per-layer tensors can be reused, how prefill differs from decode, and how much GPU memory the cache needs.",
+  "relatedTopics": [
+    {
+      "slug": "kv-cache",
+      "title": "Next: KV cache & PagedAttention",
+      "reason": "Replace repeated prefix computation with cached keys and values. Derive memory growth from the decoding loop you just traced."
+    },
+    {
+      "slug": "rope",
+      "title": "Then: Rotary position embeddings",
+      "reason": "Replace the toy learned position embeddings with rotations of Q and K, and track position IDs when cached tokens are reused."
+    },
+    {
+      "slug": "normalization",
+      "title": "Understand: LayerNorm and RMSNorm",
+      "reason": "Derive the reductions used inside blocks and before the vocabulary head; compare the GPT-2 and LLaMA-style choices."
+    },
+    {
+      "slug": "subword-tokenization",
+      "title": "Before the lookup: Subword tokenization",
+      "reason": "Connect text to token IDs, the vocabulary size V, and model-specific sequence-boundary tokens."
+    }
+  ],
+  "nextTopic": "kv-cache"
+}

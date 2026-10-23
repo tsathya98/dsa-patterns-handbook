@@ -1,0 +1,138 @@
+{
+  "slug": "embedding-training",
+  "track": "deep-learning",
+  "title": "Embedding model training",
+  "summary": "Train independent query and document encoders so relevant pairs score higher than negatives.",
+  "why": "Enables offline document indexing and low-latency approximate nearest-neighbor retrieval.",
+  "interview": "Design batches that contain hard negatives without training on false negatives.",
+  "level": "L5 / L6",
+  "targets": [
+    "Google",
+    "Meta",
+    "OpenAI",
+    "Anthropic"
+  ],
+  "equations": [
+    "s(q,d)=\\frac{f(q)^\\top g(d)}{\\|f(q)\\|\\|g(d)\\|}",
+    "\\mathcal{L}_i=-\\log\\frac{\\exp(s(q_i,d_i)/\\tau)}{\\sum_j\\exp(s(q_i,d_j)/\\tau)}"
+  ],
+  "derivation": [
+    "Each row of the BxB score matrix treats the matched document as positive. Other batch documents are negatives only if the labels support that assumption. Shared Siamese weights are a choice; asymmetric encoders can use separate weights."
+  ],
+  "steps": [
+    {
+      "operation": "Encode paired text",
+      "input": "query IDs [B,Sq], doc IDs [B,Sd]",
+      "output": "Q,D [B,E]",
+      "note": "Pool with an attention mask; normalize if using cosine.",
+      "transformation": "Masked pooling; L2 normalization"
+    },
+    {
+      "operation": "Build negative batch",
+      "input": "Q,D [B,E]",
+      "output": "scores [B,B]",
+      "note": "All-pairs scores cost O(B^2 E).",
+      "transformation": "Q @ D.T / temperature"
+    },
+    {
+      "operation": "Contrastive loss",
+      "input": "scores [B,B]",
+      "output": "scalar loss",
+      "note": "Temperature controls score sharpness and gradients.",
+      "transformation": "cross_entropy(scores, arange(B))"
+    },
+    {
+      "operation": "Mine hard negatives",
+      "input": "BM25 / ANN candidates [B,K]",
+      "output": "filtered negative pairs",
+      "note": "Cross-encoder scoring and labels help detect false negatives.",
+      "transformation": "Retrieve; judge relevance; filter duplicates"
+    }
+  ],
+  "traps": [
+    "Duplicate positives in a batch create false-negative pressure.",
+    "Random negatives become uninformative once the encoder improves.",
+    "Evaluate with the deployed index and candidate distribution."
+  ],
+  "tradeoff": "Bi-encoders are indexable; cross-encoders jointly inspect each pair but cost more per candidate.",
+  "code": "import torch\nimport torch.nn.functional as F\n\nq = F.normalize(torch.randn(8, 64), dim=-1)\nd = F.normalize(torch.randn(8, 64), dim=-1)\nlogits = q @ d.T / 0.07\nloss = F.cross_entropy(logits, torch.arange(8))\nassert loss.ndim == 0 and torch.isfinite(loss)",
+  "variants": [
+    {
+      "title": "Bi-encoder",
+      "flow": "query -> f -> q [E]\ndocument -> g -> d [E]\nq dot d -> relevance",
+      "detail": "Document embeddings can be computed before a query arrives."
+    },
+    {
+      "title": "Hard-negative loop",
+      "flow": "BM25/ANN -> candidate pairs -> cross-encoder review -> filtered training batch",
+      "detail": "High rank with low relevance makes a useful negative; high rank alone does not establish a negative label."
+    }
+  ],
+  "sources": [
+    {
+      "title": "Dense Passage Retrieval",
+      "url": "https://arxiv.org/abs/2004.04906"
+    },
+    {
+      "title": "Contrastive Predictive Coding / InfoNCE",
+      "url": "https://arxiv.org/abs/1807.03748"
+    }
+  ],
+  "lab": null,
+  "order": 9,
+  "figure": {
+    "url": "https://raw.githubusercontent.com/huggingface/sentence-transformers/main/docs/img/Bi_vs_Cross-Encoder.png",
+    "source": "https://sbert.net/examples/cross_encoder/applications/README.html",
+    "title": "Sentence Transformers",
+    "caption": "Bi-encoder and cross-encoder architectures, shown side by side."
+  },
+  "explanations": [
+    {
+      "id": "biencoder-contract",
+      "title": "Bi-encoder retrieval versus cross-encoder scoring",
+      "block": "architecture",
+      "paragraphs": [
+        "A query encoder maps each query to q [D]; a document encoder maps each passage to d [D]. Documents can be embedded before the query arrives, so retrieval becomes indexed vector search. Siamese encoders share parameters; asymmetric query/document encoders may use separate weights or instructions.",
+        "A cross-encoder reads a query and passage together and produces a relevance score. It can model token-level interactions but must run per candidate pair. A common pipeline retrieves many cheap bi-encoder candidates, then reranks a smaller set with a cross-encoder.",
+        "Dot product mixes direction and norm. Unit normalization makes dot product equal cosine similarity. Training similarity, index distance, normalization, and query/document preprocessing must match or rankings change."
+      ]
+    },
+    {
+      "id": "contrastive-batch",
+      "title": "InfoNCE and false negatives in a batch",
+      "block": "math",
+      "paragraphs": [
+        "For B paired queries and documents, create scores [B,B]. Row i treats document i as positive and other columns as negatives. Dividing by temperature changes softmax sharpness. Cross-entropy encourages the positive score to exceed competing scores; a symmetric objective can also train document-to-query direction.",
+        "In-batch negatives are labels, not guaranteed facts. Two queries may share a relevant document. Duplicate passages, paraphrases, or multiple correct answers create false negatives. Use duplicate filtering, multiple positives, or a loss that masks known positives.",
+        "Small temperatures amplify hard-example gradients and mislabeled negatives. Evaluate recall@k with a held-out retrieval set rather than comparing only training loss. Keep documents from the same source or time boundary out of inappropriate train/test splits."
+      ],
+      "equations": [
+        "s_{ij}=q_i^Td_j/\\tau,\\quad \\mathcal{L}=-\\frac1B\\sum_i\\log\\frac{e^{s_{ii}}}{\\sum_je^{s_{ij}}}"
+      ]
+    },
+    {
+      "id": "mining-loop",
+      "title": "A practical hard-negative mining loop",
+      "block": "trace",
+      "paragraphs": [
+        "Start with known positive pairs. Retrieve lexical candidates with BM25 and dense candidates with the current encoder. Remove positives and duplicates, then use labels or a stronger cross-encoder to identify plausible irrelevant candidates and flag uncertain ones.",
+        "A cross-encoder cannot prove that a passage is irrelevant. Human review or stronger labels are valuable for ambiguous examples. Train on a mixture of easy and hard negatives so the model does not overfit a narrow artifact of one miner.",
+        "Rebuild document embeddings after an encoder change and version the index with the model and preprocessing config. Measure candidate recall before reranking; no reranker can recover a relevant passage missing from its candidate set."
+      ]
+    }
+  ],
+  "nextTopicReason": "Use the trained query and document encoders in a complete retrieval and grounded-generation pipeline.",
+  "nextTopic": "rag-architectures",
+  "relatedTopics": [
+    {
+      "slug": "rag-architectures",
+      "title": "RAG architectures",
+      "reason": "Use the trained query and document encoders in a complete retrieval and grounded-generation pipeline."
+    },
+    {
+      "slug": "subword-tokenization",
+      "title": "Subword tokenization",
+      "reason": "Review this prerequisite for the input representation, assumptions, and core operations used in this lesson."
+    }
+  ]
+}

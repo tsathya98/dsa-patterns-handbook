@@ -1,0 +1,143 @@
+{
+  "slug": "rope",
+  "track": "deep-learning",
+  "title": "Rotary position embeddings",
+  "summary": "Rotate each pair of query and key coordinates by a position-dependent angle.",
+  "why": "Makes attention depend on relative offsets without adding a learned position vector to every input.",
+  "interview": "Prove the rotation identity and reason about context extension.",
+  "level": "L5 / L6",
+  "targets": [
+    "Google",
+    "Meta",
+    "OpenAI",
+    "Anthropic"
+  ],
+  "equations": [
+    "R_m=\\begin{bmatrix}\\cos(m\\theta)&-\\sin(m\\theta)\\\\\\sin(m\\theta)&\\cos(m\\theta)\\end{bmatrix}",
+    "(R_mq)^\\top(R_nk)=q^\\top R_m^\\top R_nk=q^\\top R_{n-m}k",
+    "\\theta_i=b^{-2i/d_h}"
+  ],
+  "derivation": [
+    "Rotations are orthogonal, so R_m transpose is R_-m. Rotations on the same plane compose by adding angles. Apply the identity independently to all dh/2 coordinate pairs.",
+    "Changing the RoPE base changes frequency spacing. NTK-aware scaling adjusts the base, while YaRN blends frequency-dependent interpolation and attention scaling. Extension quality needs long-context evaluation."
+  ],
+  "steps": [
+    {
+      "operation": "Pair coordinates",
+      "input": "Q,K [B,H,S,dh]",
+      "output": "[B,H,S,dh/2,2]",
+      "note": "dh must be even; pair ordering must match the model.",
+      "transformation": "reshape(..., dh/2, 2)"
+    },
+    {
+      "operation": "Build angles",
+      "input": "positions [S], frequencies [dh/2]",
+      "output": "angles [S,dh/2]",
+      "note": "Compute trig tables in adequate precision.",
+      "transformation": "outer(position_ids, inverse_frequencies)"
+    },
+    {
+      "operation": "Rotate Q and K",
+      "input": "pairs + cos,sin",
+      "output": "Qrot,Krot [B,H,S,dh]",
+      "note": "V is typically not rotated.",
+      "transformation": "(a*cos - b*sin, a*sin + b*cos)"
+    },
+    {
+      "operation": "Relative dot product",
+      "input": "Qrot,Krot",
+      "output": "scores [B,H,S,S]",
+      "note": "Cached key positions must match decode position IDs.",
+      "transformation": "Qrot @ Krot.transpose(-2,-1)"
+    }
+  ],
+  "traps": [
+    "Resetting position IDs during decode corrupts cached attention.",
+    "Interleaved and split-half pairing conventions are not interchangeable.",
+    "Long context support does not establish reliable retrieval across that entire context."
+  ],
+  "tradeoff": "Extending context grows cache and attention cost; frequency scaling alone does not solve those costs.",
+  "code": "import torch\n\ndef rotate(x, angle):\n    a, b = x.unbind(-1)\n    c, s = torch.cos(angle), torch.sin(angle)\n    return torch.stack((a*c-b*s, a*s+b*c), dim=-1)\n\nq, k = torch.tensor([1., 2.]), torch.tensor([3., 4.])\nm, n = torch.tensor(0.3), torch.tensor(0.8)\nassert torch.allclose(rotate(q,m) @ rotate(k,n), q @ rotate(k,n-m))",
+  "variants": [
+    {
+      "title": "NTK-aware base scaling",
+      "flow": "base b -> adjusted b' -> inverse frequencies -> pair rotations",
+      "detail": "Rescales the frequency spectrum; implementations differ by model and extension factor."
+    },
+    {
+      "title": "YaRN",
+      "flow": "frequencies -> interpolation/extrapolation blend -> attention rescale",
+      "detail": "Treat fast and slow frequencies differently; evaluate after the specified adaptation procedure."
+    }
+  ],
+  "sources": [
+    {
+      "title": "RoFormer",
+      "url": "https://arxiv.org/abs/2104.09864"
+    },
+    {
+      "title": "YaRN",
+      "url": "https://arxiv.org/abs/2309.00071"
+    }
+  ],
+  "lab": "rope",
+  "order": 3,
+  "figure": {
+    "url": "https://ttumiel.com/static/44e1a83dd6fcf1b88bf17a1f382f6933/658fc/rope.png",
+    "source": "https://ttumiel.com/blog/LLaMA3/",
+    "title": "Tom Tumiel / Annotated LLaMA-3",
+    "caption": "Rotary position encoding rotates query and key coordinates by a position-dependent angle."
+  },
+  "explanations": [
+    {
+      "id": "pairwise-rotation",
+      "title": "A rotation per coordinate pair",
+      "block": "architecture",
+      "paragraphs": [
+        "For each query or key head, group adjacent coordinates into dh/2 two-dimensional planes. At position m, plane j rotates by m times its frequency theta_j. This transforms Q and K while keeping their shape [B,H,S,dh]. Values usually remain unrotated.",
+        "For q=(1,0), a 90-degree rotation produces (0,1). The vector norm is unchanged because the rotation matrix is orthogonal. Different coordinate pairs use different frequencies, so the full head encodes position at multiple scales.",
+        "RoPE belongs between Q/K projection and attention score computation. Position IDs must remain consistent during prefill, left padding, cache reuse, and decode. Restarting positions at zero for each generated token breaks the intended geometry."
+      ],
+      "equations": [
+        "R(\\phi)=\\begin{bmatrix}\\cos\\phi&-\\sin\\phi\\\\\\sin\\phi&\\cos\\phi\\end{bmatrix}",
+        "\\theta_j=b^{-2j/d_h},\\quad q_{m,j}^{rot}=R(m\\theta_j)q_{m,j}"
+      ]
+    },
+    {
+      "id": "relative-proof",
+      "title": "Why the dot product depends on relative position",
+      "block": "math",
+      "paragraphs": [
+        "Transpose reverses an orthogonal rotation. On a fixed coordinate plane, composing two rotations adds their angles. Therefore the query at m and key at n interact through a rotation by (n-m) times that plane frequency. Sum over coordinate planes to obtain the complete head dot product.",
+        "This identity concerns the positional transformation of fixed q and k. Actual contextual q and k also depend on token content and preceding layers. RoPE does not make an entire language model invariant to arbitrary reordering or guarantee perfect extrapolation."
+      ],
+      "equations": [
+        "(R_mq)^T(R_nk)=q^TR_m^TR_nk=q^TR_{n-m}k"
+      ]
+    },
+    {
+      "id": "context-scaling",
+      "title": "Position interpolation, NTK-aware scaling, and YaRN",
+      "block": "trace",
+      "paragraphs": [
+        "If training covered positions up to L, directly using much larger positions exposes attention to phase patterns it did not learn. Position interpolation compresses new positions by a factor s, preserving a familiar range while reducing the separation of nearby positions.",
+        "NTK-aware base scaling changes the frequency schedule rather than uniformly shrinking every angle. YaRN uses frequency-dependent interpolation and extrapolation with an attention scaling adjustment. Different dimensions preserve different spatial scales; these methods are not interchangeable configuration names.",
+        "Evaluate both long-range retrieval and short-context quality. A larger maximum-position setting merely permits allocation; it does not demonstrate usable long-context reasoning. A cached key must use the same RoPE configuration as the query that reads it."
+      ]
+    }
+  ],
+  "nextTopicReason": "Position geometry changes attention scores; normalization controls the scale of the states that produce them.",
+  "nextTopic": "normalization",
+  "relatedTopics": [
+    {
+      "slug": "normalization",
+      "title": "Normalization layers",
+      "reason": "Position geometry changes attention scores; normalization controls the scale of the states that produce them."
+    },
+    {
+      "slug": "transformer-architectures",
+      "title": "Transformer architectures",
+      "reason": "Review this prerequisite for the input representation, assumptions, and core operations used in this lesson."
+    }
+  ]
+}

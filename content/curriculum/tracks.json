@@ -1,0 +1,26 @@
+[
+  {
+    "id": "deep-learning",
+    "title": "Deep Learning & LLMs",
+    "description": "From attention math to inference memory.",
+    "color": "#6b50a1"
+  },
+  {
+    "id": "genai",
+    "title": "GenAI & Agentic Systems",
+    "description": "Retrieval, orchestration, and protocol boundaries.",
+    "color": "#23756c"
+  },
+  {
+    "id": "computer-vision",
+    "title": "Computer Vision",
+    "description": "Spatial reasoning, detection, and generative models.",
+    "color": "#8c611f"
+  },
+  {
+    "id": "classical-ml",
+    "title": "Classical ML & Statistics",
+    "description": "Objectives, assumptions, and statistical decisions.",
+    "color": "#315fc4"
+  }
+]

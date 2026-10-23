@@ -1,0 +1,160 @@
+{
+  "slug": "kv-cache",
+  "track": "deep-learning",
+  "title": "KV cache & PagedAttention",
+  "summary": "Cache past keys and values so each decode step computes projections only for the new token.",
+  "why": "Avoids recomputing all historical token states at each generation step.",
+  "interview": "Size the cache, explain the roofline, and map logical token blocks onto physical GPU pages.",
+  "level": "L5 / L6",
+  "targets": [
+    "Google",
+    "Meta",
+    "OpenAI",
+    "Anthropic"
+  ],
+  "equations": [
+    "\\mathrm{bytes}=2 B L N_{layers} H_{kv} d_h P",
+    "\\mathrm{GiB}=\\mathrm{bytes}/2^{30}"
+  ],
+  "derivation": [
+    "The factor 2 counts K and V. B is active sequences, L retained tokens, P bytes per element. The formula excludes weights, activation workspaces, allocator overhead, and replicated or sharded layouts.",
+    "Prefill usually has larger GEMMs and greater arithmetic intensity. Single-token decode often hits bandwidth limits; batch size, context length, and kernel choices change the bottleneck."
+  ],
+  "steps": [
+    {
+      "operation": "Prefill projections",
+      "input": "tokens [B,L]",
+      "output": "K,V [Nlayers,B,Hkv,L,dh]",
+      "note": "Large matrix multiplications; prompt latency dominates TTFT.",
+      "transformation": "Embed prompt; project K,V at each layer"
+    },
+    {
+      "operation": "Append decode token",
+      "input": "hidden [B,1,D]",
+      "output": "new K,V [B,Hkv,1,dh]",
+      "note": "Store once per layer; sequence length grows by one.",
+      "transformation": "cache[:, :, L:L+1, :] = project(hidden)"
+    },
+    {
+      "operation": "Resolve block table",
+      "input": "logical block IDs [B,ceil(L/block)]",
+      "output": "physical block indices",
+      "note": "PagedAttention translates logical blocks into reusable physical allocations.",
+      "transformation": "physical = block_table[request, token // block_size]"
+    },
+    {
+      "operation": "Attend cached context",
+      "input": "Q [B,Hq,1,dh] + cache",
+      "output": "Y [B,Hq,1,dh]",
+      "note": "Reads historical KV; repeated loads compete for HBM bandwidth.",
+      "transformation": "softmax(Q @ Kcache.T / sqrt(dh)) @ Vcache"
+    }
+  ],
+  "traps": [
+    "Using Hq in the formula overestimates a GQA cache.",
+    "Reserved page capacity includes unused slots in the final block. Paging reduces fragmentation, not all wasted memory.",
+    "Prefix sharing needs reference counts and copy-on-write for divergent tails.",
+    "Cache admission must reserve decode growth, not just the current prompt."
+  ],
+  "tradeoff": "Continuous batching improves utilization but can increase inter-token latency and interfere with prefill scheduling.",
+  "code": "def kv_bytes(batch, tokens, layers, kv_heads, head_dim, bytes_per_element=2):\n    values = (batch, tokens, layers, kv_heads, head_dim, bytes_per_element)\n    if any(type(x) is not int or x <= 0 for x in values):\n        raise ValueError(\"All dimensions must be positive integers\")\n    return 2 * batch * tokens * layers * kv_heads * head_dim * bytes_per_element\n\nassert kv_bytes(1, 8192, 32, 8, 128) == 1073741824",
+  "variants": [
+    {
+      "title": "Naive contiguous allocation",
+      "flow": "request A -> [used | reserved tail]\nrequest B -> [used | reserved tail]",
+      "detail": "Maximum-length reservation wastes capacity; variable allocation can fragment memory."
+    },
+    {
+      "title": "PagedAttention",
+      "flow": "A logical [0,1,2] -> physical [7,2,9]\nB logical [0,1] -> physical [1,4]",
+      "detail": "The block table preserves sequence order while allocation is non-contiguous."
+    }
+  ],
+  "sources": [
+    {
+      "title": "vLLM / PagedAttention",
+      "url": "https://arxiv.org/abs/2309.06180"
+    }
+  ],
+  "lab": "kv",
+  "order": 2,
+  "figure": {
+    "url": "https://blog.vllm.ai/blog-assets/figures/annimation1.gif",
+    "source": "https://blog.vllm.ai/2023/06/20/vllm.html",
+    "title": "vLLM authors",
+    "caption": "PagedAttention maps logical sequence blocks to non-contiguous physical KV blocks."
+  },
+  "explanations": [
+    {
+      "id": "prefill-decode",
+      "title": "Prefill versus decode: what is actually reused",
+      "block": "architecture",
+      "paragraphs": [
+        "Prefill processes S prompt tokens together. Each layer creates Q, K, V and writes its K and V to a cache. Causal attention still computes prompt interactions. The cache stores projected keys and values, not attention probabilities or the final vocabulary logits.",
+        "At the next step only the new token needs fresh Q, K, V projections. Its query attends to every retained key, then combines the retained values. Earlier causal token states do not change when a later token arrives. That property makes reusing their K and V correct.",
+        "A decode iteration still reads growing K/V arrays and model weights. With small batches this has low arithmetic intensity and often saturates memory bandwidth. Prefill has larger matrix products and often uses compute more effectively. These are workload tendencies; batching, hardware, context length, and kernels can change the limiting resource."
+      ],
+      "table": {
+        "headers": [
+          "Phase",
+          "New projections",
+          "Attention scores per layer",
+          "Persistent state"
+        ],
+        "rows": [
+          [
+            "Prefill",
+            "[B,H,S,dh] for each of Q/K/V under MHA",
+            "[B,H,S,S] logical scores",
+            "K,V each [B,Hkv,S,dh]"
+          ],
+          [
+            "Decode one token",
+            "Q [B,H,1,dh]; K,V [B,Hkv,1,dh]",
+            "[B,H,1,S+1]",
+            "Append K,V along token axis"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "cache-budget",
+      "title": "Derive a real KV memory budget",
+      "block": "math",
+      "paragraphs": [
+        "Count two tensors per layer, then multiply active sequences B, retained length L, layers N, KV heads Hkv, head dimension dh, and bytes P. Query-head count is not the right multiplier for a GQA cache. Packed and paged systems should sum actual retained token counts instead of assuming equal lengths.",
+        "For B=8, L=8192, N=32, Hkv=8, dh=128, and FP16 P=2, the cache occupies 8,589,934,592 bytes, exactly 8 GiB. With Hkv=32 and every other value fixed it becomes 32 GiB. This budget excludes weights, logits, temporary attention workspaces, metadata, and allocator overhead.",
+        "Tensor parallel sharding may reduce per-device storage when KV heads are sharded; some configurations replicate KV heads. Quantization adds scales and can affect quality. Admission control must budget projected growth through generation, not just the initial prompt."
+      ],
+      "equations": [
+        "M_{KV}=2BNH_{kv}Ld_hP",
+        "M_{KV}=2NH_{kv}d_hP\\sum_{b=1}^{B}L_b"
+      ]
+    },
+    {
+      "id": "paged-allocation",
+      "title": "PagedAttention: logical tokens to physical blocks",
+      "block": "trace",
+      "paragraphs": [
+        "A contiguous cache reserves a growing slice for each request. Unequal lengths and early exits leave holes or force pessimistic reservations. PagedAttention splits a sequence into fixed-size token blocks; a per-sequence block table maps logical block indices to physical GPU blocks.",
+        "With block size 16 and 35 retained tokens, logical blocks 0, 1, 2 might map to physical blocks 8, 2, 11. Token 34 uses logical block 2, offset 2. The last block has 13 unused token slots. Paging limits this internal waste but does not make allocation overhead zero.",
+        "Shared prompt blocks can use reference counts and copy-on-write when continuations diverge. Prefix reuse requires identical tokenization and compatible model, adapter, position, and cache settings. Eviction or recomputation policy becomes part of scheduling. Measure time to first token, inter-token latency, and throughput separately."
+      ],
+      "flow": "request A: tokens 0..15 -> block 8\n           tokens 16..31 -> block 2\n           tokens 32..34 -> block 11\nblock table A = [8, 2, 11]"
+    }
+  ],
+  "nextTopicReason": "Cached keys carry positions. Next, derive how RoPE changes Q/K and why position IDs must stay consistent.",
+  "nextTopic": "rope",
+  "relatedTopics": [
+    {
+      "slug": "rope",
+      "title": "Rotary position embeddings",
+      "reason": "Cached keys carry positions. Next, derive how RoPE changes Q/K and why position IDs must stay consistent."
+    },
+    {
+      "slug": "transformer-architectures",
+      "title": "Transformer architectures",
+      "reason": "Review this prerequisite for the input representation, assumptions, and core operations used in this lesson."
+    }
+  ]
+}

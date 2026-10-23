@@ -1,0 +1,171 @@
+{
+  "slug": "communication-protocols",
+  "track": "genai",
+  "title": "AI communication protocols",
+  "summary": "Separate message semantics from the transport that carries them.",
+  "why": "A typed request contract and an appropriate stream transport solve different integration problems.",
+  "interview": "Distinguish JSON-RPC errors, SSE reconnection, WebSocket backpressure, and agent task lifecycles.",
+  "level": "L5 / L6",
+  "targets": [
+    "Microsoft",
+    "Amazon",
+    "Databricks",
+    "OpenAI"
+  ],
+  "equations": [
+    "\\mathrm{JSONRPC\\ request}\\to\\mathrm{response}(id,result\\mid error)",
+    "\\mathrm{notification}:\\ id\\ \\mathrm{absent}"
+  ],
+  "derivation": [
+    "JSON-RPC defines request/response semantics, not a network connection. Notifications omit id and receive no response. Error codes include -32700 parse error, -32600 invalid request, and -32601 method not found.",
+    "SSE streams server-to-client events over HTTP; client requests use a separate HTTP interaction. WebSockets support full-duplex messages, but replay, ordering across reconnects, and application acknowledgments still need design."
+  ],
+  "steps": [
+    {
+      "operation": "Discover capability",
+      "input": "agent descriptor / Agent Card",
+      "output": "supported skills and interfaces",
+      "note": "A2A discovery describes an agent; verify identity separately.",
+      "transformation": "Read and verify capability descriptor"
+    },
+    {
+      "operation": "Submit typed task",
+      "input": "message + correlation ID",
+      "output": "task ID / result",
+      "note": "Specify lifecycle states and cancellation semantics.",
+      "transformation": "Create durable task with correlation ID"
+    },
+    {
+      "operation": "Stream progress",
+      "input": "events with IDs",
+      "output": "ordered updates",
+      "note": "Bound buffers and reconnect with a resume policy.",
+      "transformation": "Emit event IDs; bound producer/consumer queues"
+    },
+    {
+      "operation": "Reconcile completion",
+      "input": "terminal task state + artifacts",
+      "output": "durable result",
+      "note": "Deduplicate replayed events before applying side effects.",
+      "transformation": "Apply terminal result once; retain artifacts"
+    }
+  ],
+  "traps": [
+    "Reconnection can duplicate events or omit updates without replay support.",
+    "A WebSocket connection does not make tasks durable.",
+    "Cancellation acknowledgment can race with task completion."
+  ],
+  "tradeoff": "SSE fits server progress streams; WebSockets fit frequent bidirectional events, with greater connection-state management.",
+  "code": "import json\n\ndef response(request, result):\n    if \"id\" not in request:\n        return None\n    return {\"jsonrpc\": \"2.0\", \"id\": request[\"id\"], \"result\": result}\n\nassert response({\"method\": \"notify\"}, {}) is None\nassert json.loads(json.dumps(response({\"id\": 4}, \"ok\")))[\"id\"] == 4",
+  "variants": [
+    {
+      "title": "JSON-RPC 2.0",
+      "flow": "request {id,method,params} -> handler -> {id,result} or {id,error}",
+      "detail": "Correlation uses the same id; reserved error ranges have protocol-defined meanings."
+    },
+    {
+      "title": "SSE",
+      "flow": "HTTP request -> text/event-stream -> id/event/data -> reconnect",
+      "detail": "One-way event transport; implement event IDs, replay retention, and backpressure."
+    },
+    {
+      "title": "WebSocket",
+      "flow": "client <-> framed messages <-> server",
+      "detail": "Full duplex; add heartbeats, bounded queues, and reconnect semantics."
+    },
+    {
+      "title": "Agent-to-Agent",
+      "flow": "Agent Card -> message/task -> status events -> output artifacts",
+      "detail": "Use the selected A2A version for exact fields; capability discovery is distinct from authorization."
+    }
+  ],
+  "sources": [
+    {
+      "title": "JSON-RPC 2.0",
+      "url": "https://www.jsonrpc.org/specification"
+    },
+    {
+      "title": "A2A specification",
+      "url": "https://a2a-protocol.org/latest/specification/"
+    }
+  ],
+  "lab": null,
+  "order": 5,
+  "figure": {
+    "url": "https://a2a-protocol.org/latest/assets/a2a-actors.png",
+    "source": "https://a2a-protocol.org/latest/topics/key-concepts/",
+    "title": "A2A Protocol documentation",
+    "caption": "User, client agent, and remote agent roles in an agent-to-agent interaction."
+  },
+  "explanations": [
+    {
+      "id": "jsonrpc-semantics",
+      "title": "JSON-RPC request IDs and notifications",
+      "block": "architecture",
+      "paragraphs": [
+        "A request contains jsonrpc=\"2.0\", method, optional params, and id. The response returns that id with either result or error. IDs correlate application requests; they are not authentication tokens or delivery acknowledgments.",
+        "A notification omits id and receives no response, including on processing failure. Use it when that lack of acknowledgment is acceptable. A null result is still a valid response and differs from receiving no response.",
+        "Standard errors include -32700 for malformed JSON, -32600 for invalid request, -32601 for unknown method, -32602 for invalid parameters, and -32603 for internal error. Distinguish these from domain errors and retry only when the operation semantics permit it."
+      ],
+      "flow": "request: {\"jsonrpc\":\"2.0\",\"id\":7,\"method\":\"sum\",\"params\":[2,3]}\nresponse: {\"jsonrpc\":\"2.0\",\"id\":7,\"result\":5}\nnotification: {\"jsonrpc\":\"2.0\",\"method\":\"progress\",\"params\":{\"done\":1}}"
+    },
+    {
+      "id": "streaming-transports",
+      "title": "SSE versus WebSocket",
+      "block": "architecture",
+      "paragraphs": [
+        "SSE sends server-to-client events over HTTP with text/event-stream framing. Event fields can include event, data, and id. A client sends separate HTTP requests for upstream commands. A stream can carry tokens, task updates, or JSON-RPC messages; these payload meanings are application choices.",
+        "WebSocket establishes a full-duplex message channel after an HTTP handshake. It supports simultaneous upstream and downstream messages, but the application still needs backpressure, authentication lifecycle, heartbeat policy, and reconnect behavior.",
+        "TCP ordering within a live connection does not provide exactly-once delivery across reconnects. Give durable events sequence IDs, deduplicate replays, and define how a client resumes after a gap. A cancel signal and an actual stopped side effect are different observable outcomes."
+      ],
+      "table": {
+        "headers": [
+          "Need",
+          "SSE",
+          "WebSocket"
+        ],
+        "rows": [
+          [
+            "Mostly server updates",
+            "Natural HTTP stream",
+            "Possible, more connection management"
+          ],
+          [
+            "Frequent bidirectional messages",
+            "Separate upstream requests",
+            "Single full-duplex channel"
+          ],
+          [
+            "Recovery",
+            "Event IDs plus retained replay if implemented",
+            "Application sequence and resume protocol"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "a2a-contract",
+      "title": "A2A discovery and task state",
+      "block": "trace",
+      "paragraphs": [
+        "A2A describes inter-agent communication, including discovery metadata, supported capabilities, messages, tasks, and output artifacts. An agent card helps a client identify skills, endpoints, and security requirements. Discovery describes what is offered; it does not grant access.",
+        "A long-running delegated task needs identity and state transitions such as working, requiring input, completion, or failure. Version and binding details should be taken from the selected A2A specification rather than inferred from the use of SSE or JSON-RPC.",
+        "MCP commonly connects an application to tool and data capabilities; A2A addresses collaboration with another agent. A complete system can use both. Preserve user and tenant context across delegation and validate returned artifacts before another component acts on them."
+      ]
+    }
+  ],
+  "nextTopicReason": "Apply streaming, cancellation, and task state to a retrieval application and inspect its end-to-end failure modes.",
+  "nextTopic": "rag-architectures",
+  "relatedTopics": [
+    {
+      "slug": "rag-architectures",
+      "title": "RAG architectures",
+      "reason": "Apply streaming, cancellation, and task state to a retrieval application and inspect its end-to-end failure modes."
+    },
+    {
+      "slug": "mcp",
+      "title": "Model Context Protocol",
+      "reason": "Review this prerequisite for the input representation, assumptions, and core operations used in this lesson."
+    }
+  ]
+}

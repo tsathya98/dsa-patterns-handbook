@@ -1,0 +1,164 @@
+{
+  "slug": "normalization",
+  "track": "deep-learning",
+  "title": "Normalization layers",
+  "summary": "Normalize selected axes to stabilize activations; the choice of axes changes which examples share statistics.",
+  "why": "Controls activation scale and reduces optimization sensitivity.",
+  "interview": "Identify reduction axes and explain train/eval behavior and RMSNorm cost.",
+  "level": "L5 / L6",
+  "targets": [
+    "Google",
+    "Meta",
+    "OpenAI",
+    "Anthropic"
+  ],
+  "equations": [
+    "\\mathrm{LN}(x)=\\gamma\\frac{x-\\mu}{\\sqrt{\\sigma^2+\\epsilon}}+\\beta",
+    "\\mathrm{RMSNorm}(x)=\\gamma\\frac{x}{\\sqrt{\\frac1D\\sum_i x_i^2+\\epsilon}}"
+  ],
+  "derivation": [
+    "For NCHW tensors, BatchNorm reduces N,H,W per channel; InstanceNorm reduces H,W per sample/channel; GroupNorm reduces channels within each group plus H,W. LayerNorm reduces the specified trailing dimensions.",
+    "RMSNorm omits mean subtraction. The original paper reports model-dependent running-time improvements; there is no universal 7% reduction in full-layer compute. LLM LayerNorm commonly normalizes only D in [B,S,D]."
+  ],
+  "steps": [
+    {
+      "operation": "Choose reduction axes",
+      "input": "X [N,C,H,W]",
+      "output": "axis set",
+      "note": "BN: (N,H,W); LN over CHW: (C,H,W); IN: (H,W).",
+      "transformation": "Select independent normalization groups"
+    },
+    {
+      "operation": "Compute statistics",
+      "input": "selected axes",
+      "output": "broadcast statistics",
+      "note": "GroupNorm reshapes to [N,G,C/G,H,W] and reduces (C/G,H,W).",
+      "transformation": "mean and variance, or mean of squares"
+    },
+    {
+      "operation": "Normalize + affine",
+      "input": "X and statistics",
+      "output": "[N,C,H,W]",
+      "note": "Accumulate reductions in FP32 when low precision is unstable.",
+      "transformation": "(X-statistic)/sqrt(scale+eps), then affine"
+    },
+    {
+      "operation": "Inference statistics",
+      "input": "training or eval mode",
+      "output": "same shape",
+      "note": "BN normally uses running estimates at eval; LN/GN use current sample statistics.",
+      "transformation": "BN running stats; LN/GN sample stats"
+    }
+  ],
+  "traps": [
+    "BatchNorm can fail with tiny effective sample counts or shifted running statistics.",
+    "LayerNorm(C) on an NCHW tensor normalizes the last axis, not automatically the channel axis.",
+    "RMSNorm is not invariant to adding a constant shift."
+  ],
+  "tradeoff": "Fused kernels and memory traffic determine realized speed; benchmark the actual shape and device.",
+  "code": "import torch\n\ndef rmsnorm(x, weight, eps=1e-6):\n    y = x.float() * torch.rsqrt(x.float().square().mean(-1, keepdim=True) + eps)\n    return y.to(x.dtype) * weight\n\nx = torch.randn(2, 8, 32)\ny = rmsnorm(x, torch.ones(32))\nassert y.shape == x.shape",
+  "variants": [
+    {
+      "title": "Axis map",
+      "flow": "N x C x H x W\nBN: N,H,W | LN(CHW): C,H,W | IN: H,W | GN: C/G,H,W",
+      "detail": "Each remaining index identifies an independent set of normalization statistics."
+    }
+  ],
+  "sources": [
+    {
+      "title": "RMSNorm",
+      "url": "https://arxiv.org/abs/1910.07467"
+    },
+    {
+      "title": "Group Normalization",
+      "url": "https://arxiv.org/abs/1803.08494"
+    }
+  ],
+  "lab": null,
+  "order": 4,
+  "figure": {
+    "url": "https://ppwwyyxx.com/publication/group-norm/featured.svg",
+    "source": "https://ppwwyyxx.com/publication/group-norm/",
+    "title": "Yuxin Wu and Kaiming He",
+    "caption": "GroupNorm reduces a channel group across spatial axes, independently for each sample."
+  },
+  "explanations": [
+    {
+      "id": "normalization-axes",
+      "title": "Read the reduction axes before the layer name",
+      "block": "architecture",
+      "paragraphs": [
+        "Normalization first computes statistics over a chosen set of axes, normalizes, then applies learned scale and optional bias. Those reduction axes decide whether examples influence each other. Affine parameter shape is a separate decision from reduction shape.",
+        "On [N,C,H,W], BatchNorm reduces N,H,W per channel. InstanceNorm reduces H,W separately per sample and channel. GroupNorm reshapes channels into G groups and reduces C/G,H,W per sample. LayerNorm uses explicitly configured trailing dimensions; an image LayerNorm over [C,H,W] differs from an LLM LayerNorm over D in [B,S,D].",
+        "Training BatchNorm uses batch statistics and usually updates running estimates; evaluation typically reads those estimates. LayerNorm and GroupNorm use current-example statistics in both modes. Micro-batches and domain shift therefore affect these choices differently."
+      ],
+      "table": {
+        "headers": [
+          "Layer",
+          "Statistics",
+          "Couples batch examples?"
+        ],
+        "rows": [
+          [
+            "BN",
+            "N,H,W per C",
+            "Yes during ordinary training"
+          ],
+          [
+            "IN",
+            "H,W per N,C",
+            "No"
+          ],
+          [
+            "GN",
+            "C/G,H,W per N,G",
+            "No"
+          ],
+          [
+            "LLM LN",
+            "D per B,S",
+            "No"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "rmsnorm",
+      "title": "RMSNorm and residual placement",
+      "block": "math",
+      "paragraphs": [
+        "LayerNorm subtracts the feature mean and divides by the standard deviation. RMSNorm divides by root mean square without centering. Both need epsilon for small denominators, and implementations often accumulate statistics in higher precision for low-precision inputs.",
+        "The RMSNorm paper reports workload-dependent runtime savings. Removing mean computation does not establish a universal seven percent improvement for a complete Transformer layer. Attention and feed-forward matrix products still dominate many configurations.",
+        "Pre-norm computes x + Sublayer(Norm(x)); post-norm computes Norm(x + Sublayer(x)). Their residual gradient paths differ. A final normalization often follows a pre-norm decoder stack before the vocabulary head. That final normalization is distinct from normalization inside each block."
+      ],
+      "equations": [
+        "LN(x)=\\gamma\\odot\\frac{x-\\mu}{\\sqrt{\\sigma^2+\\epsilon}}+\\beta",
+        "RMSNorm(x)=\\gamma\\odot\\frac{x}{\\sqrt{D^{-1}\\sum_{i=1}^{D}x_i^2+\\epsilon}}"
+      ]
+    },
+    {
+      "id": "normalization-example",
+      "title": "A small numerical check and failure cases",
+      "block": "trace",
+      "paragraphs": [
+        "For x=[1,3], mean=2 and population variance=1. Ignoring epsilon and using unit scale with zero bias, LayerNorm gives [-1,1]. RMS=sqrt(5), so RMSNorm gives approximately [0.447,1.342]. RMSNorm preserves the nonzero mean.",
+        "For constant features LayerNorm produces zero before its affine transform; epsilon prevents division by zero. Always specify whether variance is biased or unbiased when reproducing a framework result. Changing channel layout without adjusting normalized_shape can silently normalize the wrong coordinates.",
+        "In an interview, explain why ordinary BatchNorm can make a sample depend on other batch members, why a tiny segmentation batch motivates GroupNorm, and why a causal language model should avoid statistics that inadvertently mix future token positions."
+      ]
+    }
+  ],
+  "nextTopicReason": "Apply the same encoder blocks to image patches and trace how patch count changes cost.",
+  "nextTopic": "vision-transformer",
+  "relatedTopics": [
+    {
+      "slug": "vision-transformer",
+      "title": "Vision Transformer",
+      "reason": "Apply the same encoder blocks to image patches and trace how patch count changes cost."
+    },
+    {
+      "slug": "transformer-architectures",
+      "title": "Transformer architectures",
+      "reason": "Review this prerequisite for the input representation, assumptions, and core operations used in this lesson."
+    }
+  ]
+}

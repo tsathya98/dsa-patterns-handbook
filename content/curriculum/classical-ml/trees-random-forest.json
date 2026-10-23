@@ -1,0 +1,139 @@
+{
+  "slug": "trees-random-forest",
+  "track": "classical-ml",
+  "title": "Decision trees & random forests",
+  "summary": "Trees recursively partition features; random forests average diverse trees trained on bootstrapped data.",
+  "why": "Captures nonlinear rules while reducing the variance of a single deep tree.",
+  "interview": "Compare impurity criteria and explain when bagging actually reduces variance.",
+  "level": "L5 / L6",
+  "targets": [
+    "Amazon",
+    "Uber",
+    "Microsoft",
+    "Databricks"
+  ],
+  "equations": [
+    "Gini=1-\\sum_k p_k^2,\\quad H=-\\sum_k p_k\\log_2p_k",
+    "\\Delta I=I(parent)-\\frac{n_L}{n}I(L)-\\frac{n_R}{n}I(R)",
+    "\\operatorname{Var}(\\bar f)=\\rho\\sigma^2+(1-\\rho)\\sigma^2/T"
+  ],
+  "derivation": [
+    "A deep tree often has low training bias and high variance. Bootstrap sampling and random feature subsets diversify trees; averaging reduces the independent component of variance but shared correlation remains.",
+    "OOB estimates predict each training row using only trees whose bootstrap sample excluded it. sqrt(p) is a common classification feature-subset default, not a universal rule for every forest or task."
+  ],
+  "steps": [
+    {
+      "operation": "Bootstrap rows",
+      "input": "X [N,F]",
+      "output": "T samples [N,F] with replacement",
+      "note": "About 36.8% of rows are absent from one large-N bootstrap sample.",
+      "transformation": "Draw N rows independently with replacement"
+    },
+    {
+      "operation": "Subsample candidate features",
+      "input": "node rows + F features",
+      "output": "candidate subset [m]",
+      "note": "Choose a fresh subset at each split.",
+      "transformation": "Draw m candidate features per node"
+    },
+    {
+      "operation": "Grow trees",
+      "input": "candidate thresholds",
+      "output": "T recursive partitions",
+      "note": "Depth/min-leaf constraints regularize each tree.",
+      "transformation": "Greedy weighted impurity reduction"
+    },
+    {
+      "operation": "Aggregate + OOB",
+      "input": "tree votes/probabilities [B,T,K]",
+      "output": "predictions [B,K], OOB estimate",
+      "note": "Only excluded-row trees contribute to that row OOB prediction.",
+      "transformation": "Mean probabilities across trees; exclude in-bag trees for OOB"
+    }
+  ],
+  "traps": [
+    "Impurity-based feature importance can favor high-cardinality features.",
+    "Temporal data can make OOB estimates optimistic.",
+    "More trees do not eliminate correlated errors or label leakage."
+  ],
+  "tradeoff": "Forests are robust tabular baselines but ensembles cost more memory and inference work than one tree.",
+  "code": "from collections import Counter\nfrom math import log2\n\ndef impurity(labels):\n    p = [n/len(labels) for n in Counter(labels).values()]\n    return 1-sum(x*x for x in p), -sum(x*log2(x) for x in p)\n\ngini, entropy = impurity([0,0,1,1])\nassert gini == 0.5 and entropy == 1.0",
+  "variants": [
+    {
+      "title": "Decision tree",
+      "flow": "features -> best impurity split -> child splits -> leaf distribution",
+      "detail": "Greedy local splits need not produce the globally optimal tree."
+    },
+    {
+      "title": "Random forest",
+      "flow": "bootstrap + random features -> tree 1 / tree 2 / ... -> average probabilities",
+      "detail": "Feature subsampling reduces tree correlation; OOB rows provide an internal evaluation route."
+    }
+  ],
+  "sources": [
+    {
+      "title": "scikit-learn forests",
+      "url": "https://scikit-learn.org/stable/modules/ensemble.html#forest"
+    }
+  ],
+  "lab": null,
+  "order": 7,
+  "figure": {
+    "url": "https://scikit-learn.org/stable/_images/sphx_glr_plot_forest_iris_001.png",
+    "source": "https://scikit-learn.org/stable/auto_examples/ensemble/plot_forest_iris.html",
+    "title": "scikit-learn documentation",
+    "caption": "Decision boundaries for individual trees and tree ensembles on Iris feature subsets."
+  },
+  "explanations": [
+    {
+      "id": "tree-splitting",
+      "title": "Impurity reduction and stopping",
+      "block": "architecture",
+      "paragraphs": [
+        "A classification tree tests a feature threshold and partitions rows. For each candidate split compute parent impurity minus the sample-weighted child impurities. Gini is 1-sum p_c squared; entropy is -sum p_c*log2(p_c). Both are zero for a pure node.",
+        "For a balanced two-class parent, Gini is 0.5. Splitting into two equally sized pure children gives weighted child impurity zero and gain 0.5. A split that isolates one training outlier can also improve impurity, which is why depth and minimum leaf size matter.",
+        "A deep tree can have low training bias and high variance. Stopping rules or pruning trade fit for stability. Regression trees typically optimize squared-error reduction rather than class impurity."
+      ],
+      "equations": [
+        "\\Delta I=I(parent)-\\frac{n_L}{n}I(L)-\\frac{n_R}{n}I(R)"
+      ]
+    },
+    {
+      "id": "forest-diversity",
+      "title": "Bagging and random features reduce correlated errors",
+      "block": "math",
+      "paragraphs": [
+        "Each tree receives a bootstrap sample drawn with replacement. At each split, only a random subset of features competes. Averaging or voting combines predictions. Random feature selection decorrelates trees that would otherwise repeatedly choose the same dominant predictor.",
+        "If T trees have individual variance sigma squared and pairwise correlation rho, the variance of their average is sigma squared times [rho+(1-rho)/T] under the equal-variance model. Adding trees shrinks the independent part but cannot remove shared correlated error.",
+        "sqrt(p) is a common classification feature-subset choice, not a universal setting for every forest. More features can strengthen individual trees while making them more correlated. Tune against held-out performance and cost."
+      ],
+      "equations": [
+        "Var(\\bar f)=\\sigma^2\\left[\\rho+\\frac{1-\\rho}{T}\\right]"
+      ]
+    },
+    {
+      "id": "oob-estimation",
+      "title": "Out-of-bag error and feature importance limits",
+      "block": "trace",
+      "paragraphs": [
+        "A bootstrap sample of N draws excludes a row with probability (1-1/N)^N, approaching exp(-1), about 36.8 percent. Predict that row using only trees that excluded it to form an out-of-bag estimate.",
+        "OOB estimation still assumes the sampling design is appropriate. For temporal forecasting or correlated rows from one user, random bootstrap exclusion does not create a realistic future or unseen-user test. Use a suitable external split.",
+        "Impurity-based feature importance can favor features with many candidate split points. Permutation importance evaluates a different quantity and can be misleading with correlated substitutes. Neither establishes causality; inspect stability and known leakage features."
+      ]
+    }
+  ],
+  "nextTopicReason": "Both use trees, but bagging reduces variance while boosting builds sequential corrections. Compare their objectives.",
+  "nextTopic": "xgboost",
+  "relatedTopics": [
+    {
+      "slug": "xgboost",
+      "title": "Gradient boosting & XGBoost",
+      "reason": "Both use trees, but bagging reduces variance while boosting builds sequential corrections. Compare their objectives."
+    },
+    {
+      "slug": "statistics-preprocessing",
+      "title": "Preprocessing & hypothesis tests",
+      "reason": "Review this prerequisite for the input representation, assumptions, and core operations used in this lesson."
+    }
+  ]
+}

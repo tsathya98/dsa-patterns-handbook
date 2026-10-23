@@ -1,161 +1,67 @@
-# DSA & System Design Study Handbook
+# Interview Atlas
 
-Personal notes, pattern cheat sheets, and problem walkthroughs for Data Structures, Algorithms, and System Design (covering CodeKerdos lectures, LeetCode 75 / Top Interview 150, and distributed systems fundamentals).
+A Next.js study workspace for Senior and Staff AI engineering interviews. The curriculum covers 28 topics across deep learning, GenAI, computer vision, and classical ML. Each guide starts with a directly embedded article or paper figure with attribution, then follows the same six-block layout: brief, mathematics, execution trace, failure modes, and a runnable Python core example.
 
-## Quick Navigation
+The homepage starts with three subjects: coding interviews, system design, and AI/ML. Company preparation and study planning follow below. The workspace retains 237 coding problems, LeetCode 75, Top Interview 150, 30 course exercises, 29 DSA concept guides, 21 system design guides, 5 AI/ML field guides, 24 cheat sheets, and the study roadmap. The company directory contains 561 question banks with 14,666 recorded question rows and 62 saved pay/role profiles. Company data retains its original source periods and has not been reverified as current market data.
 
-| Resource | What It Is |
-| :--- | :--- |
-| **[viewer.html](./viewer.html)** | Offline-ready study viewer bundling all markdown notes in one sidebar UI. |
-| **[tracker.html](./tracker.html)** | Daily problem log and difficulty breakdown dashboard. |
-| **[faang_plan.html](./faang_plan.html)** | Interactive 12-week roadmap UI ([markdown version](./faang_preparation_plan.md)). |
-| **[dsa_patterns_study_guide.md](./dsa_patterns_study_guide.md)** | All 13 core DSA patterns in one single-page summary. |
-| **[`cheat_sheets/`](./cheat_sheets/)** | 21 quick-reference pattern and system design cheat sheets. |
+AI/ML has one learning home at `/ai-ml`: four learning tracks and five applied guides. `/curriculum` bookmarks redirect there with filters and saved views preserved. Each track page shows its own ordered lessons, progress, and a start or resume action. The guides contain 90 detailed teaching sections with worked derivations, numerical examples, and explanations of which concept to study next. See the [curriculum coverage](docs/curriculum-coverage.md) for the lesson breakdown.
 
-### Study Progression:
-* **1. Foundations (`00_foundations/`):** Big-O asymptotic analysis, Python memory model, pointer references, primes, and iteration counting.
-* **2. Arrays & Pointers (`01_arrays_and_pointers/`):** Two pointers, sliding window, prefix sums, seesaw pivot, contribution technique, and 2D matrix rotations.
-* **3. Linked Lists (`02_linked_lists/`):** Dummy nodes, fast & slow pointers (Tortoise & Hare), and in-place 4-step pointer reversal.
-* **4. Stacks, Sorting & Binary Search (`03_` to `05_`):** LIFO matching, monotonic stacks, elementary and divide-and-conquer sorting, and $\mathcal{O}(\log n)$ search spaces.
-* **5. Recursion & Backtracking (`06_recursion_and_backtracking/`):** Call stack frames, branch exploration, and state backtracking.
-* **6. System Design (`system_design/`):** Scalability, caching, database sharding, message queues, API gateways, and distributed resilience.
+## Run locally
 
+Requires Node.js 20.9 or newer and npm.
 
----
+```bash
+npm ci
+npm run dev
+```
 
-## 0. Foundations, Complexity & Python Internals (`00_foundations/`)
+Open [Interview Atlas](http://127.0.0.1:3000). Search across the workspace, filter problem lists, track solved/review status, keep personal notes, and inspect company questions and role profiles. The Python playground runs 18 original templates in a browser worker with a stop control. Focus sessions continue across pages and reloads. Visual guides retain the attention-mask, KV-memory, RoPE, and convolution workbenches. Bookmarks and study progress are stored in this browser.
 
-- [01. Algorithms, Correctness & Efficiency](./00_foundations/01_algorithms_correctness_efficiency.md) - Counting elementary operations instead of wall-clock seconds.
-- [02. Time & Space Complexity (Big-O)](./00_foundations/02_time_and_space_complexity_big_o.md) - Simplification rules, loop archetypes, and auxiliary vs. total space.
-- [03. Python Memory Model, Pointers & Core Collections](./00_foundations/03_python_memory_model_and_collections.md) - Pointers, dynamic arrays vs. lists, mutating lists inside tuples (`t[1].append()`), slice garbage collection, and hashability.
-- [04. Factors, Primes & Iteration Counting](./00_foundations/04_factors_primes_and_iteration_counting.md) - Symmetric factor pairs in $\mathcal{O}(\sqrt{N})$, prime checks, and exact loop iteration formulas.
-- [LC 1492: The kth Factor of n](./00_foundations/1492_the_kth_factor_of_n.md) - Two-pass $\mathcal{O}(\sqrt{N})$ time and $\mathcal{O}(1)$ space factor enumeration without sorting.
+Use the sun/moon button in the header to switch between light and dark mode. The dark palette uses a near-black canvas and bright text. Reading text uses 16 px, controls use 14 px, and metadata starts at 12 px; all single-select controls reserve space for an inset chevron. The first visit follows your device appearance; an explicit choice persists across pages, reloads, and other tabs on the same origin.
 
----
+```bash
+npm test             # Content, catalogs, runtime, theme contrast, TypeScript
+npm run build        # Production build
+npm run check:routes # Validate a running server on port 3001
+npm start            # Serve the production build
+npm run build:legacy # Rebuild the original HTML hub
+```
 
-## 1. Arrays, Prefix Sums, Subarrays, Matrices & Two Pointers (`01_arrays_and_pointers/`)
+## Repository layout
 
-### Concept Guides (CodeKerdos Classes 4–7)
-- [Array Fundamentals, Max Elements & Leaders](./01_arrays_and_pointers/00_array_fundamentals_and_max_elements.md) - Counting elements with a strictly greater value in $\mathcal{O}(N)$ and right-to-left leader scans.
-- [Prefix Sums & Special Index Parity Queries](./01_arrays_and_pointers/00_prefix_sums_and_special_index_queries.md) - $\mathcal{O}(1)$ range sum queries, equilibrium indices, and even/odd parity shifts when deleting an index (LC 1664).
-- [Subarray Mechanics & Contribution Technique](./01_arrays_and_pointers/00_subarray_mechanics_and_contribution_technique.md) - Total subarrays $\frac{N(N+1)}{2}$, Closest Min-Max subarray, and the $(i+1)(N-i)$ contribution formula.
-- [2D Matrices, Diagonals & In-Place Rotations](./01_arrays_and_pointers/00_matrix_2d_arrays_and_rotations.md) - Diagonal coordinate rules (`r == c`, `r + c == N - 1`), in-place transpose, 90° rotations (LC 48), and 4-pointer spiral order (LC 54).
+```text
+apps/web/                  Next.js App Router application
+  app/                     Routes, layouts, and styles
+  components/              Study UI, diagrams, workbenches, progress
+  lib/                     Typed content loading and safe document resolution
+  styles/                  Theme tokens and shared form controls
+content/
+  curriculum/              28 structured topic guides in four track folders
+  indexes/                 Generated shared problem, note, company, and playground catalogs
+  dsa/                     Numbered DSA sections and Python solutions
+  system-design/           Architecture notes, LLD, and case studies
+  ai-ml/                   Original AI and ML field notes
+  cheat-sheets/            Pattern and architecture references
+  companies/               Original company question banks
+  plans/                   Preparation roadmap and pattern study guide
+scripts/                   Content and math validation
+  legacy/                  Original HTML generator
+generated/legacy/         Original viewer, tracker, roadmap, and vendor assets
+docs/                     Study index, relocation map, and platform briefs
+.agents/                  Repository workflows and writing skills
+notes/                    Local reference PDFs (gitignored)
+```
 
-### Problem Walkthroughs (Sorted by LeetCode #)
-- [LC 3: Longest Substring Without Repeating Characters](./01_arrays_and_pointers/3_longest_substring_without_repeating_characters.md) - Dynamic sliding window with a set.
-- [LC 5: Longest Palindromic Substring](./01_arrays_and_pointers/5_longest_palindromic_substring.md) - Outward two-pointer expansion around odd `(i, i)` and even `(i, i+1)` centers.
-- [LC 11: Container With Most Water](./01_arrays_and_pointers/11_container_with_most_water.md) - Two-pointer inward squeeze moving the shorter bottleneck wall.
-- [LC 12: Integer to Roman](./01_arrays_and_pointers/12_integer_to_roman.md) - Greedy subtraction from largest denomination to smallest.
-- [LC 13: Roman to Integer](./01_arrays_and_pointers/13_roman_to_integer.md) - Lookahead subtraction rule (`val[s[i]] < val[s[i+1]]`).
-- [LC 15: 3Sum](./01_arrays_and_pointers/15_3sum.md) - Sorting + fixed anchor + two-pointer squeeze with duplicate skipping.
-- [LC 26: Remove Duplicates from Sorted Array](./01_arrays_and_pointers/26_remove_duplicates_from_sorted_array.md) - Scout and writer (`slow`/`fast`) in-place deduplication.
-- [LC 27: Remove Element](./01_arrays_and_pointers/27_remove_element.md) - Scout and writer in-place compaction.
-- [LC 53: Maximum Subarray](./01_arrays_and_pointers/53_maximum_subarray.md) - Kadane's algorithm (dropping negative prefix sums).
-- [LC 55: Jump Game](./01_arrays_and_pointers/55_jump_game.md) - Greedy horizon tracking (`max_reach`).
-- [LC 66: Plus One](./01_arrays_and_pointers/66_plus_one.md) - Right-to-left odometer carry propagation.
-- [LC 80: Remove Duplicates from Sorted Array II](./01_arrays_and_pointers/80_remove_duplicates_from_sorted_array_ii.md) - Generalized `nums[k - 2]` lookback writer.
-- [LC 88: Merge Sorted Array](./01_arrays_and_pointers/88_merge_sorted_array.md) - Right-to-left tail-buffer placement.
-- [LC 121: Best Time to Buy and Sell Stock](./01_arrays_and_pointers/121_best_time_to_buy_and_sell_stock.md) - Single-pass running minimum price.
-- [LC 122: Best Time to Buy and Sell Stock II](./01_arrays_and_pointers/122_best_time_to_buy_and_sell_stock_ii.md) - Greedy harvesting of positive daily price deltas.
-- [LC 125: Valid Palindrome](./01_arrays_and_pointers/125_valid_palindrome.md) - Inward two-pointer squeeze skipping non-alphanumerics.
-- [LC 167: Two Sum II (Input Array Is Sorted)](./01_arrays_and_pointers/167_two_sum_ii_input_array_is_sorted.md) - Inward squeeze in $\mathcal{O}(1)$ space.
-- [LC 169: Majority Element](./01_arrays_and_pointers/169_majority_element.md) - Boyer-Moore voting cancellation in $\mathcal{O}(1)$ space.
-- [LC 189: Rotate Array](./01_arrays_and_pointers/189_rotate_array.md) - In-place triple reversal in $\mathcal{O}(1)$ space.
-- [LC 228: Summary Ranges](./01_arrays_and_pointers/228_summary_ranges.md) - Anchor and scout chunking for consecutive streaks.
-- [LC 238: Product of Array Except Self](./01_arrays_and_pointers/238_product_of_array_except_self.md) - Prefix product pass followed by suffix product pass without division.
-- [LC 274: H-Index](./01_arrays_and_pointers/274_h_index.md) - Descending sort rank check and $\mathcal{O}(n)$ bucket counting sort.
-- [LC 283: Move Zeroes](./01_arrays_and_pointers/283_move_zeroes.md) - Scout and writer single-pass swap.
-- [LC 290: Word Pattern](./01_arrays_and_pointers/290_word_pattern.md) - Bijective 1-to-1 mapping and avoiding the $\mathcal{O}(n)$ `in dict.values()` trap.
-- [LC 392: Is Subsequence](./01_arrays_and_pointers/392_is_subsequence.md) - Two-conveyor-belt pointer matching.
-- [LC 560: Subarray Sum Equals K](./01_arrays_and_pointers/560_subarray_sum_equals_k.md) - Running prefix sum with hash map frequency lookup (`cur_sum - k`).
-- [LC 643: Maximum Average Subarray I](./01_arrays_and_pointers/643_maximum_average_subarray_i.md) - Fixed-size $K$ sliding window with deferred division.
-- [LC 724: Find Pivot Index](./01_arrays_and_pointers/724_find_pivot_index.md) - Seesaw balance equation (`left_sum == total - left_sum - num`).
-- [LC 1456: Maximum Number of Vowels in a Substring](./01_arrays_and_pointers/1456_maximum_number_of_vowels_in_a_substring_of_given_length.md) - Fixed-size $K$ sliding window on character counts.
+The [original study index](docs/study-index.md) retains the detailed DSA and system design navigation. The new app exposes the original Markdown through its [study library](http://127.0.0.1:3000/library). Curriculum source files live in [content/curriculum](content/curriculum); each JSON file is the single source for its guide.
 
----
+## Original viewer
 
-## 2. Linked Lists (`02_linked_lists/`)
+Open [generated/legacy/viewer.html](generated/legacy/viewer.html), [tracker.html](generated/legacy/tracker.html), or [faang_plan.html](generated/legacy/faang_plan.html). These preserve the original HTML experience. Rebuild them with `npm run build:legacy`. Legacy document IDs and browser storage keys remain stable. Paths changed, so existing filesystem bookmarks should be updated using the [relocation map](docs/relocation-map.json).
 
-- [01. Linked List Fundamentals](./02_linked_lists/01_linked_list_fundamentals.md) - Node pointers, `cur = cur.next` vs. `cur.next = ...`, and `dummy` anchors.
-- [90% Linked List Taxonomy Guide](./02_linked_lists/linked_list_90_percent_taxonomy.md) - The 11 linked list archetypes and problem classifier.
-- [LC 2: Add Two Numbers](./02_linked_lists/2_add_two_numbers.md) - Digit-by-digit addition with carry and `dummy` head.
-- [LC 19: Remove Nth Node From End of List](./02_linked_lists/19_remove_nth_node_from_end.md) - Fixed-gap two-pointer measuring stick.
-- [LC 21: Merge Two Sorted Lists](./02_linked_lists/21_merge_two_sorted_lists.md) - Zipper merge using a `dummy` anchor.
-- [LC 83: Remove Duplicates from Sorted List](./02_linked_lists/83_remove_duplicates_from_sorted_list.md) - In-place pointer bypass (`cur.next = cur.next.next`).
-- [LC 141: Linked List Cycle](./02_linked_lists/141_linked_list_cycle.md) - Floyd's Tortoise and Hare (`slow` 1x, `fast` 2x).
-- [LC 143: Reorder List](./02_linked_lists/143_reorder_list.md) - Find middle + reverse second half + alternating merge.
-- [LC 206: Reverse Linked List](./02_linked_lists/206_reverse_linked_list.md) - Three-pointer (`prev`, `cur`, `nxt`) in-place arrow flip.
-- [LC 234: Palindrome Linked List](./02_linked_lists/234_palindrome_linked_list.md) - Array two-pointer baseline vs. $\mathcal{O}(1)$ space second-half reversal.
-- [LC 1290: Convert Binary Number in a Linked List to Integer](./02_linked_lists/1290_convert_binary_number_in_a_linked_list_to_integer.md) - Left-shift stream accumulation (`(ans << 1) | val`).
-- [LC 1721: Swapping Nodes in a Linked List](./02_linked_lists/1721_swapping_nodes_in_a_linked_list.md) - Single-pass `k - 1` step ruler to find $k$-th from start and end.
+The modern problem tracker and original hub use the same problem status, document status, personal note, and focus-log storage keys when served from the same origin. The original hub is also available at `/legacy/viewer.html`. If your previous progress lives in a local file viewer or another port, reload that original viewer, export progress, and import the JSON in the new problem tracker. AI/ML lesson completion uses its own key.
 
----
+The [learner experience audit](docs/learner-experience-audit.md) records the page-by-page navigation changes and verification.
 
-## 3. Stacks & Queues (`03_stacks_and_queues/`)
+## Development
 
-- [LC 20: Valid Parentheses](./03_stacks_and_queues/20_valid_parentheses.md) - Odd-length early exit and pushing expected closing brackets.
-- [LC 678: Valid Parenthesis String](./03_stacks_and_queues/678_valid_parenthesis_string.md) - Tracking open bracket indices against wildcard `*` indices.
-
----
-
-## 4. Sorting Algorithms (`04_sorting/`)
-
-- [01. Bubble Sort](./04_sorting/01_bubble_sort.md) - Adjacent swaps and the `swapped` early-exit flag.
-- [02. Selection Sort](./04_sorting/02_selection_sort.md) - Minimum-swaps selection ($\le n$ writes) and why it is unstable.
-- [03. Insertion Sort](./04_sorting/03_insertion_sort.md) - Shifting sorted prefixes and $\mathcal{O}(n)$ performance on nearly sorted data.
-- [04. Merge Sort](./04_sorting/04_merge_sort.md) - Divide-and-conquer splitting and two-pointer merge in $\mathcal{O}(n \log n)$.
-- [05. Quick Sort](./04_sorting/05_quick_sort.md) - In-place pivot partitioning and avoiding the $\mathcal{O}(n^2)$ worst case.
-
----
-
-## 5. Binary Search Masterclass (`05_binary_search/`, CodeKerdos Classes 8–10)
-
-- [01. Binary Search Fundamentals & Occurrence Boundaries](./05_binary_search/01_binary_search_fundamentals_and_occurrences.md) - Exact match, first/last occurrence (LC 34), count of duplicates, and floor/ceil.
-- [02. Local Minima & Peak Finding in Unsorted Arrays](./05_binary_search/02_local_minima_and_peak_finding.md) - Navigating slopes in $\mathcal{O}(\log n)$ without sorting (LC 162).
-- [03. Single Element in Duplicates (Index Parity)](./05_binary_search/03_index_parity_single_element_in_duplicates.md) - Detecting the `(even, odd)` to `(odd, even)` pair shift (LC 540).
-- [04. Search in Rotated Sorted Array](./05_binary_search/04_search_in_rotated_sorted_array.md) - Identifying which half is strictly sorted (LC 33, LC 153).
-- [05. Exponential Search in Infinite / Unbounded Arrays](./05_binary_search/05_exponential_search_infinite_arrays.md) - Doubling window bounds `1, 2, 4, 8...` before binary searching (LC 702).
-- [06. Binary Search on the Answer (Greedy Predicates)](./05_binary_search/06_binary_search_on_answer_greedy_predicates.md) - Monotonic feasibility functions for Painter's Partition, Aggressive Cows, Koko (LC 875), and Split Array (LC 410).
-
----
-
-## 6. Cheat Sheets (`cheat_sheets/`)
-
-### DSA Cheat Sheets
-- [Time & Space Complexity](./cheat_sheets/time_and_space_complexity_cheat_sheet.md)
-- [Python Internals, Memory & Collections](./cheat_sheets/python_internals_and_collections_cheat_sheet.md)
-- [Arrays, Strings & HashMaps](./cheat_sheets/arrays_hashmaps_cheat_sheet.md)
-- [Prefix Sum & Seesaw Balance](./cheat_sheets/prefix_sum_seesaw_cheat_sheet.md)
-- [Subarrays & Contribution Technique](./cheat_sheets/subarrays_and_contribution_technique_cheat_sheet.md)
-- [2D Matrix Manipulation](./cheat_sheets/matrix_2d_manipulation_cheat_sheet.md)
-- [Two Pointers (All 6 Formations)](./cheat_sheets/two_pointers_cheat_sheet.md)
-- [Sliding Window (Fixed & Dynamic)](./cheat_sheets/sliding_window_cheat_sheet.md)
-- [Kadane's Algorithm](./cheat_sheets/kadanes_algorithm_cheat_sheet.md)
-- [Greedy Algorithms](./cheat_sheets/greedy_cheat_sheet.md)
-- [Greedy Subtraction (ATM Pattern)](./cheat_sheets/greedy_subtraction_atm_cheat_sheet.md)
-- [Binary Search (7 Archetypes)](./cheat_sheets/binary_search_cheat_sheet.md)
-- [Linked List Master Cheat Sheet](./cheat_sheets/linked_list_master_cheat_sheet.md)
-- [Sorting Algorithms Comparison](./cheat_sheets/sorting_cheat_sheet.md)
-- [BFS vs. DFS](./cheat_sheets/bfs_dfs_cheat_sheet.md)
-- [Backtracking](./cheat_sheets/backtracking_cheat_sheet.md)
-- [Priority Queues & Heaps](./cheat_sheets/heaps_priority_queues_cheat_sheet.md)
-- [Bit Manipulation](./cheat_sheets/bitwise_cheat_sheet.md)
-
-### System Design Cheat Sheets
-- [System Design Fundamentals](./cheat_sheets/system_design_fundamentals_cheat_sheet.md)
-- [Back-of-the-Envelope Calculations](./cheat_sheets/system_design_calculations_cheat_sheet.md)
-- [System Design Failure Modes & Fixes (39 Concepts)](./cheat_sheets/system_design_failure_modes_cheat_sheet.md)
-
----
-
-## 7. System Design & Production Infrastructure (`system_design/`)
-
-- [00. FAANG System Design 4-Step Interview Framework](./system_design/00_faang_system_design_framework.md)
-- [01. Production Infrastructure & Protocol Fundamentals](./system_design/01_production_infrastructure_fundamentals.md)
-- [02. Caching Strategies, Patterns & Redis](./system_design/02_caching_patterns_and_redis.md)
-- [03. Database Scaling, Sharding & CAP Theorem](./system_design/03_database_scaling_sharding_and_cap.md)
-- [04. Message Queues & Event-Driven Architecture](./system_design/04_message_queues_and_async_processing.md)
-- [05. API Gateway & Rate Limiting](./system_design/05_api_gateway_and_rate_limiting.md)
-- [06. Distributed Failure Modes, Traffic Spikes & Latency](./system_design/06_distributed_failure_modes_and_resilience.md)
-- [07. Distributed Coordination, Exactly-Once & Concurrency](./system_design/07_distributed_coordination_and_transactions.md)
-- [Excalidraw Dry-Run #1: Scalable Photo Service](./system_design/excalidraw_practice_01_core_infra.md)
+See [development notes](docs/development.md) for content conventions, Python example verification, and deployment boundaries.

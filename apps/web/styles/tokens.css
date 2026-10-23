@@ -1,0 +1,110 @@
+/* Shared colors, readable type scale, and editor syntax roles. */
+:root {
+  --bg: #f7f8fa;
+  --surface: #ffffff;
+  --panel: #eef1f5;
+  --line: #dce2ea;
+  --muted: #566477;
+  --text: #243044;
+  --accent: #315fc4;
+  --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --sidebar: 264px;
+  --font-xs: 0.75rem;
+  --font-sm: 0.875rem;
+  --font-base: 1rem;
+  --font-lg: 1.125rem;
+  --font-heading-sm: 1.25rem;
+  --font-heading: 1.5rem;
+  --control-bg: #ffffff;
+  --control-line: #7c899b;
+  --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='m1 1 5 5 5-5' stroke='%233b4a60' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  color-scheme: light;
+  --line-strong: #bdc8d7;
+  --accent-hover: #244fae;
+  --accent-soft: #eaf0fc;
+  --on-accent: #ffffff;
+  --sidebar-bg: #f0f2f6;
+  --diagram-line: #94a3b8;
+  --code-bg: #172131;
+  --code-text: #dce7fa;
+  --code-line: #34435a;
+  --warning-bg: #fff5dc;
+  --warning-text: #775714;
+  --header-bg: rgba(247, 248, 250, 0.94);
+  --code-toolbar: #223047;
+  --easy-text: #236454;
+  --easy-bg: #e8f3ed;
+  --hard-text: #923a48;
+  --hard-bg: #fceef1;
+  --track-deep-learning: #6b50a1;
+  --track-genai: #23756c;
+  --track-computer-vision: #8c611f;
+  --track-classical-ml: #315fc4;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #090b0e;
+  --surface: #11151b;
+  --panel: #1a2028;
+  --line: #303945;
+  --line-strong: #65758a;
+  --text: #f1f5f9;
+  --muted: #bbc4d1;
+  --accent: #9cbcff;
+  --accent-hover: #bfd3ff;
+  --accent-soft: #1b2a43;
+  --on-accent: #0a1220;
+  --sidebar-bg: #0c1015;
+  --header-bg: rgba(9, 11, 14, 0.97);
+  --diagram-line: #96a6ba;
+  --code-bg: #07090d;
+  --code-text: #e4ebf4;
+  --code-line: #384456;
+  --code-toolbar: #111720;
+  --warning-bg: #302612;
+  --warning-text: #f2d391;
+  --easy-text: #a2e5c8;
+  --easy-bg: #132d24;
+  --hard-text: #f5b5c4;
+  --hard-bg: #351e29;
+  --track-deep-learning: #d0b8ff;
+  --track-genai: #8bddc5;
+  --track-computer-vision: #efd08c;
+  --track-classical-ml: #a9c8ff;
+  --control-bg: #0d1117;
+  --control-line: #65758a;
+  --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='m1 1 5 5 5-5' stroke='%23d4deec' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+:root {
+  --editor-bg: #ffffff;
+  --editor-fg: #243044;
+  --editor-gutter: #f3f5f7;
+  --editor-line-number: #637084;
+  --editor-active: #edf2fa;
+  --editor-selection: #c5dafa;
+  --editor-guide: #d7dee8;
+  --editor-keyword: #7c3e9d;
+  --editor-comment: #427746;
+  --editor-string: #a31515;
+  --editor-number: #096655;
+  --editor-variable: #125f92;
+  --editor-type: #267f99;
+  --editor-function: #795e26;
+}
+:root[data-theme="dark"] {
+  --editor-bg: #090c11;
+  --editor-fg: #e4ebf4;
+  --editor-gutter: #0f141b;
+  --editor-line-number: #a4b1c3;
+  --editor-active: #1a2432;
+  --editor-selection: #264f78;
+  --editor-guide: #414e61;
+  --editor-keyword: #c586c0;
+  --editor-comment: #91b77e;
+  --editor-string: #ce9178;
+  --editor-number: #b5cea8;
+  --editor-variable: #9cdcfe;
+  --editor-type: #4ec9b0;
+  --editor-function: #dcdcaa;
+}

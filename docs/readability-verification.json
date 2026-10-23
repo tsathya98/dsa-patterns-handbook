@@ -1,0 +1,212 @@
+{
+  "desktop": [
+    {
+      "arrowFailures": 0,
+      "heading": "What are you studying today?",
+      "overflow": false,
+      "selects": 0,
+      "smallText": []
+    },
+    {
+      "arrowFailures": 0,
+      "heading": "AI & ML",
+      "overflow": false,
+      "selects": 1,
+      "smallText": []
+    },
+    {
+      "arrowFailures": 0,
+      "heading": "Deep Learning & LLMs",
+      "overflow": false,
+      "selects": 0,
+      "smallText": []
+    },
+    {
+      "arrowFailures": 0,
+      "heading": "Transformer architectures",
+      "overflow": false,
+      "selects": 0,
+      "smallText": []
+    },
+    {
+      "arrowFailures": 0,
+      "heading": "DSA concepts",
+      "overflow": false,
+      "selects": 30,
+      "smallText": []
+    },
+    {
+      "arrowFailures": 0,
+      "heading": "System design",
+      "overflow": false,
+      "selects": 22,
+      "smallText": []
+    },
+    {
+      "arrowFailures": 0,
+      "heading": "Companies, pay & roles",
+      "overflow": false,
+      "selects": 3,
+      "smallText": []
+    },
+    {
+      "arrowFailures": 0,
+      "heading": "Companies, pay & roles",
+      "overflow": false,
+      "selects": 3,
+      "smallText": []
+    },
+    {
+      "arrowFailures": 0,
+      "heading": "Google",
+      "overflow": false,
+      "selects": 3,
+      "smallText": []
+    },
+    {
+      "arrowFailures": 0,
+      "heading": "All reference material",
+      "overflow": false,
+      "selects": 0,
+      "smallText": []
+    },
+    {
+      "arrowFailures": 0,
+      "heading": "FAANG system design 4-step interview framework",
+      "overflow": false,
+      "selects": 1,
+      "smallText": []
+    },
+    {
+      "arrowFailures": 0,
+      "heading": "Study plan",
+      "overflow": false,
+      "selects": 3,
+      "smallText": []
+    },
+    {
+      "arrowFailures": 0,
+      "heading": "Python playground",
+      "overflow": false,
+      "selects": 1,
+      "smallText": []
+    },
+    {
+      "arrowFailures": 0,
+      "heading": "Focus sessions",
+      "overflow": false,
+      "selects": 0,
+      "smallText": []
+    }
+  ],
+  "mobile": [
+    {
+      "heading": "What are you studying today?",
+      "smallParagraphs": 0,
+      "viewport": 390,
+      "width": 390
+    },
+    {
+      "heading": "AI & ML",
+      "smallParagraphs": 0,
+      "viewport": 390,
+      "width": 390
+    },
+    {
+      "heading": "Deep Learning & LLMs",
+      "smallParagraphs": 0,
+      "viewport": 390,
+      "width": 390
+    },
+    {
+      "heading": "Transformer architectures",
+      "smallParagraphs": 0,
+      "viewport": 390,
+      "width": 390
+    },
+    {
+      "heading": "DSA concepts",
+      "smallParagraphs": 0,
+      "viewport": 390,
+      "width": 390
+    },
+    {
+      "heading": "System design",
+      "smallParagraphs": 0,
+      "viewport": 390,
+      "width": 390
+    },
+    {
+      "heading": "Problems & practice",
+      "smallParagraphs": 0,
+      "viewport": 390,
+      "width": 390
+    },
+    {
+      "heading": "Review queue",
+      "smallParagraphs": 0,
+      "viewport": 390,
+      "width": 390
+    },
+    {
+      "heading": "Companies, pay & roles",
+      "smallParagraphs": 0,
+      "viewport": 390,
+      "width": 390
+    },
+    {
+      "heading": "Google",
+      "smallParagraphs": 0,
+      "viewport": 390,
+      "width": 390
+    },
+    {
+      "heading": "Cheat sheets",
+      "smallParagraphs": 0,
+      "viewport": 390,
+      "width": 390
+    },
+    {
+      "heading": "Study plan",
+      "smallParagraphs": 0,
+      "viewport": 390,
+      "width": 390
+    },
+    {
+      "heading": "All reference material",
+      "smallParagraphs": 0,
+      "viewport": 390,
+      "width": 390
+    },
+    {
+      "heading": "Search the workspace",
+      "smallParagraphs": 0,
+      "viewport": 390,
+      "width": 390
+    },
+    {
+      "heading": "Python playground",
+      "smallParagraphs": 0,
+      "viewport": 390,
+      "width": 390
+    },
+    {
+      "heading": "Focus sessions",
+      "smallParagraphs": 0,
+      "viewport": 390,
+      "width": 390
+    },
+    {
+      "heading": "FAANG system design 4-step interview framework",
+      "smallParagraphs": 0,
+      "viewport": 390,
+      "width": 390
+    }
+  ],
+  "dropdownProbe": {
+    "before": "45 visible controls failed the arrow-clearance check with 10 px right padding",
+    "after": "All checked controls passed with 44 px right padding"
+  },
+  "keyboardFilter": "Native arrow and Enter selection filtered to 22 Easy problems; filters restored",
+  "production": "Near-black canvas, 16 px reading text, 14 px controls, 44 px chevron clearance, and 14 px Python editor verified"
+}

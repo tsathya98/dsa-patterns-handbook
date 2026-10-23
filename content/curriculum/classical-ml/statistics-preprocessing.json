@@ -1,0 +1,168 @@
+{
+  "slug": "statistics-preprocessing",
+  "track": "classical-ml",
+  "title": "Preprocessing & hypothesis tests",
+  "summary": "Transform features using training statistics and use statistical tests whose assumptions match the data.",
+  "why": "Prevents scale artifacts, leakage, and unsupported conclusions from noisy samples.",
+  "interview": "Interpret a p-value, choose a test, and separate effect size from significance.",
+  "level": "L5 / L6",
+  "targets": [
+    "Amazon",
+    "Uber",
+    "Microsoft",
+    "Databricks"
+  ],
+  "equations": [
+    "z=(x-\\mu_{train})/\\sigma_{train},\\quad x_{mm}=(x-min_{train})/(max_{train}-min_{train})",
+    "r=\\frac{\\sum_i(x_i-\\bar x)(y_i-\\bar y)}{\\sqrt{\\sum_i(x_i-\\bar x)^2\\sum_i(y_i-\\bar y)^2}}",
+    "\\chi^2=\\sum_{cells}(O-E)^2/E,\\quad t_{Welch}=\\frac{\\bar x-\\bar y}{\\sqrt{s_x^2/n_x+s_y^2/n_y}}",
+    "x_{robust}=(x-\\operatorname{median}_{train})/(Q_{.75}-Q_{.25})_{train}",
+    "\\rho_{Spearman}=\\operatorname{corr}(\\operatorname{rank}(x),\\operatorname{rank}(y))"
+  ],
+  "derivation": [
+    "Pearson measures linear association; Spearman computes association of ranks and captures monotonic relationships. Neither identifies causality. Robust scaling uses a training median and an interquartile range.",
+    "A p-value is the probability, assuming the null model, of a statistic at least as extreme as observed. It is not P(null is true). Type I error rejects a true null; Type II error misses a false null; power is 1-beta."
+  ],
+  "steps": [
+    {
+      "operation": "Split data",
+      "input": "X [N,F] + timestamps/groups",
+      "output": "train / validation / test",
+      "note": "Split by time or entity when random splitting leaks information.",
+      "transformation": "Group/time-aware partition before fit"
+    },
+    {
+      "operation": "Fit scaler on train",
+      "input": "Xtrain [Nt,F]",
+      "output": "location,scale [F]",
+      "note": "Handle constant features and outliers explicitly.",
+      "transformation": "Estimate location and scale; persist parameters"
+    },
+    {
+      "operation": "Choose test",
+      "input": "groups / contingency counts",
+      "output": "test statistic",
+      "note": "Student t: two means under its assumptions; Welch relaxes equal variance; ANOVA: omnibus mean comparison; chi-square: categorical independence.",
+      "transformation": "Compute mean-comparison or independence statistic"
+    },
+    {
+      "operation": "Report decision",
+      "input": "statistic + null distribution",
+      "output": "p-value + CI + effect size",
+      "note": "Correct for multiple comparisons and state test assumptions.",
+      "transformation": "Compare with null reference distribution"
+    }
+  ],
+  "traps": [
+    "Fitting preprocessing before a split leaks evaluation data.",
+    "A significant ANOVA does not identify which pairs differ.",
+    "Sparse expected cell counts weaken chi-square approximation.",
+    "Failing to reject the null does not prove equivalence."
+  ],
+  "tradeoff": "Robust methods tolerate outliers; power depends on sample size, variance, effect size, and the test design.",
+  "code": "from statistics import mean, stdev\n\ndef fit_standardizer(train):\n    mu, sigma = mean(train), stdev(train)\n    return lambda x: (x-mu)/(sigma or 1.0)\n\ntransform = fit_standardizer([1.,2.,3.])\nassert transform(2.) == 0.0\nassert transform(4.) == 2.0",
+  "variants": [
+    {
+      "title": "Scaling choices",
+      "flow": "train -> mean/std | min/max | median/IQR -> saved transform -> inference",
+      "detail": "StandardScaler, MinMaxScaler, and RobustScaler fit different location/scale statistics."
+    },
+    {
+      "title": "Test selection",
+      "flow": "two means -> t / Welch\n3+ means -> ANOVA\ncategorical contingency -> chi-square",
+      "detail": "Check independence, sampling design, distributional assumptions, and expected counts."
+    }
+  ],
+  "sources": [
+    {
+      "title": "SciPy statistical tests",
+      "url": "https://docs.scipy.org/doc/scipy/reference/stats.html"
+    },
+    {
+      "title": "scikit-learn preprocessing",
+      "url": "https://scikit-learn.org/stable/modules/preprocessing.html"
+    }
+  ],
+  "lab": null,
+  "order": 2,
+  "figure": {
+    "url": "https://scikit-learn.org/stable/_images/sphx_glr_plot_all_scaling_005.png",
+    "source": "https://scikit-learn.org/stable/auto_examples/preprocessing/plot_all_scaling.html",
+    "title": "scikit-learn documentation",
+    "caption": "Robust scaling uses a median and quantile range; the two views expose outlier effects."
+  },
+  "explanations": [
+    {
+      "id": "scaling-correlation",
+      "title": "Choose transformations using the training split",
+      "block": "architecture",
+      "paragraphs": [
+        "Standardization subtracts a training mean and divides by a training standard deviation. Min-max scaling uses training extrema. Robust scaling uses a training median and interquartile range. None should be refit on validation, test, or future production batches.",
+        "Outliers strongly affect mean, standard deviation, and range. A zero-variance column needs explicit handling. Tree split ordering often makes monotone feature scaling unnecessary, while distance methods, regularized linear models, and SVMs can change substantially with scale.",
+        "Pearson measures linear association. Spearman applies correlation to ranks and measures monotonic association. A monotonic curved relation can have strong Spearman association without being linear. Ties, outliers, missingness, and restricted ranges affect interpretation; correlation does not establish causality."
+      ],
+      "equations": [
+        "z=(x-\\mu_{train})/\\sigma_{train}",
+        "x_{robust}=(x-\\operatorname{median}_{train})/IQR_{train}"
+      ]
+    },
+    {
+      "id": "testing-logic",
+      "title": "Null hypotheses, p-values, and power",
+      "block": "math",
+      "paragraphs": [
+        "Specify a null model, an alternative, an effect metric, and a decision rule before examining the result. A p-value is the probability under the null of a statistic at least as extreme as observed. It is not the probability that the null is true.",
+        "Type I error rejects a true null, controlled at alpha when assumptions and procedure hold. Type II error fails to reject a false null; its probability beta depends on effect size, sample size, noise, and test design. Power is 1-beta.",
+        "Report an effect estimate and uncertainty, not only significance. Large samples can make a negligible effect significant, while small samples may miss an important effect. Repeated peeking or testing many hypotheses requires an appropriate sequential or multiple-testing plan."
+      ]
+    },
+    {
+      "id": "test-selection",
+      "title": "t-test, ANOVA, chi-square, and an experiment trace",
+      "block": "trace",
+      "paragraphs": [
+        "Use an independent two-sample t procedure for two independent group means under suitable sampling assumptions. Welch handles unequal variances; a paired t-test instead operates on within-pair differences. These are different study designs.",
+        "One-way ANOVA tests whether all group means are equal across several independent groups. A significant result does not identify the differing pair; planned contrasts or corrected post-hoc comparisons answer that question. A chi-square independence test compares observed and expected counts in a contingency table and needs adequate expected counts.",
+        "For a latency experiment, randomize independent units, define the measurement window, compute an effect and confidence interval, and check distribution and independence assumptions. Repeated requests from the same user are correlated; treating every request as an independent unit can understate uncertainty."
+      ],
+      "table": {
+        "headers": [
+          "Question",
+          "Typical test",
+          "Check first"
+        ],
+        "rows": [
+          [
+            "Two independent means",
+            "Welch or pooled t-test as justified",
+            "Independence, variance assumptions"
+          ],
+          [
+            "Paired before/after mean",
+            "Paired t-test",
+            "Meaningful pairing, difference distribution"
+          ],
+          [
+            "Several independent means",
+            "ANOVA or suitable alternative",
+            "Residual and variance assumptions"
+          ],
+          [
+            "Categorical association",
+            "Chi-square independence",
+            "Expected counts, independent units"
+          ]
+        ]
+      }
+    }
+  ],
+  "nextTopicReason": "Scaling changes distance and margin geometry. Derive the SVM margin with that input contract fixed.",
+  "nextTopic": "svm",
+  "relatedTopics": [
+    {
+      "slug": "svm",
+      "title": "Support vector machines",
+      "reason": "Scaling changes distance and margin geometry. Derive the SVM margin with that input contract fixed."
+    }
+  ]
+}

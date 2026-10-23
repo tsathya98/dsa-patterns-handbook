@@ -1,0 +1,144 @@
+{
+  "slug": "kmeans-pca",
+  "track": "classical-ml",
+  "title": "K-Means & PCA",
+  "summary": "K-Means partitions by squared distance; PCA finds orthogonal directions of maximum variance.",
+  "why": "Provides geometric summaries through prototypes or a low-dimensional linear subspace.",
+  "interview": "Prove Lloyd monotonicity and connect covariance eigenvectors to SVD.",
+  "level": "L5 / L6",
+  "targets": [
+    "Amazon",
+    "Uber",
+    "Microsoft",
+    "Databricks"
+  ],
+  "equations": [
+    "\\min_{\\mu,c}\\sum_i\\|x_i-\\mu_{c_i}\\|^2",
+    "X_c=U\\Sigma V^\\top,\\quad Cov(X)=V\\frac{\\Sigma^2}{N-1}V^\\top",
+    "\\mathrm{EVR}_j=\\sigma_j^2/\\sum_k\\sigma_k^2,\\quad silhouette=(b-a)/\\max(a,b)"
+  ],
+  "derivation": [
+    "With centroids fixed, assignment chooses the nearest centroid and cannot increase the objective. With assignments fixed, the mean minimizes each within-cluster squared-error sum. The objective is nonnegative, so its values converge; this does not prove a global optimum.",
+    "K-Means++ samples later centers in proportion to squared distance to existing centers. It improves initialization guarantees but does not prevent every poor local solution. PCA must center inputs; standardization is an additional modeling choice."
+  ],
+  "steps": [
+    {
+      "operation": "Center / scale",
+      "input": "X [N,F]",
+      "output": "Xc [N,F]",
+      "note": "Scale affects both distances and principal directions.",
+      "transformation": "X - training_mean; optional scale"
+    },
+    {
+      "operation": "K-Means assignment",
+      "input": "X, centers [K,F]",
+      "output": "cluster IDs [N]",
+      "note": "Assign nearest centers without changing feature space.",
+      "transformation": "argmin_j ||x_i - center_j||^2"
+    },
+    {
+      "operation": "K-Means update",
+      "input": "cluster IDs, X",
+      "output": "new centers [K,F]",
+      "note": "Handle empty clusters explicitly.",
+      "transformation": "mean(X assigned to each cluster)"
+    },
+    {
+      "operation": "PCA SVD + project",
+      "input": "Xc [N,F]",
+      "output": "Z [N,r] = Xc V[:, :r]",
+      "note": "Truncated SVD can avoid forming dense covariance.",
+      "transformation": "SVD(Xc); project onto top-r right singular vectors"
+    }
+  ],
+  "traps": [
+    "PCA variance is not the same as predictive signal.",
+    "Elbow selection is heuristic; silhouette can favor specific cluster geometry.",
+    "K-Means is sensitive to outliers and unequal-density non-spherical clusters."
+  ],
+  "tradeoff": "More components retain variance but cost storage; more clusters lower inertia without guaranteeing useful segmentation.",
+  "code": "import numpy as np\n\nx = np.array([[1.,2.], [2.,4.], [3.,6.]])\nxc = x-x.mean(axis=0)\nu, s, vt = np.linalg.svd(xc, full_matrices=False)\nz = xc @ vt[:1].T\nratio = s*s/(s*s).sum()\nassert z.shape == (3,1)\nassert np.isclose(ratio[0], 1.0)",
+  "variants": [
+    {
+      "title": "Lloyd iteration",
+      "flow": "centers -> nearest-center assignment -> cluster means -> repeat",
+      "detail": "Each exact step does not increase inertia; stop when assignments or improvement stabilize."
+    },
+    {
+      "title": "PCA",
+      "flow": "X -> center -> SVD -> top right-singular vectors -> projected coordinates",
+      "detail": "Eigenvalues of sample covariance are singular values squared divided by N-1."
+    }
+  ],
+  "sources": [
+    {
+      "title": "scikit-learn clustering",
+      "url": "https://scikit-learn.org/stable/modules/clustering.html"
+    },
+    {
+      "title": "scikit-learn PCA",
+      "url": "https://scikit-learn.org/stable/modules/decomposition.html#pca"
+    }
+  ],
+  "lab": null,
+  "order": 5,
+  "figure": {
+    "url": "https://scikit-learn.org/stable/_images/sphx_glr_plot_kmeans_digits_001.png",
+    "source": "https://scikit-learn.org/stable/auto_examples/cluster/plot_kmeans_digits.html",
+    "title": "scikit-learn documentation",
+    "caption": "K-Means decision regions and centroids in PCA-reduced digits data."
+  },
+  "explanations": [
+    {
+      "id": "lloyd-kmeans",
+      "title": "Lloyd iterations and what convergence proves",
+      "block": "architecture",
+      "paragraphs": [
+        "K-Means minimizes within-cluster squared Euclidean distance. Given centroids, assign each point to its nearest center. Given assignments, update each center to the cluster mean. Each step cannot increase the objective when solved as specified.",
+        "The nonnegative objective values converge under these monotonic updates, but the result can be a poor local optimum. Empty clusters, ties, and stopping tolerances need policies. Multiple initializations help assess sensitivity.",
+        "K-Means++ picks an initial point and samples later centers in proportion to squared distance from the closest chosen center. It improves expected initialization quality, not certainty of a global optimum. Standardize features when their units should not determine cluster geometry."
+      ],
+      "equations": [
+        "J=\\sum_i\\|x_i-\\mu_{c_i}\\|_2^2"
+      ]
+    },
+    {
+      "id": "pca-svd",
+      "title": "PCA through covariance and SVD",
+      "block": "math",
+      "paragraphs": [
+        "Center X [N,D] using the training mean. The sample covariance X transpose X/(N-1) has eigenvectors that define principal directions. Keep the leading k directions and project to [N,k].",
+        "For centered X=U Sigma V transpose, the columns of V are principal directions and covariance eigenvalues are sigma_j squared divided by N-1. SVD can avoid explicitly forming the covariance matrix. Standardizing before PCA is a separate modeling choice that changes which variance matters.",
+        "Explained variance ratio divides each selected eigenvalue by total variance. A large ratio describes reconstruction variance, not guaranteed class separation. Whitening further rescales components and can amplify low-variance noise."
+      ],
+      "equations": [
+        "X_c=U\\Sigma V^T,\\quad Z=X_cV_{[:,1:k]}",
+        "\\lambda_j=\\sigma_j^2/(N-1),\\quad EVR_j=\\lambda_j/\\sum_r\\lambda_r"
+      ]
+    },
+    {
+      "id": "cluster-selection",
+      "title": "Elbow, silhouette, and a downstream check",
+      "block": "trace",
+      "paragraphs": [
+        "The elbow heuristic looks for diminishing returns in inertia as k grows; an unambiguous elbow may not exist. Silhouette compares a point mean distance a to its own cluster with the best other-cluster mean distance b, using (b-a)/max(a,b).",
+        "For points at (2,0) and (-2,0), centering leaves the x axis as the sole nonzero principal direction. One PCA component preserves all observed variance. K-Means with k=1 has center (0,0) and squared-error sum 8; k=2 can reach zero, but this tiny example cannot establish useful real-world clusters.",
+        "A PCA-plus-clustering pipeline must fit both transformations on training data and evaluate stability, interpretability, and the intended downstream task. K-Means favors roughly compact Euclidean clusters and is poorly suited to every nonconvex shape."
+      ]
+    }
+  ],
+  "nextTopicReason": "PCA and scaling change neighborhood geometry. Examine how that affects KNN and retrieval indexes.",
+  "nextTopic": "knn",
+  "relatedTopics": [
+    {
+      "slug": "knn",
+      "title": "K-nearest neighbors",
+      "reason": "PCA and scaling change neighborhood geometry. Examine how that affects KNN and retrieval indexes."
+    },
+    {
+      "slug": "statistics-preprocessing",
+      "title": "Preprocessing & hypothesis tests",
+      "reason": "Review this prerequisite for the input representation, assumptions, and core operations used in this lesson."
+    }
+  ]
+}

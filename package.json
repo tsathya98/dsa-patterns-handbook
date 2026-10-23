@@ -1,0 +1,25 @@
+{
+  "name": "interview-atlas",
+  "private": true,
+  "workspaces": [
+    "apps/web"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace apps/web --",
+    "build": "npm run build --workspace apps/web",
+    "start": "npm run start --workspace apps/web --",
+    "typecheck": "npm run typecheck --workspace apps/web",
+    "check:content": "python3 scripts/check_content.py && node scripts/check_math.mjs",
+    "check:routes": "python3 scripts/check_routes.py",
+    "check:study": "node scripts/check_study.mjs && node scripts/check_playground.mjs",
+    "build:legacy": "python3 scripts/legacy/build_viewer.py && node scripts/export_playground.mjs",
+    "test": "npm run check:content && npm run check:study && npm run check:theme && npm run typecheck",
+    "check:theme": "node scripts/check_theme.mjs"
+  },
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "overrides": {
+    "katex": "^0.19.0"
+  }
+}

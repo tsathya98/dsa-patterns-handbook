@@ -1,0 +1,136 @@
+{
+  "slug": "knn",
+  "track": "classical-ml",
+  "title": "K-nearest neighbors",
+  "summary": "Predict from the labels of nearby stored examples under a chosen distance metric.",
+  "why": "Provides a nonparametric baseline with almost no model-fitting objective.",
+  "interview": "Explain distance concentration and choose an index for the dimension and metric.",
+  "level": "L5 / L6",
+  "targets": [
+    "Amazon",
+    "Uber",
+    "Microsoft",
+    "Databricks"
+  ],
+  "equations": [
+    "d_2(x,y)=\\sqrt{\\sum_j(x_j-y_j)^2},\\quad d_1(x,y)=\\sum_j|x_j-y_j|",
+    "d_{cos}(x,y)=1-\\frac{x^\\top y}{\\|x\\|\\|y\\|}",
+    "\\frac{V_{ball}(r)}{V_{cube}(2r)}=\\frac{\\pi^{d/2}}{2^d\\Gamma(d/2+1)}"
+  ],
+  "derivation": [
+    "In many high-dimensional distributions, nearest and farthest distances become less distinguishable in relative terms. This is distribution dependent, not a theorem that all high-dimensional data are equally hard.",
+    "KD-Trees partition coordinate space and Ball Trees bound metric balls. Their pruning often degrades in high dimensions. Inverted-file indexes partition vector space into coarse clusters; sparse text inverted indexes map terms to postings."
+  ],
+  "steps": [
+    {
+      "operation": "Store training set",
+      "input": "X [N,F], y [N]",
+      "output": "index + labels",
+      "note": "Fit cost is mostly storage and index construction.",
+      "transformation": "Save training transform, vectors, and labels"
+    },
+    {
+      "operation": "Transform query",
+      "input": "q [B,F]",
+      "output": "metric-compatible q [B,F]",
+      "note": "Scaling and normalization must match the stored examples.",
+      "transformation": "Apply saved scaling / normalization"
+    },
+    {
+      "operation": "Find neighbors",
+      "input": "index, q",
+      "output": "IDs, distances [B,k]",
+      "note": "Brute force costs O(B*N*F); ANN trades exactness for speed.",
+      "transformation": "Search exact or approximate nearest neighbors"
+    },
+    {
+      "operation": "Vote / regress",
+      "input": "neighbor labels [B,k]",
+      "output": "prediction [B]",
+      "note": "Define ties, distance weights, and zero-distance handling.",
+      "transformation": "Majority vote or weighted average"
+    }
+  ],
+  "traps": [
+    "Cosine distance is undefined for a zero vector unless a convention is chosen.",
+    "Scaling features using test data leaks information.",
+    "ANN recall affects the classifier or retrieval result downstream."
+  ],
+  "tradeoff": "Larger k smooths predictions and reduces variance while potentially increasing bias.",
+  "code": "from math import sqrt\n\ndef nearest(query, points, k):\n    if not 1 <= k <= len(points):\n        raise ValueError(\"k must be within the dataset size\")\n    distances = [(sqrt(sum((a-b)**2 for a,b in zip(query,p))), i) for i,p in enumerate(points)]\n    return sorted(distances)[:k]\n\nassert nearest([0,0], [[3,4], [1,0]], 1)[0][1] == 1",
+  "variants": [
+    {
+      "title": "Exact search",
+      "flow": "query -> distances to all examples -> top-k -> weighted labels",
+      "detail": "A vectorized brute-force scan can outperform trees in high dimensions."
+    },
+    {
+      "title": "Index choice",
+      "flow": "low/moderate dimension -> KD/Ball tree\nhigh-dimensional vectors -> ANN / IVF\nsparse terms -> inverted postings",
+      "detail": "Validate neighbor recall, latency, and memory against the deployed distribution."
+    }
+  ],
+  "sources": [
+    {
+      "title": "scikit-learn neighbors",
+      "url": "https://scikit-learn.org/stable/modules/neighbors.html"
+    }
+  ],
+  "lab": null,
+  "order": 6,
+  "figure": {
+    "url": "https://scikit-learn.org/stable/_images/sphx_glr_plot_classification_001.png",
+    "source": "https://scikit-learn.org/stable/auto_examples/neighbors/plot_classification.html",
+    "title": "scikit-learn documentation",
+    "caption": "Nearest-neighbor decision boundaries with uniform and distance-weighted voting."
+  },
+  "explanations": [
+    {
+      "id": "neighbor-prediction",
+      "title": "Distance, scaling, and the value of k",
+      "block": "architecture",
+      "paragraphs": [
+        "KNN stores training examples, retrieves the nearest k under a defined distance, then votes for classification or averages for regression. Distance-weighted predictions give closer neighbors more influence and require an exact-match policy to avoid division by zero.",
+        "Euclidean distance emphasizes large coordinate differences, Manhattan sums absolute differences, and cosine compares directions. Unit-normalized vectors make squared Euclidean distance equal 2-2*cosine, preserving neighbor ordering. Without normalization these rankings can differ.",
+        "Small k can fit noise and has higher variance. Larger k smooths predictions and can erase small minority neighborhoods. Scale features using training statistics and choose k with a split that respects correlated users or time."
+      ]
+    },
+    {
+      "id": "dimension-geometry",
+      "title": "Why neighborhoods weaken in high dimensions",
+      "block": "math",
+      "paragraphs": [
+        "For a centered unit sphere inside a side-two hypercube, the volume ratio is pi^(D/2)/(Gamma(D/2+1)*2^D). It shrinks rapidly with dimension. Covering a high-dimensional region with a dense local sample can therefore require enormous data.",
+        "For many common data distributions, nearest and farthest distances become closer in relative terms as dimension grows. This is distribution-dependent: low intrinsic-dimensional structure can still produce useful neighborhoods.",
+        "Irrelevant features add distance noise. Metric learning, feature selection, or a validated projection can improve neighborhoods. PCA preserves variance, which may not coincide with preserving task-relevant nearest neighbors."
+      ],
+      "equations": [
+        "d_1(x,y)=\\sum_j|x_j-y_j|,\\quad d_2(x,y)=\\sqrt{\\sum_j(x_j-y_j)^2}"
+      ]
+    },
+    {
+      "id": "neighbor-indexes",
+      "title": "Brute force, trees, and inverted indexes",
+      "block": "trace",
+      "paragraphs": [
+        "Exact brute-force search costs about O(ND) per query and can be competitive with batched matrix operations. KD-Trees partition coordinate space; Ball Trees bound metric regions. Both rely on pruning that often deteriorates with dimension.",
+        "An inverted-file vector index assigns vectors to coarse clusters and probes a subset at query time. A sparse text inverted index maps terms to postings, which is a different use of the term inverted index. Approximate indexes trade recall for latency and memory.",
+        "Measure recall against exact neighbors and then evaluate downstream classification or retrieval quality. A fast index can be accurate for vector similarity but still retrieve semantically wrong examples if the embedding model or distance contract is wrong."
+      ]
+    }
+  ],
+  "nextTopicReason": "Compare distance-based local prediction with feature partitions and averaging diverse trees.",
+  "nextTopic": "trees-random-forest",
+  "relatedTopics": [
+    {
+      "slug": "trees-random-forest",
+      "title": "Decision trees & random forests",
+      "reason": "Compare distance-based local prediction with feature partitions and averaging diverse trees."
+    },
+    {
+      "slug": "statistics-preprocessing",
+      "title": "Preprocessing & hypothesis tests",
+      "reason": "Review this prerequisite for the input representation, assumptions, and core operations used in this lesson."
+    }
+  ]
+}

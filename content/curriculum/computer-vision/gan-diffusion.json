@@ -1,0 +1,152 @@
+{
+  "slug": "gan-diffusion",
+  "track": "computer-vision",
+  "title": "GANs, WGAN-GP & diffusion",
+  "summary": "A GAN learns through a discriminator; diffusion learns to reverse a gradual noising process.",
+  "why": "Models complex data distributions using different training signals and sampling costs.",
+  "interview": "Diagnose mode collapse and distinguish Wasserstein critics from binary discriminators.",
+  "level": "L5 / L6",
+  "targets": [
+    "Apple",
+    "Meta",
+    "Google",
+    "Uber"
+  ],
+  "equations": [
+    "\\min_G\\max_D\\ \\mathbb E_x[\\log D(x)]+\\mathbb E_z[\\log(1-D(G(z)))]",
+    "\\mathcal L_D=\\mathbb E[D(G(z))]-\\mathbb E[D(x)]+\\lambda\\mathbb E[(\\|\\nabla_{\\hat x}D(\\hat x)\\|_2-1)^2]",
+    "x_t=\\sqrt{\\bar\\alpha_t}x_0+\\sqrt{1-\\bar\\alpha_t}\\epsilon,\\quad\\mathcal L_{noise}=\\mathbb E\\|\\epsilon-\\epsilon_\\theta(x_t,t)\\|^2",
+    "W_1(P_r,P_g)=\\sup_{\\|f\\|_{Lip}\\le1}\\mathbb E_{P_r}f(x)-\\mathbb E_{P_g}f(x)"
+  ],
+  "derivation": [
+    "The original saturating generator objective can provide weak gradients when the discriminator rejects generated samples confidently. The common non-saturating generator loss is -log D(G(z)).",
+    "WGAN approximates Wasserstein-1 distance under a 1-Lipschitz critic constraint. WGAN-GP penalizes gradient norm on interpolated samples; the critic has no sigmoid probability output. Diffusion denoising is related to score estimation under the noising model."
+  ],
+  "steps": [
+    {
+      "operation": "Sample latent / noise",
+      "input": "z [B,Z] or epsilon [B,C,H,W]",
+      "output": "generator input",
+      "note": "Sampling distributions must match training.",
+      "transformation": "Sample N(0,I)"
+    },
+    {
+      "operation": "Synthesize / corrupt",
+      "input": "G(z) or x0 at time t",
+      "output": "image xt [B,C,H,W]",
+      "note": "Diffusion training samples time steps rather than unrolling all steps.",
+      "transformation": "G(z), or sqrt(alpha_bar)*x0 + sqrt(1-alpha_bar)*eps"
+    },
+    {
+      "operation": "Critic / denoiser",
+      "input": "real,fake or xt,t",
+      "output": "critic [B,1] or noise [B,C,H,W]",
+      "note": "Detach fake images for a discriminator-only update.",
+      "transformation": "D(image), or eps_theta(xt,t)"
+    },
+    {
+      "operation": "Optimize / sample",
+      "input": "scalar loss",
+      "output": "updated parameters / final image",
+      "note": "Diffusion generation repeatedly applies a scheduler and denoiser.",
+      "transformation": "Backprop objective; reverse process for diffusion samples"
+    }
+  ],
+  "traps": [
+    "Mode collapse can produce convincing samples with poor coverage.",
+    "WGAN-GP requires create_graph=True for gradient-penalty training.",
+    "A diffusion noise-prediction loss does not directly imply a calibrated likelihood."
+  ],
+  "tradeoff": "GANs often sample in one forward pass; diffusion usually uses multiple denoising steps with quality/latency trade-offs.",
+  "code": "import torch\n\nx0 = torch.randn(2, 3, 32, 32)\nnoise = torch.randn_like(x0)\nalpha_bar = torch.tensor(0.8)\nxt = alpha_bar.sqrt()*x0 + (1-alpha_bar).sqrt()*noise\npredicted_noise = torch.zeros_like(noise)\nloss = (predicted_noise-noise).square().mean()\nassert xt.shape == x0.shape and loss.isfinite()",
+  "variants": [
+    {
+      "title": "GAN",
+      "flow": "z -> generator -> fake image -> discriminator\nreal image ---------------------> discriminator -> adversarial loss",
+      "detail": "Generator and discriminator optimize competing objectives."
+    },
+    {
+      "title": "WGAN-GP",
+      "flow": "real + fake -> interpolated xhat -> critic gradient norm -> penalty",
+      "detail": "The gradient penalty encourages the critic constraint along sampled interpolations."
+    },
+    {
+      "title": "Diffusion",
+      "flow": "x0 -> forward noise -> xt\nxt + time -> denoiser -> estimated noise -> reverse step -> x[t-1]",
+      "detail": "Repeated reverse steps transform noise into a sample."
+    }
+  ],
+  "sources": [
+    {
+      "title": "GAN",
+      "url": "https://arxiv.org/abs/1406.2661"
+    },
+    {
+      "title": "WGAN-GP",
+      "url": "https://arxiv.org/abs/1704.00028"
+    },
+    {
+      "title": "DDPM",
+      "url": "https://arxiv.org/abs/2006.11239"
+    }
+  ],
+  "lab": null,
+  "order": 7,
+  "figure": {
+    "url": "https://d2l.ai/_images/gan.svg",
+    "source": "https://d2l.ai/chapter_generative-adversarial-networks/gan.html",
+    "title": "Dive into Deep Learning",
+    "caption": "The generator and discriminator form an adversarial training loop."
+  },
+  "explanations": [
+    {
+      "id": "gan-game",
+      "title": "GAN objectives and mode collapse",
+      "block": "architecture",
+      "paragraphs": [
+        "A generator maps noise z to a sample. A discriminator learns to distinguish real samples from generated samples. Alternate discriminator and generator updates; during the generator step keep the gradient path through discriminator operations to the generated input.",
+        "The original minimax generator loss log(1-D(G(z))) can give weak gradients when the discriminator strongly rejects generated samples. The non-saturating alternative minimizes -log D(G(z)). Numerically stable implementations often use logits and a fused binary cross-entropy loss.",
+        "Mode collapse occurs when different noise inputs map to a narrow set of outputs. A discriminator score alone cannot measure diversity. Inspect sample coverage and quality, and recognize that training is an interacting optimization game with no simple monotonic validation loss."
+      ],
+      "equations": [
+        "\\min_G\\max_D\\;\\mathbb{E}_{x\\sim p_{data}}\\log D(x)+\\mathbb{E}_{z}\\log(1-D(G(z)))"
+      ]
+    },
+    {
+      "id": "wasserstein-critic",
+      "title": "WGAN-GP: a critic with a gradient constraint",
+      "block": "math",
+      "paragraphs": [
+        "WGAN uses a real-valued critic under a one-Lipschitz constraint to approximate the Wasserstein-1 objective. The critic has no sigmoid probability interpretation. A common minimization loss is mean(fake)-mean(real), while the generator minimizes -mean(fake).",
+        "WGAN-GP adds a penalty on the critic input-gradient norm at interpolations between real and generated samples. Compute that gradient with a graph that permits differentiation through the penalty. The gradient is with respect to interpolated samples, not just the critic parameter norm.",
+        "The penalty encourages the constraint on sampled interpolation points; it does not prove the critic is globally one-Lipschitz. Detach fake samples during the critic step and use fresh generator gradients during the generator step."
+      ],
+      "equations": [
+        "\\mathcal{L}_D=\\mathbb{E}D(\\tilde x)-\\mathbb{E}D(x)+\\lambda\\mathbb{E}_{\\hat x}(\\|\\nabla_{\\hat x}D(\\hat x)\\|_2-1)^2"
+      ]
+    },
+    {
+      "id": "diffusion-process",
+      "title": "Diffusion: noisy training pairs and iterative generation",
+      "block": "trace",
+      "paragraphs": [
+        "The forward process gradually adds Gaussian noise. With cumulative alpha_bar_t, sample a noisy x_t directly from clean x_0 and epsilon. A denoiser receives x_t and timestep t, and a common objective predicts epsilon with mean squared error.",
+        "Training can sample one timestep per example rather than unrolling every forward step. Generation starts from noise and repeatedly applies a reverse sampler. The number of inference steps, noise schedule, prediction parameterization, and conditioning all affect quality and latency.",
+        "GAN generation commonly uses one generator pass, while diffusion usually requires multiple denoising evaluations. Distillation and specialized samplers can reduce that count. Compare distribution coverage, artifacts, controllability, and measured latency under a fixed quality target."
+      ],
+      "equations": [
+        "x_t=\\sqrt{\\bar\\alpha_t}x_0+\\sqrt{1-\\bar\\alpha_t}\\epsilon,\\quad\\epsilon\\sim\\mathcal{N}(0,I)",
+        "\\mathcal{L}_{noise}=\\mathbb{E}_{x_0,t,\\epsilon}\\|\\epsilon-\\epsilon_\\theta(x_t,t)\\|_2^2"
+      ]
+    }
+  ],
+  "nextTopicReason": "Revisit the VAE likelihood and KL objective to compare what each generative family actually optimizes.",
+  "nextTopic": "vae",
+  "relatedTopics": [
+    {
+      "slug": "vae",
+      "title": "Autoencoders & variational autoencoders",
+      "reason": "Revisit the VAE likelihood and KL objective to compare what each generative family actually optimizes."
+    }
+  ]
+}

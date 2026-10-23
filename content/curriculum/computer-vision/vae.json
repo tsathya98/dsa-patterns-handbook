@@ -1,0 +1,138 @@
+{
+  "slug": "vae",
+  "track": "computer-vision",
+  "title": "Autoencoders & variational autoencoders",
+  "summary": "An autoencoder reconstructs inputs through a bottleneck; a VAE learns a distribution over latent variables.",
+  "why": "Regularizing latent distributions supports sampling and smoother latent organization.",
+  "interview": "Derive the ELBO and explain why reparameterization permits encoder gradients.",
+  "level": "L5 / L6",
+  "targets": [
+    "Apple",
+    "Meta",
+    "Google",
+    "Uber"
+  ],
+  "equations": [
+    "q_\\phi(z\\mid x)=\\mathcal N(\\mu,\\operatorname{diag}(\\sigma^2)),\\quad z=\\mu+\\exp(\\tfrac12\\log\\sigma^2)\\odot\\epsilon",
+    "\\mathcal L_{negELBO}=-\\mathbb E_q[\\log p_\\theta(x\\mid z)]+D_{KL}(q_\\phi(z\\mid x)\\|p(z))",
+    "D_{KL}=\\tfrac12\\sum_j(\\mu_j^2+\\exp(\\ell_j)-1-\\ell_j)"
+  ],
+  "derivation": [
+    "The random epsilon is sampled independently of encoder parameters. Gradients therefore pass through the deterministic map from mu and log-variance to z.",
+    "A deterministic autoencoder only constrains observed encoded points; unvisited latent regions can decode poorly. A VAE regularizes toward a prior but can still suffer posterior collapse. Reconstruction loss follows the decoder likelihood, not a universally correct MSE."
+  ],
+  "steps": [
+    {
+      "operation": "Encode",
+      "input": "x [B,C,H,W]",
+      "output": "mu, logvar [B,Z]",
+      "note": "Two heads parameterize a diagonal Gaussian.",
+      "transformation": "Encoder(x) -> separate mean/logvar heads"
+    },
+    {
+      "operation": "Reparameterize",
+      "input": "mu,logvar, epsilon [B,Z]",
+      "output": "z [B,Z]",
+      "note": "Use exp(0.5*logvar), not exp(logvar).",
+      "transformation": "mu + exp(0.5*logvar)*epsilon"
+    },
+    {
+      "operation": "Decode",
+      "input": "z [B,Z]",
+      "output": "likelihood parameters [B,C,H,W]",
+      "note": "Choose Bernoulli/Gaussian or another justified observation model.",
+      "transformation": "Decoder(z) -> observation likelihood parameters"
+    },
+    {
+      "operation": "Negative ELBO",
+      "input": "reconstruction + KL per sample [B]",
+      "output": "scalar batch mean",
+      "note": "Sum feature dimensions before averaging batch consistently.",
+      "transformation": "Sum feature reconstruction NLL + diagonal Gaussian KL"
+    }
+  ],
+  "traps": [
+    "A powerful decoder may ignore z, causing posterior collapse.",
+    "Mixing mean reconstruction with summed KL silently changes their relative weight.",
+    "Variance and standard deviation are different quantities."
+  ],
+  "tradeoff": "Larger KL weight enforces the prior more strongly but can reduce reconstruction fidelity.",
+  "code": "import torch\n\nmu = torch.zeros(4, 8)\nlogvar = torch.zeros_like(mu)\nz = mu + torch.exp(0.5 * logvar) * torch.randn_like(mu)\nkl = -0.5 * (1 + logvar - mu.square() - logvar.exp()).sum(-1).mean()\nassert z.shape == (4, 8) and kl.item() == 0.0",
+  "variants": [
+    {
+      "title": "Autoencoder",
+      "flow": "x [B,F] -> encoder -> z [B,Z] -> decoder -> xhat [B,F]",
+      "detail": "A bottleneck alone does not make arbitrary prior samples decode meaningfully."
+    },
+    {
+      "title": "VAE",
+      "flow": "x -> encoder -> mu + logvar\nepsilon ~ N(0,I) -> mu + sigma*epsilon -> z -> decoder -> xhat\nmu,logvar -> KL to prior",
+      "detail": "KL and reconstruction jointly train encoder and decoder."
+    }
+  ],
+  "sources": [
+    {
+      "title": "Auto-Encoding Variational Bayes",
+      "url": "https://arxiv.org/abs/1312.6114"
+    }
+  ],
+  "lab": null,
+  "order": 6,
+  "figure": {
+    "url": "https://lilianweng.github.io/posts/2018-08-12-vae/vae-gaussian.png",
+    "source": "https://lilianweng.github.io/posts/2018-08-12-vae/",
+    "title": "Lilian Weng",
+    "caption": "Gaussian latent variables, reparameterization, and reconstruction in a VAE."
+  },
+  "explanations": [
+    {
+      "id": "ae-vae",
+      "title": "A bottleneck versus a distribution over latent variables",
+      "block": "architecture",
+      "paragraphs": [
+        "A deterministic autoencoder maps x to z and reconstructs x from z. Reconstruction loss constrains encoded training points, but arbitrary gaps between those points need not decode to plausible samples. A low-dimensional bottleneck alone does not guarantee a smooth generative distribution.",
+        "A VAE encoder produces mu and log-variance [B,Dz], defining a diagonal Gaussian q(z|x). The decoder defines p(x|z), and a prior such as a unit Gaussian defines where generation samples latent vectors.",
+        "At training time sample z from the approximate posterior; at generation time sample from the prior. Decoding only the posterior mean tests reconstruction behavior and does not evaluate unconditional sampling quality."
+      ],
+      "flow": "x -> encoder -> mu, logvar\nepsilon ~ N(0,I) -> z = mu + exp(0.5*logvar)*epsilon\nz -> decoder -> parameters of p(x|z)"
+    },
+    {
+      "id": "elbo-derivation",
+      "title": "ELBO, reparameterization, and the sign of the loss",
+      "block": "math",
+      "paragraphs": [
+        "Insert q(z|x) into log p(x) and apply Jensen to obtain an expected log-likelihood minus KL(q||p). Maximizing this ELBO is equivalent to minimizing negative reconstruction log-likelihood plus a KL penalty.",
+        "Sample epsilon independently of encoder parameters, then compute z=mu+sigma*epsilon. The randomness is isolated in epsilon, while gradients pass through mu and sigma. With logvar=log(sigma^2), sigma=exp(0.5*logvar), not exp(logvar).",
+        "For a diagonal Gaussian and standard normal prior, KL has a closed form summed over latent dimensions. Reconstruction reduction must be explicit: summing pixels and averaging batches produces a different scale from averaging every scalar. That scale changes the effective KL weight."
+      ],
+      "equations": [
+        "\\log p(x)\\geq\\mathbb{E}_{q(z|x)}\\log p(x|z)-D_{KL}(q(z|x)\\Vert p(z))",
+        "D_{KL}=\\frac12\\sum_j\\left(\\mu_j^2+\\exp(\\ell_j)-1-\\ell_j\\right),\\quad \\ell=\\log\\sigma^2"
+      ]
+    },
+    {
+      "id": "vae-failures",
+      "title": "Reconstruction likelihood and posterior collapse",
+      "block": "trace",
+      "paragraphs": [
+        "For Bernoulli pixels use an appropriate binary log-likelihood; for a Gaussian observation model, squared error corresponds to assumptions about observation variance. Choosing MSE just because the input is an image leaves the likelihood assumption unstated.",
+        "If mu=0 and logvar=0, the approximate posterior matches the unit Gaussian and KL is zero. That is desirable only if the latent still conveys useful information. A powerful decoder can ignore z, causing posterior collapse despite reasonable reconstructions.",
+        "Inspect reconstruction and KL terms separately, per-dimension activity, and prior samples. A beta coefficient changes the rate-distortion trade-off; values other than one generally change the standard ELBO objective rather than merely accelerating the same optimization."
+      ]
+    }
+  ],
+  "nextTopicReason": "Compare likelihood-based latent training with adversarial objectives and iterative denoising.",
+  "nextTopic": "gan-diffusion",
+  "relatedTopics": [
+    {
+      "slug": "gan-diffusion",
+      "title": "GANs, WGAN-GP & diffusion",
+      "reason": "Compare likelihood-based latent training with adversarial objectives and iterative denoising."
+    },
+    {
+      "slug": "normalization",
+      "title": "Normalization layers",
+      "reason": "Review this prerequisite for the input representation, assumptions, and core operations used in this lesson."
+    }
+  ]
+}
