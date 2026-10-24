@@ -70,6 +70,7 @@ Personal notes, pattern cheat sheets, and problem walkthroughs for Data Structur
 - [LC 560: Subarray Sum Equals K](../content/dsa/01_arrays_and_pointers/560_subarray_sum_equals_k.md) - Running prefix sum with hash map frequency lookup (`cur_sum - k`).
 - [LC 643: Maximum Average Subarray I](../content/dsa/01_arrays_and_pointers/643_maximum_average_subarray_i.md) - Fixed-size $K$ sliding window with deferred division.
 - [LC 724: Find Pivot Index](../content/dsa/01_arrays_and_pointers/724_find_pivot_index.md) - Seesaw balance equation (`left_sum == total - left_sum - num`).
+- [LC 867: Transpose Matrix](../content/dsa/01_arrays_and_pointers/867_transpose_matrix.md) - 2D coordinate transformation (`mat[j][i] = matrix[i][j]`), list comprehension allocation, and `zip(*matrix)`.
 - [LC 1456: Maximum Number of Vowels in a Substring](../content/dsa/01_arrays_and_pointers/1456_maximum_number_of_vowels_in_a_substring_of_given_length.md) - Fixed-size $K$ sliding window on character counts.
 
 ---

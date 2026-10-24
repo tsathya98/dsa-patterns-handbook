@@ -61,6 +61,7 @@
   - [ ] LC 128: Longest Consecutive Sequence
 - **Weekend (10):**
   - [x] [2D Matrices: Transpose, Rotate Image (LC 48) & Spiral Matrix (LC 54)](../dsa/01_arrays_and_pointers/00_matrix_2d_arrays_and_rotations.md)
+  - [x] [LC 867: Transpose Matrix](../dsa/01_arrays_and_pointers/867_transpose_matrix.md)
   - [ ] LC 76: Minimum Window Substring
   - [ ] LC 36: Valid Sudoku
   - [ ] LC 73: Set Matrix Zeroes

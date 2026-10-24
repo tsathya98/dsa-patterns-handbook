@@ -3341,10 +3341,10 @@
       "title": "Evaluate Reverse Polish Notation",
       "difficulty": "Medium",
       "topic": "Stack",
-      "pattern": "Stack",
+      "pattern": "LIFO Stack (Postfix Expression Evaluation)",
       "url": "https://leetcode.com/problems/evaluate-reverse-polish-notation/",
-      "docPath": "",
-      "summary": "",
+      "docPath": "03_stacks_and_queues/150_evaluate_reverse_polish_notation.md",
+      "summary": "Evaluate the value of an arithmetic expression in Reverse Polish Notation (postfix).",
       "in150": true,
       "in75": false,
       "inHW": false,
@@ -3365,7 +3365,7 @@
         "Apple": 4,
         "Bloomberg": 2
       },
-      "documentId": null
+      "documentId": "dsa/03_stacks_and_queues/150_evaluate_reverse_polish_notation"
     },
     {
       "number": 151,
@@ -4726,6 +4726,38 @@
         "Uber": 11
       },
       "documentId": null
+    },
+    {
+      "number": 268,
+      "displayNum": "#268",
+      "title": "Missing Number",
+      "difficulty": "Easy",
+      "topic": "01. Arrays & Pointers",
+      "pattern": "Bitwise XOR / Gauss Arithmetic Sum",
+      "url": "https://leetcode.com/problems/missing-number/",
+      "docPath": "01_arrays_and_pointers/268_missing_number.md",
+      "summary": "Given an array nums containing n distinct numbers in the range [0, n], return the only number in the range that is missing from the array.",
+      "in150": false,
+      "in75": false,
+      "inHW": false,
+      "defaultSolved": false,
+      "companies": [
+        "Meta",
+        "Google",
+        "Amazon",
+        "Microsoft",
+        "Apple",
+        "Bloomberg"
+      ],
+      "companyFreq": {
+        "Meta": 2,
+        "Google": 2,
+        "Amazon": 5,
+        "Microsoft": 3,
+        "Apple": 6,
+        "Bloomberg": 3
+      },
+      "documentId": "dsa/01_arrays_and_pointers/268_missing_number"
     },
     {
       "number": 274,
@@ -6218,6 +6250,38 @@
         "Apple": 2
       },
       "documentId": null
+    },
+    {
+      "number": 867,
+      "displayNum": "#867",
+      "title": "Transpose Matrix",
+      "difficulty": "Easy",
+      "topic": "01. Arrays & Pointers",
+      "pattern": "2D Coordinate Transformation",
+      "url": "https://leetcode.com/problems/transpose-matrix/",
+      "docPath": "01_arrays_and_pointers/867_transpose_matrix.md",
+      "summary": "Given a 2D integer array matrix, return the transpose of matrix.",
+      "in150": false,
+      "in75": false,
+      "inHW": false,
+      "defaultSolved": false,
+      "companies": [
+        "Meta",
+        "Google",
+        "Amazon",
+        "Microsoft",
+        "Apple",
+        "Bloomberg"
+      ],
+      "companyFreq": {
+        "Meta": 2,
+        "Google": 2,
+        "Amazon": 2,
+        "Microsoft": 3,
+        "Apple": 3,
+        "Bloomberg": 5
+      },
+      "documentId": "dsa/01_arrays_and_pointers/867_transpose_matrix"
     },
     {
       "number": 872,
@@ -8160,6 +8224,24 @@
       "id": "dsa/01_arrays_and_pointers/238_product_of_array_except_self"
     },
     {
+      "path": "01_arrays_and_pointers/268_missing_number.md",
+      "title": "LeetCode 268: Missing Number",
+      "shortTitle": "Missing Number",
+      "prefixNum": 268,
+      "category": "01_arrays_and_pointers",
+      "categoryLabel": "01. Arrays & Pointers",
+      "categoryOrder": 2,
+      "categoryIcon": "🎯",
+      "lcNumber": 268,
+      "difficulty": "Easy",
+      "pattern": "Bitwise XOR / Gauss Arithmetic Sum",
+      "lcUrl": "https://leetcode.com/problems/missing-number/",
+      "summary": "Given an array nums containing n distinct numbers in the range [0, n], return the only number in the range that is missing from the array.",
+      "docType": "problem",
+      "defaultSolved": false,
+      "id": "dsa/01_arrays_and_pointers/268_missing_number"
+    },
+    {
       "path": "01_arrays_and_pointers/274_h_index.md",
       "title": "LeetCode 274: H-Index",
       "shortTitle": "H-Index",
@@ -8320,6 +8402,24 @@
       "docType": "problem",
       "defaultSolved": true,
       "id": "dsa/01_arrays_and_pointers/724_find_pivot_index"
+    },
+    {
+      "path": "01_arrays_and_pointers/867_transpose_matrix.md",
+      "title": "LeetCode 867: Transpose Matrix",
+      "shortTitle": "Transpose Matrix",
+      "prefixNum": 867,
+      "category": "01_arrays_and_pointers",
+      "categoryLabel": "01. Arrays & Pointers",
+      "categoryOrder": 2,
+      "categoryIcon": "🎯",
+      "lcNumber": 867,
+      "difficulty": "Easy",
+      "pattern": "2D Coordinate Transformation",
+      "lcUrl": "https://leetcode.com/problems/transpose-matrix/",
+      "summary": "Given a 2D integer array matrix, return the transpose of matrix.",
+      "docType": "problem",
+      "defaultSolved": false,
+      "id": "dsa/01_arrays_and_pointers/867_transpose_matrix"
     },
     {
       "path": "01_arrays_and_pointers/1456_maximum_number_of_vowels_in_a_substring_of_given_length.md",
@@ -8736,6 +8836,24 @@
       "id": "dsa/02_linked_lists/2095_delete_the_middle_node_of_a_linked_list"
     },
     {
+      "path": "03_stacks_and_queues/print_linked_list_in_reverse.md",
+      "title": "Print a Linked List in Reverse Order",
+      "shortTitle": "Print a Linked List in Reverse Order",
+      "prefixNum": 9999,
+      "category": "03_stacks_and_queues",
+      "categoryLabel": "03. Stacks & Queues",
+      "categoryOrder": 4,
+      "categoryIcon": "🥞",
+      "lcNumber": null,
+      "difficulty": "Easy",
+      "pattern": "LIFO Stack vs Call Stack / In-Place Reversal",
+      "lcUrl": "",
+      "summary": "Given the head of a singly linked list, print the node values from tail to head separated by spaces without destroying the input structure.",
+      "docType": "concept",
+      "defaultSolved": false,
+      "id": "dsa/03_stacks_and_queues/print_linked_list_in_reverse"
+    },
+    {
       "path": "03_stacks_and_queues/20_valid_parentheses.md",
       "title": "LeetCode 20: Valid Parentheses",
       "shortTitle": "Valid Parentheses",
@@ -8752,6 +8870,24 @@
       "docType": "problem",
       "defaultSolved": true,
       "id": "dsa/03_stacks_and_queues/20_valid_parentheses"
+    },
+    {
+      "path": "03_stacks_and_queues/150_evaluate_reverse_polish_notation.md",
+      "title": "LeetCode 150: Evaluate Reverse Polish Notation",
+      "shortTitle": "Evaluate Reverse Polish Notation",
+      "prefixNum": 150,
+      "category": "03_stacks_and_queues",
+      "categoryLabel": "03. Stacks & Queues",
+      "categoryOrder": 4,
+      "categoryIcon": "🥞",
+      "lcNumber": 150,
+      "difficulty": "Medium",
+      "pattern": "LIFO Stack (Postfix Expression Evaluation)",
+      "lcUrl": "https://leetcode.com/problems/evaluate-reverse-polish-notation/",
+      "summary": "Evaluate the value of an arithmetic expression in Reverse Polish Notation (postfix).",
+      "docType": "problem",
+      "defaultSolved": false,
+      "id": "dsa/03_stacks_and_queues/150_evaluate_reverse_polish_notation"
     },
     {
       "path": "03_stacks_and_queues/678_valid_parenthesis_string.md",
@@ -9756,7 +9892,7 @@
       "difficulty": "Cheat Sheet",
       "pattern": "Cheat Sheets",
       "lcUrl": "",
-      "summary": "Only loop over the upper triangle (c from r + 1 to n - 1). Looping c from 0 to n - 1 swaps every pair twice and leaves the matrix unchanged.",
+      "summary": "* Trap: Never write grid = [[0] * C] * R. Lists are mutable; * R creates $R$ duplicate pointers to the exact same row list in memory. Modifying grid[0][0] = 99 ...",
       "docType": "cheat_sheet",
       "defaultSolved": false,
       "id": "cheat-sheets/matrix_2d_manipulation_cheat_sheet"
