@@ -50,6 +50,7 @@ Personal notes, pattern cheat sheets, and problem walkthroughs for Data Structur
 - [LC 15: 3Sum](../content/dsa/01_arrays_and_pointers/15_3sum.md) - Sorting + fixed anchor + two-pointer squeeze with duplicate skipping.
 - [LC 26: Remove Duplicates from Sorted Array](../content/dsa/01_arrays_and_pointers/26_remove_duplicates_from_sorted_array.md) - Scout and writer (`slow`/`fast`) in-place deduplication.
 - [LC 27: Remove Element](../content/dsa/01_arrays_and_pointers/27_remove_element.md) - Scout and writer in-place compaction.
+- [LC 48: Rotate Image](../content/dsa/01_arrays_and_pointers/48_rotate_image.md) - In-place 90° clockwise matrix rotation (reverse rows top-to-bottom then transpose upper triangle).
 - [LC 53: Maximum Subarray](../content/dsa/01_arrays_and_pointers/53_maximum_subarray.md) - Kadane's algorithm (dropping negative prefix sums).
 - [LC 55: Jump Game](../content/dsa/01_arrays_and_pointers/55_jump_game.md) - Greedy horizon tracking (`max_reach`).
 - [LC 66: Plus One](../content/dsa/01_arrays_and_pointers/66_plus_one.md) - Right-to-left odometer carry propagation.

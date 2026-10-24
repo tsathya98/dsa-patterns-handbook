@@ -1037,10 +1037,10 @@
       "title": "Rotate Image",
       "difficulty": "Medium",
       "topic": "Matrix",
-      "pattern": "01. Arrays & Pointers",
+      "pattern": "2D In-Place Matrix Decomposition",
       "url": "https://leetcode.com/problems/rotate-image/",
-      "docPath": "01_arrays_and_pointers/00_matrix_2d_arrays_and_rotations.md",
-      "summary": "In Python, a 2D matrix is a list of lists where rows = len(matrix), cols = len(matrix[0]), and matrix[r][c] accesses row r, column c. For an $N \\times N$ square...",
+      "docPath": "01_arrays_and_pointers/48_rotate_image.md",
+      "summary": "You are given an $N \\times N$ 2D matrix representing an image. Rotate the image by 90 degrees clockwise in-place without allocating a second matrix ($\\mathcal{O...",
       "in150": true,
       "in75": false,
       "inHW": false,
@@ -1063,7 +1063,7 @@
         "Bloomberg": 4,
         "Uber": 9
       },
-      "documentId": "dsa/01_arrays_and_pointers/00_matrix_2d_arrays_and_rotations"
+      "documentId": "dsa/01_arrays_and_pointers/48_rotate_image"
     },
     {
       "number": 49,
@@ -7916,6 +7916,24 @@
       "docType": "problem",
       "defaultSolved": true,
       "id": "dsa/01_arrays_and_pointers/27_remove_element"
+    },
+    {
+      "path": "01_arrays_and_pointers/48_rotate_image.md",
+      "title": "LeetCode 48: Rotate Image",
+      "shortTitle": "Rotate Image",
+      "prefixNum": 48,
+      "category": "01_arrays_and_pointers",
+      "categoryLabel": "01. Arrays & Pointers",
+      "categoryOrder": 2,
+      "categoryIcon": "🎯",
+      "lcNumber": 48,
+      "difficulty": "Medium",
+      "pattern": "2D In-Place Matrix Decomposition",
+      "lcUrl": "https://leetcode.com/problems/rotate-image/",
+      "summary": "You are given an $N \\times N$ 2D matrix representing an image. Rotate the image by 90 degrees clockwise in-place without allocating a second matrix ($\\mathcal{O...",
+      "docType": "problem",
+      "defaultSolved": true,
+      "id": "dsa/01_arrays_and_pointers/48_rotate_image"
     },
     {
       "path": "01_arrays_and_pointers/53_maximum_subarray.md",
