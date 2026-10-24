@@ -38,7 +38,31 @@ Because `t` contains a mutable list, `{t}` raises `TypeError: unhashable type: '
 
 ---
 
-## 3. In-Place Mutation vs. New Copy
+## 3. The House and Keys Rule (Mutation vs. Reassignment vs. Slicing)
+
+```python
+listb = [1, 2, 3]
+lista = listb  # Both keys unlock the SAME house (address 0x100)
+```
+
+| Action | Code | What Actually Happens | Effect on `lista` |
+| :--- | :--- | :--- | :--- |
+| **Mutation (inside the house)** | `listb.append(99)`<br>`listb[0] = 42` | Walks inside 123 Main St and rearranges furniture. Memory address stays `0x100`. | **Affected!** `lista` sees `[42, 2, 3, 99]`. |
+| **Reassignment (moving houses)** | `listb = [7, 8, 9]` | Moves key `listb` to a brand new house (`0x200`). `lista` remains at 123 Main St. | **Untouched!** `lista` stays `[1, 2, 3]`. |
+| **Slice Copy (making a twin house)** | `lista = listb[:]` | Slicing on the right creates a separate shallow copy at `0x300`. | **Untouched!** Modifying `listb` will not touch `lista`. |
+| **Slice Assignment (gutting the house)** | `listb[:] = [7, 8, 9]` | Slicing on the left replaces all contents inside 123 Main St in-place without changing address `0x100`. | **Affected!** `lista` sees `[7, 8, 9]`. |
+
+---
+
+## 4. The 2D Grid Allocation Gotcha (`[[0] * C] * R`)
+
+* **1D list of ints (`[0] * 5`):** Safe. Integers are immutable primitives. Changing `arr[0] = 99` rebinds slot 0 to integer `99`.
+* **2D list of lists (`[[0] * C] * R`):** Trap! Lists are mutable. `* R` creates $R$ duplicate pointers to the **exact same row list in RAM**. Updating `grid[0][0] = 99` mutates all $R$ rows.
+* **The Fix:** Always use list comprehension: `grid = [[0 for _ in range(C)] for _ in range(R)]`.
+
+---
+
+## 5. In-Place Mutation vs. New Copy
 
 | Goal | In-Place ($\mathcal{O}(1)$ Extra Space, Returns `None`) | New Object Copy ($\mathcal{O}(n)$ Extra Space) |
 | :--- | :--- | :--- |
@@ -49,7 +73,7 @@ Because `t` contains a mutable list, `{t}` raises `TypeError: unhashable type: '
 
 ---
 
-## 4. Common Operation Costs & Gotchas
+## 6. Common Operation Costs & Gotchas
 
 | Operation | Code | Time | Gotcha |
 | :--- | :--- | :--- | :--- |

@@ -13,7 +13,18 @@
 
 ---
 
-## 2. In-Place Transpose & 90° Rotations ($\mathcal{O}(1)$ Space)
+## 2. Safe 2D Grid Allocation (The `*` Multiplication Trap)
+
+* **Trap:** Never write `grid = [[0] * C] * R`. Lists are mutable; `* R` creates $R$ duplicate pointers to the **exact same row list in memory**. Modifying `grid[0][0] = 99` mutates all $R$ rows simultaneously.
+* **The Rule:** Always use list comprehension to allocate independent row lists:
+  ```python
+  # Safe R x C matrix allocation
+  grid = [[0 for _ in range(C)] for _ in range(R)]
+  ```
+
+---
+
+## 3. In-Place Transpose & 90° Rotations ($\mathcal{O}(1)$ Space)
 
 ### In-Place Transpose (Swap across Main Diagonal)
 Only loop over the upper triangle (`c` from `r + 1` to `n - 1`). Looping `c` from `0` to `n - 1` swaps every pair twice and leaves the matrix unchanged.
@@ -41,7 +52,7 @@ def rotate_clockwise(matrix: list[list[int]]) -> None:
 
 ---
 
-## 3. Four-Pointer Spiral Traversal (LC 54)
+## 4. Four-Pointer Spiral Traversal (LC 54)
 
 Maintain fourshrinking walls: `top`, `bottom`, `left`, `right`. After each edge sweep, move that wall inward by 1.
 

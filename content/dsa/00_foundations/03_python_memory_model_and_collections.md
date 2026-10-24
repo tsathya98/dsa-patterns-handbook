@@ -21,7 +21,84 @@ name = "Ashish"          name = "Arushi" (Reassignment)
 * Reassigning `name = "Arushi"` allocates a new string object at `0x200` and points `name` to it.
 * Once `0x100 ("Ashish")` drops to zero references, Python's garbage collector reclaims that memory.
 
-## 2. Low-level arrays vs. Python `list`
+---
+
+## 2. The House and Keys Mental Model (Mutation vs. Reassignment)
+
+When two variables point to the same list (`lista = listb`), beginners often ask: *"If they share memory, why didn't `lista` change when I wrote `listb = [7, 8, 9]`?"*
+
+The confusion comes from the English word "change". In Python, **modifying what is inside a container** is completely different from **reassigning a variable name to a new container**.
+
+### The Analogy
+
+Imagine a physical house at **123 Main Street**.
+Inside the house is furniture: `[1, 2, 3]`.
+* Key A is labeled `lista`.
+* Key B is labeled `listb`.
+Both keys unlock the **exact same house** at 123 Main Street.
+
+```text
+Key lista ────┐
+              ▼
+Key listb ───► [ 123 Main Street: [1, 2, 3] ]
+```
+
+### Scenario 1: Changing the furniture (Mutation)
+You use key `listb` to walk inside 123 Main Street and add a chair:
+```python
+listb.append(99)
+# or: listb[0] = 42
+```
+When your roommate unlocks 123 Main Street using key `lista`, do they see the change?
+**Yes.** Because you both share the exact same house.
+```python
+print(lista)  # [42, 2, 3, 99]
+```
+
+### Scenario 2: Moving to a new house (Reassignment)
+Now you buy a brand new house at **456 Elm Street** and get a new key for it:
+```python
+listb = [7, 8, 9]  # Reassignment (NO [:] used)
+```
+Did anything happen to the old house at 123 Main Street? **No.**
+Did your roommate move? **No.**
+Key `lista` is still in the lock at 123 Main Street.
+```text
+Key lista ───► [ 123 Main Street: [1, 2, 3] ]
+Key listb ───► [ 456 Elm Street:  [7, 8, 9] ]
+```
+```python
+print(listb)  # [7, 8, 9] (your new house)
+print(lista)  # [1, 2, 3] (roommate is still at the old house)
+```
+
+---
+
+## 3. The 2D List Multiplication Trap (`[[0] * C] * R`)
+
+Why is `[0] * 5` completely safe, but `[[0] * 3] * 3` corrupts your matrix?
+
+### Integers are immutable, lists are mutable
+* In `[0] * 5`, the elements are numbers (`0`). You cannot mutate the number `0` in place. Writing `arr[0] = 99` unplugs index 0 from `0` and points it to `99`. The other slots remain untouched.
+* In `[[0] * 3] * 3`, the outer `* 3` duplicates the **pointer** to the exact same inner list 3 times:
+
+```text
+Row 0 ────┐
+Row 1 ────┼───► Address 0x900: [ 0, 0, 0 ]  (Single shared list in RAM)
+Row 2 ────┘
+```
+
+When you write `grid[0][0] = 99`, you dereference Row 0 and mutate that shared list. All 3 rows immediately reflect the change because `grid[0] is grid[1]` is `True`.
+
+### The Fix: List Comprehension
+```python
+# Creates R distinct lists in RAM with unique memory addresses:
+grid = [[0 for _ in range(C)] for _ in range(R)]
+```
+
+---
+
+## 4. Low-level arrays vs. Python `list`
 
 | Feature | Low-level array (C / `array` module) | Python `list` (`[1, "hi", 3.5]`) |
 |---|---|---|
@@ -44,7 +121,7 @@ PYTHON LIST (Array of Pointers):
     └──────────► 10 (int object at 0xA01)
 ```
 
-## 3. Mutable objects inside an immutable tuple
+## 5. Mutable objects inside an immutable tuple
 
 Consider this snippet:
 ```python
@@ -89,7 +166,29 @@ Tuple t (Immutable Slots):
 * `+=` on a list calls `list.__iadd__`, which mutates the list at `0x999` in place first, and then attempts to assign the returned reference back to `t[2]`.
 * The assignment step raises `TypeError`, even though the list inside `t[2]` was already modified.
 
-## 4. Slicing and concatenation memory mechanics
+## 6. Slicing (`copy`) vs. Slice Assignment (`in-place`)
+
+Which side of the equals sign (`=`) the slice sits on determines the memory behavior:
+
+### Right-hand side: `lista = listb[:]` (New Object Copy)
+A slice on the right-hand side creates a **shallow copy**. It allocates a brand new list in memory and copies the references over.
+```python
+listb = [1, 2, 3]
+lista = listb[:]  # Brand new list in memory
+listb.append(99)
+print(lista)      # [1, 2, 3] (untouched!)
+```
+
+### Left-hand side: `listb[:] = [7, 8, 9]` (In-Place Overwrite)
+A slice on the left-hand side is **slice assignment**. It empties out the existing list in-place and fills it with new elements **without changing its memory address**:
+```python
+listb = [1, 2, 3]
+lista = listb
+listb[:] = [7, 8, 9]  # Modifies in-place!
+print(lista)          # [7, 8, 9] (both variables see the change!)
+```
+
+## 7. Slicing and concatenation memory mechanics
 
 ```python
 list_a = [10, 20, 30]
@@ -104,7 +203,7 @@ Does `0x500` stay in memory because `combined_slice` was sliced from it? No.
 * `combined_slice` does not reference the `0x500` list container.
 * When `combined = 0` runs, the reference count on `0x500` hits zero and the container is garbage collected. The integer objects `20`, `30`, and `40` remain alive because `list_a`, `list_b`, and `combined_slice` still reference them.
 
-## 5. Sets, dictionaries, and hashability
+## 8. Sets, dictionaries, and hashability
 
 Both `set` and `dict` are backed by hash tables, giving $\mathcal{O}(1)$ average lookup compared to $\mathcal{O}(n)$ linear scan for a `list`.
 
@@ -121,7 +220,7 @@ s2 = {1, 2, (3, [4, 5])}   # TypeError: unhashable type: 'list'
 
 If `(3, [4, 5])` were allowed in a set, mutating the inner list would change the tuple's contents after insertion and leave it in the wrong hash bucket.
 
-## 6. Common Python syntax traps
+## 9. Common Python syntax traps
 
 | Snippet | Output / behavior | Explanation |
 |---|---|---|
